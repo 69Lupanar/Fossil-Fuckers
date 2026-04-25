@@ -2,7 +2,9 @@
     "name": "Assets.Project.Scripts.Runtime.ViewModels",
     "rootNamespace": "",
     "references": [
-        "GUID:0754feb706180f74089ecf944cb6e99c"
+        "GUID:0754feb706180f74089ecf944cb6e99c",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:6cbd1c158f5ff3f4abbade29890bc375"
     ],
     "includePlatforms": [
         "Editor",
