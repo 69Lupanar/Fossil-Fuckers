@@ -1,6 +1,6 @@
 using UnityEditor;
 using UnityEngine;
-using DiggableTerrainTarget = Assets.Project.Scripts.Runtime.ViewModels.DiggableTerrain.DiggableTerrain;
+using DiggableTerrainTarget = Assets.Project.Scripts.Runtime.ViewModels.QuadTreeGen.DiggableTerrain;
 
 namespace Assets.Project.Scripts.Editor.DiggableTerrain
 {

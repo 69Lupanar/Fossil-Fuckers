@@ -2,7 +2,7 @@ using Assets.Project.Scripts.Runtime.Models.QuadTree;
 using UnityEngine;
 using TerrainData = Assets.Project.Scripts.Runtime.Models.QuadTree.TerrainData;
 
-namespace Assets.Project.Scripts.Runtime.ViewModels.DiggableTerrain
+namespace Assets.Project.Scripts.Runtime.ViewModels.QuadTreeGen
 {
     /// <summary>
     /// Gère le terrain creusable
@@ -151,9 +151,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.DiggableTerrain
                     bool isQuadSolid = _terrainData.IsSolid(quad);
 
                     if (isQuadSolid)
-                    {
                         ConstructQuad(quad, meshContructionHelper);
-                    }
                 }
             }
 
@@ -171,13 +169,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.DiggableTerrain
             //we convert texture coordinates to uv's 
             //by dividing them by texture dimensions
 
-            float uvX = (x / (float)_texture2D.width);
-            float uvY = (y / (float)_texture2D.height);
+            float uvX = x / (float)_texture2D.width;
+            float uvY = y / (float)_texture2D.height;
 
             //we center our position by substraction half of texture dimension 
             //from texture coordinate and scale it
 
-            Vector3 position = new Vector3(x - (_texture2D.width / 2f), y - (_texture2D.height / 2f), 0) / (_pixelsPerUnit);
+            Vector3 position = new Vector3(x - _texture2D.width / 2f, y - _texture2D.height / 2f, 0) / _pixelsPerUnit;
 
             return new VertexData()
             {
@@ -230,8 +228,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.DiggableTerrain
         /// <param name="position">Le centre</param>
         private void DestroyArea(Vector3 position)
         {
-            int x = (int)(position.x * _pixelsPerUnit) + (_texture2D.width / 2);
-            int y = (int)(position.y * _pixelsPerUnit) + (_texture2D.height / 2);
+            int x = (int)(position.x * _pixelsPerUnit) + _texture2D.width / 2;
+            int y = (int)(position.y * _pixelsPerUnit) + _texture2D.height / 2;
 
             _terrainData.DestroyTerrain(x, y, (int)(_destructionRadius * _pixelsPerUnit));
             _quadTree = new QuadTree(_terrainData);
@@ -278,8 +276,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.DiggableTerrain
         /// <param name="color">Couleur du quad</param>
         private void DrawQuadGizmos(Quad quad, Color color)
         {
-            float x = quad.Pos.x + (quad.Dimensions.x / 2f);
-            float y = quad.Pos.y + (quad.Dimensions.y / 2f);
+            float x = quad.Pos.x + quad.Dimensions.x / 2f;
+            float y = quad.Pos.y + quad.Dimensions.y / 2f;
 
             Vector3 center = new(x, y, 0);
             Vector3 size = new(quad.Dimensions.x, quad.Dimensions.y);
