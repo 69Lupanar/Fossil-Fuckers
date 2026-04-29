@@ -96,6 +96,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             chunks = new VoxelGrid[chunkResolution * chunkResolution];
             BoxCollider box = gameObject.AddComponent<BoxCollider>();
             box.size = new Vector3(size, size);
+            box.center = new Vector3(halfSize, halfSize);
 
             for (int i = 0, y = 0; y < chunkResolution; ++y)
             {
@@ -135,7 +136,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         private void CreateChunk(int i, int x, int y)
         {
             VoxelGrid chunk = Instantiate(voxelGridPrefab, transform);
-            chunk.transform.localPosition = new Vector3(x * chunkSize - halfSize, y * chunkSize - halfSize);    //halfSize permet de garder la grille centrée sur la caméra
+            chunk.transform.localPosition = new Vector3(x * chunkSize/* - halfSize*/, y * chunkSize/* - halfSize*/);    //halfSize permet de garder la grille centrée sur la caméra
             chunk.Initialize(voxelResolution, chunkSize);
             chunks[i] = chunk;
         }
@@ -148,8 +149,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             //halfsize remet l'origine à 0 si on a décalé la carte dans l'Awake
 
-            int centerX = (int)((point.x + halfSize) / voxelSize);
-            int centerY = (int)((point.y + halfSize) / voxelSize);
+            int centerX = (int)((point.x/* + halfSize*/) / voxelSize);
+            int centerY = (int)((point.y/* + halfSize*/) / voxelSize);
 
             // On doit permettre à la brosse d'affecter les voxels
             // à travers tous les chunks

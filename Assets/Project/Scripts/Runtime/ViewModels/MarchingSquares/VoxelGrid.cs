@@ -112,7 +112,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             GameObject o = Instantiate(voxelPrefab, transform);
             o.transform.localPosition = new Vector3((x + 0.5f) * voxelSize, (y + 0.5f) * voxelSize);
-            o.transform.localScale = (1 - voxelSpacing) * voxelSize * Vector3.one;
+            o.transform.localScale = (1f - voxelSpacing) * voxelSize * Vector3.one;
             voxelMaterials[i] = o.GetComponent<MeshRenderer>().material;
         }
 
