@@ -1,4 +1,4 @@
-namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
+ï»¿namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 {
     /// <summary>
     /// Brosse circulaire
@@ -8,13 +8,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         #region Variables d'instance
 
         /// <summary>
-        /// Rayon au carré
+        /// CarrÃ© du rayon
         /// </summary>
         private int sqrRadius;
 
         #endregion
 
-        #region Méthodes privées
+        #region MÃ©thodes publiques
 
         /// <inheritdoc/>
         public override void Initialize(bool fillType, int radius)

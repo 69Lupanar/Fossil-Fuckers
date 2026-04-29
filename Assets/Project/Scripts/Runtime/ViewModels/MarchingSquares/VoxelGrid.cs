@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
@@ -35,7 +36,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Grille de voxels
         /// </summary>
-        private bool[] voxels;
+        private Voxel[] voxels;
 
         /// <summary>
         /// Materials de chaque voxel
@@ -47,6 +48,36 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         private float voxelSize;
 
+        /// <summary>
+        /// Taille du chunk
+        /// </summary>
+        private float gridSize;
+
+        /// <summary>
+        /// Mesh généré
+        /// </summary>
+        private Mesh mesh;
+
+        /// <summary>
+        /// Vertices du mesh
+        /// </summary>
+        private List<Vector3> vertices;
+
+        /// <summary>
+        /// Triangles du mesh
+        /// </summary>
+        private List<int> triangles;
+
+        /// <summary>
+        /// Chunk voisin
+        /// </summary>
+        [HideInInspector]
+        public VoxelGrid xNeighbor, yNeighbor, xyNeighbor;
+
+        /// <summary>
+        /// Faux voxel utilisé lors de la triangulation pour relier les chunks entre eux
+        /// </summary>
+        private Voxel dummyX, dummyY, dummyT;
         #endregion
 
         #region Méthodes publiques
@@ -60,8 +91,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             this.resolution = resolution;
             voxelSize = size / resolution;
-            voxels = new bool[resolution * resolution];
+            gridSize = size;
+            voxels = new Voxel[resolution * resolution];
             voxelMaterials = new Material[voxels.Length];
+
+            dummyX = new Voxel();
+            dummyY = new Voxel();
+            dummyT = new Voxel();
 
             for (int i = 0, y = 0; y < resolution; ++y)
             {
@@ -71,7 +107,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 }
             }
 
-            SetVoxelColors();
+            GetComponent<MeshFilter>().mesh = mesh = new Mesh();
+            mesh.name = "VoxelGrid Mesh";
+            vertices = new List<Vector3>();
+            triangles = new List<int>();
+            Refresh();
         }
 
         /// <summary>
@@ -94,11 +134,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
                 for (int x = xStart; x <= xEnd; ++x, ++i)
                 {
-                    voxels[i] = stencil.Apply(x, y, voxels[i]);
+                    voxels[i].state = stencil.Apply(x, y, voxels[i].state);
                 }
             }
 
-            SetVoxelColors();
+            Refresh();
         }
 
         #endregion
@@ -114,6 +154,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             o.transform.localPosition = new Vector3((x + 0.5f) * voxelSize, (y + 0.5f) * voxelSize);
             o.transform.localScale = (1f - voxelSpacing) * voxelSize * Vector3.one;
             voxelMaterials[i] = o.GetComponent<MeshRenderer>().material;
+            voxels[i] = new Voxel(x, y, voxelSize);
         }
 
         /// <summary>
@@ -123,8 +164,241 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             for (int i = 0; i < voxels.Length; ++i)
             {
-                voxelMaterials[i].color = voxels[i] ? Color.black : Color.white;
+                voxelMaterials[i].color = voxels[i].state ? Color.black : Color.white;
             }
+        }
+
+        /// <summary>
+        /// Màj le mesh
+        /// </summary>
+        private void Refresh()
+        {
+            SetVoxelColors();
+            Triangulate();
+        }
+
+        /// <summary>
+        /// Calcule les triangles du mesh
+        /// </summary>
+        private void Triangulate()
+        {
+            triangles.Clear();
+            mesh.Clear();
+
+            if (xNeighbor != null)
+            {
+                dummyX.BecomeXDummyOf(xNeighbor.voxels[0], gridSize);
+            }
+
+            TriangulateCellRows();
+
+            if (yNeighbor != null)
+            {
+                TriangulateGapRow();
+            }
+
+            // TAF : Passer à des tableaux fixes au lieu de listes
+            mesh.vertices = vertices.ToArray();
+            mesh.triangles = triangles.ToArray();
+        }
+
+        /// <summary>
+        /// Calcule les triangles de chaque rangée de cellules
+        /// </summary>
+        private void TriangulateCellRows()
+        {
+            int cells = resolution - 1;
+            for (int i = 0, y = 0; y < cells; ++y, ++i)
+            {
+                for (int x = 0; x < cells; ++x, ++i)
+                {
+                    TriangulateCell(
+                    voxels[i],
+                    voxels[i + 1],
+                    voxels[i + resolution],
+                    voxels[i + resolution + 1]);
+                }
+                if (xNeighbor != null)
+                {
+                    TriangulateGapCell(i);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Calcule les triangles d'une cellule en fonction de ses voxels
+        /// </summary>
+        /// <param name="a">Voxel bas gauche</param>
+        /// <param name="b">Voxel bas droit</param>
+        /// <param name="c">Voxel haut gauche</param>
+        /// <param name="d">Voxel haut droit</param>
+        private void TriangulateCell(Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            // TAF : tester avec un byte au lieu d'un int
+            int cellType = 0;
+            if (a.state)
+            {
+                cellType |= 1;
+            }
+            if (b.state)
+            {
+                cellType |= 2;
+            }
+            if (c.state)
+            {
+                cellType |= 4;
+            }
+            if (d.state)
+            {
+                cellType |= 8;
+            }
+
+            // On exécute une triangulation différente pour chacun des 16 cas possibles de la cellule
+
+            switch (cellType)
+            {
+                case 0:
+                    return;
+                case 1:
+                    AddTriangle(a.position, a.yEdgePosition, a.xEdgePosition);
+                    break;
+                case 2:
+                    AddTriangle(b.position, a.xEdgePosition, b.yEdgePosition);
+                    break;
+                case 4:
+                    AddTriangle(c.position, c.xEdgePosition, a.yEdgePosition);
+                    break;
+                case 8:
+                    AddTriangle(d.position, b.yEdgePosition, c.xEdgePosition);
+                    break;
+                case 3:
+                    AddQuad(a.position, a.yEdgePosition, b.yEdgePosition, b.position);
+                    break;
+                case 5:
+                    AddQuad(a.position, c.position, c.xEdgePosition, a.xEdgePosition);
+                    break;
+                case 10:
+                    AddQuad(a.xEdgePosition, c.xEdgePosition, d.position, b.position);
+                    break;
+                case 12:
+                    AddQuad(a.yEdgePosition, c.position, d.position, b.yEdgePosition);
+                    break;
+                case 15:
+                    AddQuad(a.position, c.position, d.position, b.position);
+                    break;
+                case 7:
+                    AddPentagon(a.position, c.position, c.xEdgePosition, b.yEdgePosition, b.position);
+                    break;
+                case 11:
+                    AddPentagon(b.position, a.position, a.yEdgePosition, c.xEdgePosition, d.position);
+                    break;
+                case 13:
+                    AddPentagon(c.position, d.position, b.yEdgePosition, a.xEdgePosition, a.position);
+                    break;
+                case 14:
+                    AddPentagon(d.position, b.position, a.xEdgePosition, a.yEdgePosition, c.position);
+                    break;
+                case 6:
+                    AddTriangle(b.position, a.xEdgePosition, b.yEdgePosition);
+                    AddTriangle(c.position, c.xEdgePosition, a.yEdgePosition);
+                    break;
+                case 9:
+                    AddTriangle(a.position, a.yEdgePosition, a.xEdgePosition);
+                    AddTriangle(d.position, b.yEdgePosition, c.xEdgePosition);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Calcules les truangles d'une cellule séparant deux chunks
+        /// </summary>
+        /// <param name="i">La position du voxel dans la liste</param>
+        private void TriangulateGapCell(int i)
+        {
+            Voxel dummySwap = dummyT;
+            dummySwap.BecomeXDummyOf(xNeighbor.voxels[i + 1], gridSize);
+            dummyT = dummyX;
+            dummyX = dummySwap;
+            TriangulateCell(voxels[i], dummyT, voxels[i + resolution], dummyX);
+        }
+
+        /// <summary>
+        /// Calcules les truangles des cellules séparant deux chunks
+        /// </summary>
+        private void TriangulateGapRow()
+        {
+            dummyY.BecomeYDummyOf(yNeighbor.voxels[0], gridSize);
+            int cells = resolution - 1;
+            int offset = cells * resolution;
+
+            for (int x = 0; x < cells; ++x)
+            {
+                Voxel dummySwap = dummyT;
+                dummySwap.BecomeYDummyOf(yNeighbor.voxels[x + 1], gridSize);
+                dummyT = dummyY;
+                dummyY = dummySwap;
+                TriangulateCell(voxels[x + offset], voxels[x + offset + 1], dummyT, dummyY);
+            }
+
+            if (xNeighbor != null)
+            {
+                dummyT.BecomeXYDummyOf(xyNeighbor.voxels[0], gridSize);
+                TriangulateCell(voxels[^1], dummyX, dummyY, dummyT);
+            }
+        }
+
+        /// <summary>
+        /// Crée un triangle à partir des vertices renseignés
+        /// </summary>
+        private void AddTriangle(Vector3 a, Vector3 b, Vector3 c)
+        {
+            int vertexIndex = vertices.Count;
+            vertices.Add(a);
+            vertices.Add(b);
+            vertices.Add(c);
+            triangles.Add(vertexIndex);
+            triangles.Add(vertexIndex + 1);
+            triangles.Add(vertexIndex + 2);
+        }
+
+        /// <summary>
+        /// Crée un quad à partir des vertices renseignés
+        /// </summary>
+        private void AddQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
+        {
+            int vertexIndex = vertices.Count;
+            vertices.Add(a);
+            vertices.Add(b);
+            vertices.Add(c);
+            vertices.Add(d);
+            triangles.Add(vertexIndex);
+            triangles.Add(vertexIndex + 1);
+            triangles.Add(vertexIndex + 2);
+            triangles.Add(vertexIndex);
+            triangles.Add(vertexIndex + 2);
+            triangles.Add(vertexIndex + 3);
+        }
+
+        /// <summary>
+        /// Crée un pentagone à partir des vertices renseignés
+        /// </summary>
+        private void AddPentagon(Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 e)
+        {
+            int vertexIndex = vertices.Count;
+            vertices.Add(a);
+            vertices.Add(b);
+            vertices.Add(c);
+            vertices.Add(d);
+            vertices.Add(e);
+            triangles.Add(vertexIndex);
+            triangles.Add(vertexIndex + 1);
+            triangles.Add(vertexIndex + 2);
+            triangles.Add(vertexIndex);
+            triangles.Add(vertexIndex + 2);
+            triangles.Add(vertexIndex + 3);
+            triangles.Add(vertexIndex);
+            triangles.Add(vertexIndex + 3);
+            triangles.Add(vertexIndex + 4);
         }
 
         #endregion

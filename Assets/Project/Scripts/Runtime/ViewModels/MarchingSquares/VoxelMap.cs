@@ -1,26 +1,26 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 {
     /// <summary>
-    /// Grille contenant les chunks de voxels
+    /// Grille de voxels divisÃ©e en chunks
     /// </summary>
     public class VoxelMap : MonoBehaviour
     {
-        #region Propriétés
+        #region PropriÃ©tÃ©s
 
         /// <summary>
-        /// Etat que doit prendre un voxel au passage de la brosse
+        /// Le type de remplissage de la brosse active
         /// </summary>
         public int FillTypeIndex { get; set; }
 
         /// <summary>
-        /// Taille de la brosse
+        /// Le rayon de la brosse active
         /// </summary>
         public int RadiusIndex { get; set; }
 
         /// <summary>
-        /// Type de la brosse
+        /// Le type de la brosse active
         /// </summary>
         public int StencilIndex { get; set; }
 
@@ -29,15 +29,15 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         #region Variables Unity
 
         /// <summary>
-        /// Dimensions de la carte en nb de chunks
+        /// Nombre de chunks par dimension de la carte
         /// </summary>
-        [Tooltip("Dimensions de la carte en nb de chunks")]
+        [Tooltip("Nombres de chunks par dimensions de la carte")]
         public float size = 2f;
 
         /// <summary>
-        /// Résolution des voxels par chunk
+        /// Nombre de voxels par dimension de la carte
         /// </summary>
-        [Tooltip("Résolution des voxels par chunk")]
+        [Tooltip("Nombre de voxels par dimension de la carte")]
         public int voxelResolution = 8;
 
         /// <summary>
@@ -47,9 +47,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         public int chunkResolution = 2;
 
         /// <summary>
-        /// Prefab des chunks
+        /// Prefab de la grille de voxels
         /// </summary>
-        [Tooltip("Prefab des chunks")]
+        [Tooltip("Prefab de la grille de voxels")]
         public VoxelGrid voxelGridPrefab;
 
         #endregion
@@ -72,18 +72,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         private float voxelSize;
 
         /// <summary>
-        /// Moitié de la taille de la carte
+        /// MoitiÃ© de la taille de la grille
         /// </summary>
         private float halfSize;
 
         /// <summary>
-        /// Les brosses
+        /// Brosses
         /// </summary>
         private VoxelStencil[] stencils = { new VoxelStencil(), new VoxelStencilCircle() };
 
         #endregion
 
-        #region Variables Unity
+        #region MÃ©thodes Unity
 
         /// <summary>
         /// init
@@ -108,79 +108,84 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         }
 
         /// <summary>
-        /// Màj à chaque frame
+        /// mÃ j Ã  chaque frame
         /// </summary>
         private void Update()
         {
-            // On détecte où se trouve la souris pour éditer le voxel à son emplacement
-
             if (Input.GetMouseButton(0))
             {
+                // On rÃ©cupÃ¨re la position de la souris dans la grille
+
                 if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
                 {
                     if (hitInfo.collider.gameObject == gameObject)
-                    {
                         EditVoxels(transform.InverseTransformPoint(hitInfo.point));
-                    }
                 }
             }
         }
 
         #endregion
 
-        #region Méthodes privées
-
         /// <summary>
-        /// Crée un chunk aux coordonnées renseignées
+        /// CrÃ©e un chunk Ã  partir des coordonnÃ©es renseignÃ©es
         /// </summary>
+        /// <param name="i"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
         private void CreateChunk(int i, int x, int y)
         {
             VoxelGrid chunk = Instantiate(voxelGridPrefab, transform);
-            chunk.transform.localPosition = new Vector3(x * chunkSize/* - halfSize*/, y * chunkSize/* - halfSize*/);    //halfSize permet de garder la grille centrée sur la caméra
             chunk.Initialize(voxelResolution, chunkSize);
+            chunk.transform.localPosition = new Vector3(x * chunkSize/* - halfSize*/, y * chunkSize/* - halfSize*/);
             chunks[i] = chunk;
-        }
 
-        /// <summary>
-        /// Modifie le voxel aux coordonnées renseignées
-        /// </summary>
-        /// <param name="point">Position du voxel</param>
-        private void EditVoxels(Vector3 point)
-        {
-            //halfsize remet l'origine à 0 si on a décalé la carte dans l'Awake
-
-            int centerX = (int)((point.x/* + halfSize*/) / voxelSize);
-            int centerY = (int)((point.y/* + halfSize*/) / voxelSize);
-
-            // On doit permettre à la brosse d'affecter les voxels
-            // à travers tous les chunks
-
-            int xStart = Mathf.Max(0, (centerX - RadiusIndex) / voxelResolution);
-            int xEnd = Mathf.Min((centerX + RadiusIndex) / voxelResolution, chunkResolution - 1);
-            int yStart = Mathf.Max(0, (centerY - RadiusIndex) / voxelResolution);
-            int yEnd = Mathf.Min((centerY + RadiusIndex) / voxelResolution, chunkResolution - 1);
-
-
-            VoxelStencil activeStencil = stencils[StencilIndex];
-            activeStencil.Initialize(FillTypeIndex == 0, RadiusIndex);
-            int voxelYOffset = yStart * voxelResolution;
-
-            for (int y = yStart; y <= yEnd; ++y)
+            if (x > 0)
             {
-                int i = y * chunkResolution + xStart;
-                int voxelXOffset = xStart * voxelResolution;
-
-                for (int x = xStart; x <= xEnd; ++x, ++i)
+                chunks[i - 1].xNeighbor = chunk;
+            }
+            if (y > 0)
+            {
+                chunks[i - chunkResolution].yNeighbor = chunk;
+                if (x > 0)
                 {
-                    activeStencil.SetCenter(centerX - voxelXOffset, centerY - voxelYOffset);
-                    chunks[i].Apply(activeStencil);
-                    voxelXOffset += voxelResolution;
+                    chunks[i - chunkResolution - 1].xyNeighbor = chunk;
                 }
-
-                voxelYOffset += voxelResolution;
             }
         }
 
-        #endregion
+        /// <summary>
+        /// MÃ j l'Ã©tat des voxels affectÃ©spar la brosse active
+        /// </summary>
+        /// <param name="point">Position du curseur</param>
+        private void EditVoxels(Vector3 point)
+        {
+            int centerX = (int)((point.x/* + halfSize*/) / voxelSize);
+            int centerY = (int)((point.y/* + halfSize*/) / voxelSize);
+
+            int xStart = Mathf.Max(0, (centerX - RadiusIndex - 1) / voxelResolution);
+            int xEnd = Mathf.Min((centerX + RadiusIndex) / voxelResolution, chunkResolution - 1);
+            int yStart = Mathf.Max(0, (centerY - RadiusIndex - 1) / voxelResolution);
+            int yEnd = Mathf.Min((centerY + RadiusIndex) / voxelResolution, chunkResolution - 1);
+
+            VoxelStencil activeStencil = stencils[StencilIndex];
+            activeStencil.Initialize(FillTypeIndex == 0, RadiusIndex);
+
+            int voxelYOffset = yEnd * voxelResolution;
+
+            for (int y = yEnd; y >= yStart; --y)
+            {
+                int i = y * chunkResolution + xEnd;
+                int voxelXOffset = xEnd * voxelResolution;
+
+                for (int x = xEnd; x >= xStart; --x, --i)
+                {
+                    activeStencil.SetCenter(centerX - voxelXOffset, centerY - voxelYOffset);
+                    chunks[i].Apply(activeStencil);
+                    voxelXOffset -= voxelResolution;
+                }
+
+                voxelYOffset -= voxelResolution;
+            }
+        }
     }
 }

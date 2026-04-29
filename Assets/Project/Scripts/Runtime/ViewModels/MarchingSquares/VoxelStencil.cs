@@ -1,30 +1,29 @@
-namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
+Ôªønamespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 {
     /// <summary>
-    /// Brosse permettant de changer l'Ètat de plusieurs
-    /// voxels ‡ la fois
+    /// Brosse permettant de modifier plusieurs voxels √† la fois
     /// </summary>
     public class VoxelStencil
     {
-        #region PropriÈtÈs
+        #region Propri√©t√©s
 
         /// <summary>
-        /// Limite de la zone rectangulaire englobant la brosse
+        /// Limite de la zone rectangulaire affect√©e par la brosse
         /// </summary>
         public int XStart => centerX - radius;
 
         /// <summary>
-        /// Limite de la zone rectangulaire englobant la brosse
+        /// Limite de la zone rectangulaire affect√©e par la brosse
         /// </summary>
         public int XEnd => centerX + radius;
 
         /// <summary>
-        /// Limite de la zone rectangulaire englobant la brosse
+        /// Limite de la zone rectangulaire affect√©e par la brosse
         /// </summary>
         public int YStart => centerY - radius;
 
         /// <summary>
-        /// Limite de la zone rectangulaire englobant la brosse
+        /// Limite de la zone rectangulaire affect√©e par la brosse
         /// </summary>
         public int YEnd => centerY + radius;
 
@@ -33,17 +32,17 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         #region Variables d'instance
 
         /// <summary>
-        /// Etat que doit prendre un voxel au passage de la brosse
+        /// Type de remplissage de la brosse
         /// </summary>
         protected bool fillType;
 
         /// <summary>
-        /// Coord X de la brosse
+        /// Coord X
         /// </summary>
         protected int centerX;
 
         /// <summary>
-        /// Coord Y de la brosse
+        /// Coord Y
         /// </summary>
         protected int centerY;
 
@@ -54,12 +53,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         #endregion
 
-        #region MÈthodes publiques
+        #region M√©thodes publiques
 
         /// <summary>
         /// init
         /// </summary>
-        /// <param name="fillType">Etat que doit prendre un voxel au passage de la brosse</param>
+        /// <param name="fillType">Type de remplissage de la brosse</param>
         /// <param name="radius">Rayon de la brosse</param>
         public virtual void Initialize(bool fillType, int radius)
         {
@@ -77,12 +76,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         }
 
         /// <summary>
-        /// Applique un nouvel Ètat ‡ un voxel
+        /// Applique le type de remplissage au voxel renseign√©
         /// </summary>
-        /// <param name="x">Coord X</param>
-        /// <param name="y">Coord Y</param>
-        /// <param name="voxel">Valeur du voxel avant modification</param>
-        /// <returns>Le nouvel Ètat du voxel</returns>
+        /// <param name="voxel">L'√©tat pr√©c√©dent du voxel</param>
         public virtual bool Apply(int x, int y, bool voxel)
         {
             return fillType;
