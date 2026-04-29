@@ -52,6 +52,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         [Tooltip("Prefab de la grille de voxels")]
         public VoxelGrid voxelGridPrefab;
 
+        /// <summary>
+        /// Les objets 3D représentant les brosses
+        /// </summary>
+        [Tooltip("Les objets 3D représentant les brosses")]
+        public Transform[] stencilVisualizations;
+
+        /// <summary>
+        /// true si la visualisation des brosses doit s'aligner avec la grille
+        /// </summary>
+        [Tooltip("true si la visualisation des brosses doit s'aligner avec la grille")]
+        public bool snapToGrid = false;
+
         #endregion
 
         #region Variables d'instance
@@ -112,15 +124,34 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         private void Update()
         {
-            if (Input.GetMouseButton(0))
-            {
-                // On récupère la position de la souris dans la grille
+            Transform visualization = stencilVisualizations[StencilIndex];
 
-                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
+            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo) &&
+                hitInfo.collider.gameObject == gameObject)
+            {
+                Vector2 center = transform.InverseTransformPoint(hitInfo.point);
+                //center.x += halfSize;
+                //center.y += halfSize;
+                if (snapToGrid)
                 {
-                    if (hitInfo.collider.gameObject == gameObject)
-                        EditVoxels(transform.InverseTransformPoint(hitInfo.point));
+                    center.x = ((int)(center.x / voxelSize) + 0.5f) * voxelSize;
+                    center.y = ((int)(center.y / voxelSize) + 0.5f) * voxelSize;
                 }
+
+                if (Input.GetMouseButton(0))
+                {
+                    EditVoxels(transform.InverseTransformPoint(center));
+                }
+
+                //center.x -= halfSize;
+                //center.y -= halfSize;
+                visualization.localPosition = center;
+                visualization.localScale = Vector3.one * ((RadiusIndex + 0.5f) * voxelSize * 2f);
+                visualization.gameObject.SetActive(true);
+            }
+            else
+            {
+                visualization.gameObject.SetActive(false);
             }
         }
 
@@ -156,35 +187,29 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Màj l'état des voxels affectéspar la brosse active
         /// </summary>
-        /// <param name="point">Position du curseur</param>
-        private void EditVoxels(Vector3 point)
+        /// <param name="center">Position du curseur</param>
+        private void EditVoxels(Vector3 center)
         {
-            int centerX = (int)((point.x/* + halfSize*/) / voxelSize);
-            int centerY = (int)((point.y/* + halfSize*/) / voxelSize);
-
-            int xStart = Mathf.Max(0, (centerX - RadiusIndex - 1) / voxelResolution);
-            int xEnd = Mathf.Min((centerX + RadiusIndex) / voxelResolution, chunkResolution - 1);
-            int yStart = Mathf.Max(0, (centerY - RadiusIndex - 1) / voxelResolution);
-            int yEnd = Mathf.Min((centerY + RadiusIndex) / voxelResolution, chunkResolution - 1);
-
             VoxelStencil activeStencil = stencils[StencilIndex];
-            activeStencil.Initialize(FillTypeIndex == 0, RadiusIndex);
+            activeStencil.Initialize(FillTypeIndex == 0, (RadiusIndex + 0.5f) * voxelSize);
+            activeStencil.SetCenter(center.x, center.y);
+
+            int xStart = Mathf.Max(0, (int)((activeStencil.XStart - voxelSize) / chunkSize));
+            int xEnd = Mathf.Min((int)((activeStencil.XEnd + voxelSize) / chunkSize), chunkResolution - 1);
+            int yStart = Mathf.Max(0, (int)((activeStencil.YStart - voxelSize) / chunkSize));
+            int yEnd = Mathf.Min((int)((activeStencil.YEnd + voxelSize) / chunkSize), chunkResolution - 1);
 
             int voxelYOffset = yEnd * voxelResolution;
 
             for (int y = yEnd; y >= yStart; --y)
             {
                 int i = y * chunkResolution + xEnd;
-                int voxelXOffset = xEnd * voxelResolution;
 
                 for (int x = xEnd; x >= xStart; --x, --i)
                 {
-                    activeStencil.SetCenter(centerX - voxelXOffset, centerY - voxelYOffset);
+                    activeStencil.SetCenter(center.x - x * chunkSize, center.y - y * chunkSize);
                     chunks[i].Apply(activeStencil);
-                    voxelXOffset -= voxelResolution;
                 }
-
-                voxelYOffset -= voxelResolution;
             }
         }
     }

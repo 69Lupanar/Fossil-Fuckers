@@ -78,6 +78,17 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// Faux voxel utilisé lors de la triangulation pour relier les chunks entre eux
         /// </summary>
         private Voxel dummyX, dummyY, dummyT;
+
+        /// <summary>
+        /// Cache des vertices
+        /// </summary>
+        private int[] rowCacheMax, rowCacheMin;
+
+        /// <summary>
+        /// Cache des vertices
+        /// </summary>
+        private int edgeCacheMin, edgeCacheMax;
+
         #endregion
 
         #region Méthodes publiques
@@ -111,6 +122,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             mesh.name = "VoxelGrid Mesh";
             vertices = new List<Vector3>();
             triangles = new List<int>();
+            rowCacheMax = new int[resolution * 2 + 1];
+            rowCacheMin = new int[resolution * 2 + 1];
             Refresh();
         }
 
@@ -120,10 +133,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <param name="stencil">Brosse utilisée</param>
         public void Apply(VoxelStencil stencil)
         {
-            int xStart = Mathf.Max(0, stencil.XStart);
-            int xEnd = Mathf.Min(stencil.XEnd, resolution - 1);
-            int yStart = Mathf.Max(0, stencil.YStart);
-            int yEnd = Mathf.Min(stencil.YEnd, resolution - 1);
+            int xStart = Mathf.Max(0, (int)(stencil.XStart / voxelSize));
+            int xEnd = Mathf.Min((int)(stencil.XEnd / voxelSize), resolution - 1);
+            int yStart = Mathf.Max(0, (int)(stencil.YStart / voxelSize));
+            int yEnd = Mathf.Min((int)(stencil.YEnd / voxelSize), resolution - 1);
 
             // On traverse toute la zone rectangulaire englobant la brosse
             // pour modifier les voxels concernés
@@ -134,10 +147,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
                 for (int x = xStart; x <= xEnd; ++x, ++i)
                 {
-                    voxels[i].state = stencil.Apply(x, y, voxels[i].state);
+                    stencil.Apply(voxels[i]);
                 }
             }
 
+            SetCrossings(stencil, xStart, xEnd, yStart, yEnd);
             Refresh();
         }
 
@@ -185,11 +199,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             triangles.Clear();
             mesh.Clear();
 
-            if (xNeighbor != null)
-            {
-                dummyX.BecomeXDummyOf(xNeighbor.voxels[0], gridSize);
-            }
-
+            FillFirstRowCache();
             TriangulateCellRows();
 
             if (yNeighbor != null)
@@ -210,13 +220,21 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             int cells = resolution - 1;
             for (int i = 0, y = 0; y < cells; ++y, ++i)
             {
+                SwapRowCaches();
+                CacheFirstCorner(voxels[i + resolution]);
+                CacheNextMiddleEdge(voxels[i], voxels[i + resolution]);
+
                 for (int x = 0; x < cells; ++x, ++i)
                 {
-                    TriangulateCell(
-                    voxels[i],
-                    voxels[i + 1],
-                    voxels[i + resolution],
-                    voxels[i + resolution + 1]);
+                    Voxel
+                     a = voxels[i],
+                     b = voxels[i + 1],
+                     c = voxels[i + resolution],
+                     d = voxels[i + resolution + 1];
+                    int cacheIndex = x * 2;
+                    CacheNextEdgeAndCorner(cacheIndex, c, d);
+                    CacheNextMiddleEdge(b, d);
+                    TriangulateCell(cacheIndex, a, b, c, d);
                 }
                 if (xNeighbor != null)
                 {
@@ -228,11 +246,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Calcule les triangles d'une cellule en fonction de ses voxels
         /// </summary>
+        /// <param name="i">Indice du cache</param>
         /// <param name="a">Voxel bas gauche</param>
         /// <param name="b">Voxel bas droit</param>
         /// <param name="c">Voxel haut gauche</param>
         /// <param name="d">Voxel haut droit</param>
-        private void TriangulateCell(Voxel a, Voxel b, Voxel c, Voxel d)
+        private void TriangulateCell(int i, Voxel a, Voxel b, Voxel c, Voxel d)
         {
             // TAF : tester avec un byte au lieu d'un int
             int cellType = 0;
@@ -260,51 +279,55 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 case 0:
                     return;
                 case 1:
-                    AddTriangle(a.position, a.yEdgePosition, a.xEdgePosition);
+                    AddTriangle(rowCacheMin[i], edgeCacheMin, rowCacheMin[i + 1]);
                     break;
                 case 2:
-                    AddTriangle(b.position, a.xEdgePosition, b.yEdgePosition);
-                    break;
-                case 4:
-                    AddTriangle(c.position, c.xEdgePosition, a.yEdgePosition);
-                    break;
-                case 8:
-                    AddTriangle(d.position, b.yEdgePosition, c.xEdgePosition);
+                    AddTriangle(rowCacheMin[i + 2], rowCacheMin[i + 1], edgeCacheMax);
                     break;
                 case 3:
-                    AddQuad(a.position, a.yEdgePosition, b.yEdgePosition, b.position);
+                    AddQuad(rowCacheMin[i], edgeCacheMin, edgeCacheMax, rowCacheMin[i + 2]);
+                    break;
+                case 4:
+                    AddTriangle(rowCacheMax[i], rowCacheMax[i + 1], edgeCacheMin);
                     break;
                 case 5:
-                    AddQuad(a.position, c.position, c.xEdgePosition, a.xEdgePosition);
-                    break;
-                case 10:
-                    AddQuad(a.xEdgePosition, c.xEdgePosition, d.position, b.position);
-                    break;
-                case 12:
-                    AddQuad(a.yEdgePosition, c.position, d.position, b.yEdgePosition);
-                    break;
-                case 15:
-                    AddQuad(a.position, c.position, d.position, b.position);
-                    break;
-                case 7:
-                    AddPentagon(a.position, c.position, c.xEdgePosition, b.yEdgePosition, b.position);
-                    break;
-                case 11:
-                    AddPentagon(b.position, a.position, a.yEdgePosition, c.xEdgePosition, d.position);
-                    break;
-                case 13:
-                    AddPentagon(c.position, d.position, b.yEdgePosition, a.xEdgePosition, a.position);
-                    break;
-                case 14:
-                    AddPentagon(d.position, b.position, a.xEdgePosition, a.yEdgePosition, c.position);
+                    AddQuad(rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1], rowCacheMin[i + 1]);
                     break;
                 case 6:
-                    AddTriangle(b.position, a.xEdgePosition, b.yEdgePosition);
-                    AddTriangle(c.position, c.xEdgePosition, a.yEdgePosition);
+                    AddTriangle(rowCacheMin[i + 2], rowCacheMin[i + 1], edgeCacheMax);
+                    AddTriangle(rowCacheMax[i], rowCacheMax[i + 1], edgeCacheMin);
+                    break;
+                case 7:
+                    AddPentagon(
+                        rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1], edgeCacheMax, rowCacheMin[i + 2]);
+                    break;
+                case 8:
+                    AddTriangle(rowCacheMax[i + 2], edgeCacheMax, rowCacheMax[i + 1]);
                     break;
                 case 9:
-                    AddTriangle(a.position, a.yEdgePosition, a.xEdgePosition);
-                    AddTriangle(d.position, b.yEdgePosition, c.xEdgePosition);
+                    AddTriangle(rowCacheMin[i], edgeCacheMin, rowCacheMin[i + 1]);
+                    AddTriangle(rowCacheMax[i + 2], edgeCacheMax, rowCacheMax[i + 1]);
+                    break;
+                case 10:
+                    AddQuad(rowCacheMin[i + 1], rowCacheMax[i + 1], rowCacheMax[i + 2], rowCacheMin[i + 2]);
+                    break;
+                case 11:
+                    AddPentagon(
+                        rowCacheMin[i + 2], rowCacheMin[i], edgeCacheMin, rowCacheMax[i + 1], rowCacheMax[i + 2]);
+                    break;
+                case 12:
+                    AddQuad(edgeCacheMin, rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax);
+                    break;
+                case 13:
+                    AddPentagon(
+                        rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax, rowCacheMin[i + 1], rowCacheMin[i]);
+                    break;
+                case 14:
+                    AddPentagon(
+                        rowCacheMax[i + 2], rowCacheMin[i + 2], rowCacheMin[i + 1], edgeCacheMin, rowCacheMax[i]);
+                    break;
+                case 15:
+                    AddQuad(rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 2], rowCacheMin[i + 2]);
                     break;
             }
         }
@@ -319,7 +342,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             dummySwap.BecomeXDummyOf(xNeighbor.voxels[i + 1], gridSize);
             dummyT = dummyX;
             dummyX = dummySwap;
-            TriangulateCell(voxels[i], dummyT, voxels[i + resolution], dummyX);
+            int cacheIndex = (resolution - 1) * 2;
+            CacheNextEdgeAndCorner(cacheIndex, voxels[i + resolution], dummyX);
+            CacheNextMiddleEdge(dummyT, dummyX);
+            TriangulateCell(cacheIndex, voxels[i], dummyT, voxels[i + resolution], dummyX);
         }
 
         /// <summary>
@@ -330,6 +356,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             dummyY.BecomeYDummyOf(yNeighbor.voxels[0], gridSize);
             int cells = resolution - 1;
             int offset = cells * resolution;
+            SwapRowCaches();
+            CacheFirstCorner(dummyY);
+            CacheNextMiddleEdge(voxels[cells * resolution], dummyY);
 
             for (int x = 0; x < cells; ++x)
             {
@@ -337,68 +366,216 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 dummySwap.BecomeYDummyOf(yNeighbor.voxels[x + 1], gridSize);
                 dummyT = dummyY;
                 dummyY = dummySwap;
-                TriangulateCell(voxels[x + offset], voxels[x + offset + 1], dummyT, dummyY);
+                int cacheIndex = x * 2;
+                CacheNextEdgeAndCorner(cacheIndex, dummyT, dummyY);
+                CacheNextMiddleEdge(voxels[x + offset + 1], dummyY);
+                TriangulateCell(cacheIndex, voxels[x + offset], voxels[x + offset + 1], dummyT, dummyY);
             }
 
             if (xNeighbor != null)
             {
                 dummyT.BecomeXYDummyOf(xyNeighbor.voxels[0], gridSize);
-                TriangulateCell(voxels[^1], dummyX, dummyY, dummyT);
+                int cacheIndex = cells * 2;
+                CacheNextEdgeAndCorner(cacheIndex, dummyY, dummyT);
+                CacheNextMiddleEdge(dummyX, dummyT);
+                TriangulateCell(cacheIndex, voxels[^1], dummyX, dummyY, dummyT);
             }
         }
 
         /// <summary>
         /// Crée un triangle à partir des vertices renseignés
         /// </summary>
-        private void AddTriangle(Vector3 a, Vector3 b, Vector3 c)
+        private void AddTriangle(int a, int b, int c)
         {
-            int vertexIndex = vertices.Count;
-            vertices.Add(a);
-            vertices.Add(b);
-            vertices.Add(c);
-            triangles.Add(vertexIndex);
-            triangles.Add(vertexIndex + 1);
-            triangles.Add(vertexIndex + 2);
+            triangles.Add(a);
+            triangles.Add(b);
+            triangles.Add(c);
         }
 
         /// <summary>
         /// Crée un quad à partir des vertices renseignés
         /// </summary>
-        private void AddQuad(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
+        private void AddQuad(int a, int b, int c, int d)
         {
-            int vertexIndex = vertices.Count;
-            vertices.Add(a);
-            vertices.Add(b);
-            vertices.Add(c);
-            vertices.Add(d);
-            triangles.Add(vertexIndex);
-            triangles.Add(vertexIndex + 1);
-            triangles.Add(vertexIndex + 2);
-            triangles.Add(vertexIndex);
-            triangles.Add(vertexIndex + 2);
-            triangles.Add(vertexIndex + 3);
+            triangles.Add(a);
+            triangles.Add(b);
+            triangles.Add(c);
+            triangles.Add(a);
+            triangles.Add(c);
+            triangles.Add(d);
         }
 
         /// <summary>
         /// Crée un pentagone à partir des vertices renseignés
         /// </summary>
-        private void AddPentagon(Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 e)
+        private void AddPentagon(int a, int b, int c, int d, int e)
         {
-            int vertexIndex = vertices.Count;
-            vertices.Add(a);
-            vertices.Add(b);
-            vertices.Add(c);
-            vertices.Add(d);
-            vertices.Add(e);
-            triangles.Add(vertexIndex);
-            triangles.Add(vertexIndex + 1);
-            triangles.Add(vertexIndex + 2);
-            triangles.Add(vertexIndex);
-            triangles.Add(vertexIndex + 2);
-            triangles.Add(vertexIndex + 3);
-            triangles.Add(vertexIndex);
-            triangles.Add(vertexIndex + 3);
-            triangles.Add(vertexIndex + 4);
+            triangles.Add(a);
+            triangles.Add(b);
+            triangles.Add(c);
+            triangles.Add(a);
+            triangles.Add(c);
+            triangles.Add(d);
+            triangles.Add(a);
+            triangles.Add(d);
+            triangles.Add(e);
+        }
+        /// <summary>
+        /// Remplit la 1è ligne de cache
+        /// </summary>
+        private void FillFirstRowCache()
+        {
+            CacheFirstCorner(voxels[0]);
+            int i;
+
+            for (i = 0; i < resolution - 1; ++i)
+            {
+                CacheNextEdgeAndCorner(i * 2, voxels[i], voxels[i + 1]);
+            }
+            if (xNeighbor != null)
+            {
+                dummyX.BecomeXDummyOf(xNeighbor.voxels[0], gridSize);
+                CacheNextEdgeAndCorner(i * 2, voxels[i], dummyX);
+            }
+        }
+
+        /// <summary>
+        /// Cache le 1er voxel (bas gauche)
+        /// </summary>
+        private void CacheFirstCorner(Voxel voxel)
+        {
+            if (voxel.state)
+            {
+                rowCacheMax[0] = vertices.Count;
+                vertices.Add(voxel.position);
+            }
+        }
+
+        /// <summary>
+        /// Cache l'edge et le voxel suivant
+        /// </summary>
+        /// <param name="i">Position du voxel dans le cache</param>
+        /// <param name="xMin">Voxel de gauche</param>
+        /// <param name="xMax">Voxel de droite</param>
+        private void CacheNextEdgeAndCorner(int i, Voxel xMin, Voxel xMax)
+        {
+            if (xMin.state != xMax.state)
+            {
+                rowCacheMax[i + 1] = vertices.Count;
+                Vector3 p = new(xMin.xEdge, xMin.position.y, 0f);
+                vertices.Add(p);
+            }
+            if (xMax.state)
+            {
+                rowCacheMax[i + 2] = vertices.Count;
+                vertices.Add(xMax.position);
+            }
+        }
+
+        /// <summary>
+        /// Cache l'edge du milieu
+        /// </summary>
+        /// <param name="yMin">Voxel du milieu gauche</param>
+        /// <param name="yMax">Voxel du milieu droit</param>
+        private void CacheNextMiddleEdge(Voxel yMin, Voxel yMax)
+        {
+            edgeCacheMin = edgeCacheMax;
+            if (yMin.state != yMax.state)
+            {
+                edgeCacheMax = vertices.Count;
+                Vector3 p = new(yMin.position.x, yMin.yEdge, 0f);
+                vertices.Add(p);
+            }
+        }
+
+        /// <summary>
+        /// Echange les lignes de cache
+        /// </summary>
+        private void SwapRowCaches()
+        {
+            (rowCacheMax, rowCacheMin) = (rowCacheMin, rowCacheMax);
+        }
+
+        /// <summary>
+        /// Calcule les intersections
+        /// </summary>
+        /// <param name="stencil">La brosse</param>
+        /// <param name="xStart">Limite de la zone rectangulaire affectée par la brosse</param>
+        /// <param name="xEnd">Limite de la zone rectangulaire affectée par la brosse</param>
+        /// <param name="yStart">Limite de la zone rectangulaire affectée par la brosse</param>
+        /// <param name="yEnd">Limite de la zone rectangulaire affectée par la brosse</param>
+        private void SetCrossings(VoxelStencil stencil, int xStart, int xEnd, int yStart, int yEnd)
+        {
+            bool crossHorizontalGap = false;
+            bool includeLastVerticalRow = false;
+            bool crossVerticalGap = false;
+
+            if (xStart > 0)
+            {
+                xStart -= 1;
+            }
+            if (xEnd == resolution - 1)
+            {
+                xEnd -= 1;
+                crossHorizontalGap = xNeighbor != null;
+            }
+            if (yStart > 0)
+            {
+                yStart -= 1;
+            }
+            if (yEnd == resolution - 1)
+            {
+                yEnd -= 1;
+                includeLastVerticalRow = true;
+                crossVerticalGap = yNeighbor != null;
+            }
+
+            Voxel a, b;
+            for (int y = yStart; y <= yEnd; y++)
+            {
+                int i = y * resolution + xStart;
+                b = voxels[i];
+                for (int x = xStart; x <= xEnd; x++, i++)
+                {
+                    a = b;
+                    b = voxels[i + 1];
+                    stencil.SetHorizontalCrossing(a, b);
+                    stencil.SetVerticalCrossing(a, voxels[i + resolution]);
+                }
+                stencil.SetVerticalCrossing(b, voxels[i + resolution]);
+                if (crossHorizontalGap)
+                {
+                    dummyX.BecomeXDummyOf(xNeighbor.voxels[y * resolution], gridSize);
+                    stencil.SetHorizontalCrossing(b, dummyX);
+                }
+            }
+
+            if (includeLastVerticalRow)
+            {
+                int i = voxels.Length - resolution + xStart;
+                b = voxels[i];
+                for (int x = xStart; x <= xEnd; x++, i++)
+                {
+                    a = b;
+                    b = voxels[i + 1];
+                    stencil.SetHorizontalCrossing(a, b);
+                    if (crossVerticalGap)
+                    {
+                        dummyY.BecomeYDummyOf(yNeighbor.voxels[x], gridSize);
+                        stencil.SetVerticalCrossing(a, dummyY);
+                    }
+                }
+                if (crossVerticalGap)
+                {
+                    dummyY.BecomeYDummyOf(yNeighbor.voxels[xEnd + 1], gridSize);
+                    stencil.SetVerticalCrossing(b, dummyY);
+                }
+                if (crossHorizontalGap)
+                {
+                    dummyX.BecomeXDummyOf(xNeighbor.voxels[voxels.Length - resolution], gridSize);
+                    stencil.SetHorizontalCrossing(b, dummyX);
+                }
+            }
         }
 
         #endregion
