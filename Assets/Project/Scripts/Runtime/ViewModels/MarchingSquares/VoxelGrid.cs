@@ -40,6 +40,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         [Tooltip("Prefab du mesh du chunk")]
         public VoxelGridWall wallPrefab;
 
+        /// <summary>
+        /// Prefab du mesh du chunk
+        /// </summary>
+        [Tooltip("Liste de Materials pour les surfaces et les murs")]
+        public VoxelMaterials[] materials;
+
         #endregion
 
         #region Variables d'instance
@@ -65,14 +71,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         private float gridSize;
 
         /// <summary>
-        /// Mesh généré
+        /// Renderers pour les surfaces/murs
         /// </summary>
-        private VoxelGridSurface surface;
-
-        /// <summary>
-        /// Mesh généré
-        /// </summary>
-        private VoxelGridWall wall;
+        private VoxelRenderer[] renderers;
 
         /// <summary>
         /// Chunk voisin
@@ -86,9 +87,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         private Voxel dummyX, dummyY, dummyT;
 
         /// <summary>
-        /// Cosinus de la limite autorisée pour un angle d'une section du mesh
+        /// Celle factice pour faciliter le déplacement des valeurs
         /// </summary>
-        private float sharpFeatureLimit;
+        private VoxelCell cell = new();
 
         #endregion
 
@@ -100,9 +101,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <param name="resolution">Résolution des voxels pour ce chunk</param>
         /// <param name="size">Taille du chunk</param>
         /// <param name="maxFeatureAngle">Angle max d'une section du mesh qui peut apparaître</param>
-        public void Initialize(int resolution, float size, float maxFeatureAngle)
+        public void Initialize(int resolution, float size, float maxFeatureAngle, float maxParallelAngle)
         {
-            sharpFeatureLimit = Mathf.Cos(maxFeatureAngle * Mathf.Deg2Rad);
+            cell.sharpFeatureLimit = Mathf.Cos(maxFeatureAngle * Mathf.Deg2Rad);
+            cell.parallelLimit = Mathf.Cos(maxParallelAngle * Mathf.Deg2Rad);
             this.resolution = resolution;
             voxelSize = size / resolution;
             gridSize = size;
@@ -121,16 +123,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 }
             }
 
-            surface = Instantiate(surfacePrefab);
-            surface.transform.parent = transform;
-            surface.transform.localPosition = Vector3.zero;
-            surface.Initialize(resolution);
-
-            wall = Instantiate(wallPrefab);
-            wall.transform.parent = transform;
-            wall.transform.localPosition = Vector3.zero;
-            wall.Initialize(resolution);
-
+            CreateRenderers();
             Refresh();
         }
 
@@ -167,6 +160,33 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         #region Méthodes privées
 
         /// <summary>
+        /// Crée les renderers pour les surfaces et murs
+        /// </summary>
+        private void CreateRenderers()
+        {
+            // On crée un Renderer de plus que nécessaire
+            // pour pouvoir utiliser directement l'état de voxel comme index.
+            // Ca nous éviter de soustraire 1 à chaque fois.
+
+            renderers = new VoxelRenderer[materials.Length + 1];
+
+            for (int i = 0; i < materials.Length; ++i)
+            {
+                VoxelGridSurface surface = Instantiate(surfacePrefab);
+                surface.transform.parent = transform;
+                surface.transform.localPosition = Vector3.zero;
+                surface.Initialize(resolution, materials[i].surfaceMaterial);
+
+                VoxelGridWall wall = Instantiate(wallPrefab);
+                wall.transform.parent = transform;
+                wall.transform.localPosition = Vector3.zero;
+                wall.Initialize(resolution, materials[i].wallMaterial);
+
+                renderers[i + 1] = new VoxelRenderer(surface, wall);
+            }
+        }
+
+        /// <summary>
         /// Crée un voxel aux coordonnées renseignées
         /// </summary>
         private void CreateVoxel(int i, int x, int y)
@@ -185,7 +205,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             for (int i = 0; i < voxels.Length; ++i)
             {
-                voxelMaterials[i].color = voxels[i].state ? Color.black : Color.white;
+                voxelMaterials[i].color = voxels[i].Filled ? Color.black : Color.white;
             }
         }
 
@@ -203,8 +223,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         private void Triangulate()
         {
-            surface.Clear();
-            wall.Clear();
+            for (int i = 1; i < renderers.Length; ++i)
+            {
+                renderers[i].Clear();
+            }
 
             FillFirstRowCache();
             TriangulateCellRows();
@@ -214,8 +236,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 TriangulateGapRow();
             }
 
-            surface.Apply();
-            wall.Apply();
+            for (int i = 1; i < renderers.Length; ++i)
+            {
+                renderers[i].Apply();
+            }
         }
 
         /// <summary>
@@ -245,90 +269,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 {
                     TriangulateGapCell(i);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Calcule les triangles d'une cellule en fonction de ses voxels
-        /// </summary>
-        /// <param name="i">Indice du cache</param>
-        /// <param name="a">Voxel bas gauche</param>
-        /// <param name="b">Voxel bas droit</param>
-        /// <param name="c">Voxel haut gauche</param>
-        /// <param name="d">Voxel haut droit</param>
-        private void TriangulateCell(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            // TAF : tester avec un byte au lieu d'un int
-            int cellType = 0;
-            if (a.state)
-            {
-                cellType |= 1;
-            }
-            if (b.state)
-            {
-                cellType |= 2;
-            }
-            if (c.state)
-            {
-                cellType |= 4;
-            }
-            if (d.state)
-            {
-                cellType |= 8;
-            }
-
-            // On exécute une triangulation différente pour chacun des 16 cas possibles de la cellule
-
-            switch (cellType)
-            {
-                case 0:
-                    TriangulateCase0(i, a, b, c, d);
-                    break;
-                case 1:
-                    TriangulateCase1(i, a, b, c, d);
-                    break;
-                case 2:
-                    TriangulateCase2(i, a, b, c, d);
-                    break;
-                case 3:
-                    TriangulateCase3(i, a, b, c, d);
-                    break;
-                case 4:
-                    TriangulateCase4(i, a, b, c, d);
-                    break;
-                case 5:
-                    TriangulateCase5(i, a, b, c, d);
-                    break;
-                case 6:
-                    TriangulateCase6(i, a, b, c, d);
-                    break;
-                case 7:
-                    TriangulateCase7(i, a, b, c, d);
-                    break;
-                case 8:
-                    TriangulateCase8(i, a, b, c, d);
-                    break;
-                case 9:
-                    TriangulateCase9(i, a, b, c, d);
-                    break;
-                case 10:
-                    TriangulateCase10(i, a, b, c, d);
-                    break;
-                case 11:
-                    TriangulateCase11(i, a, b, c, d);
-                    break;
-                case 12:
-                    TriangulateCase12(i, a, b, c, d);
-                    break;
-                case 13:
-                    TriangulateCase13(i, a, b, c, d);
-                    break;
-                case 14:
-                    TriangulateCase14(i, a, b, c, d);
-                    break;
-                case 15:
-                    TriangulateCase15(i, a, b, c, d);
-                    break;
             }
         }
 
@@ -380,616 +320,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        private void TriangulateCase0(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-        }
-
-        private void TriangulateCase15(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            surface.AddQuadABCD(i);
-        }
-
-        private void TriangulateCase1(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = a.xNormal;
-            Vector2 n2 = a.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
-                if (ClampToCellMaxMax(ref point, a, d))
-                {
-                    surface.AddQuadA(i, point);
-                    wall.AddACAB(i, point);
-                    return;
-                }
-            }
-
-            surface.AddTriangleA(i);
-            wall.AddACAB(i);
-        }
-
-        private void TriangulateCase2(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = a.xNormal;
-            Vector2 n2 = b.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
-                if (ClampToCellMinMax(ref point, a, d))
-                {
-                    surface.AddQuadB(i, point);
-                    wall.AddABBD(i, point);
-                    return;
-                }
-            }
-
-            surface.AddTriangleB(i);
-            wall.AddABBD(i);
-        }
-
-        private void TriangulateCase4(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = c.xNormal;
-            Vector2 n2 = a.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
-                if (ClampToCellMaxMin(ref point, a, d))
-                {
-                    surface.AddQuadC(i, point);
-                    wall.AddCDAC(i, point);
-                    return;
-                }
-            }
-            surface.AddTriangleC(i);
-            wall.AddCDAC(i);
-        }
-
-        private void TriangulateCase8(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = c.xNormal;
-            Vector2 n2 = b.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
-                if (ClampToCellMinMin(ref point, a, d))
-                {
-                    surface.AddQuadD(i, point);
-                    wall.AddBDCD(i, point);
-                    return;
-                }
-            }
-            surface.AddTriangleD(i);
-            wall.AddBDCD(i);
-        }
-
-        private void TriangulateCase7(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = c.xNormal;
-            Vector2 n2 = b.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
-                if (IsInsideCell(point, a, d))
-                {
-                    surface.AddHexagonABC(i, point);
-                    wall.AddCDBD(i, point);
-                    return;
-                }
-            }
-            surface.AddPentagonABC(i);
-            wall.AddCDBD(i);
-        }
-
-        private void TriangulateCase11(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = c.xNormal;
-            Vector2 n2 = a.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
-                if (IsInsideCell(point, a, d))
-                {
-                    surface.AddHexagonABD(i, point);
-                    wall.AddACCD(i, point);
-                    return;
-                }
-            }
-            surface.AddPentagonABD(i);
-            wall.AddACCD(i);
-        }
-
-        private void TriangulateCase13(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = a.xNormal;
-            Vector2 n2 = b.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
-                if (IsInsideCell(point, a, d))
-                {
-                    surface.AddHexagonACD(i, point);
-                    wall.AddBDAB(i, point);
-                    return;
-                }
-            }
-            surface.AddPentagonACD(i);
-            wall.AddBDAB(i);
-        }
-
-        private void TriangulateCase14(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = a.xNormal;
-            Vector2 n2 = a.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
-                if (IsInsideCell(point, a, d))
-                {
-                    surface.AddHexagonBCD(i, point);
-                    wall.AddABAC(i, point);
-                    return;
-                }
-            }
-            surface.AddPentagonBCD(i);
-            wall.AddABAC(i);
-        }
-
-        private void TriangulateCase3(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = a.yNormal;
-            Vector2 n2 = b.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(a.YEdgePoint, n1, b.YEdgePoint, n2);
-                if (IsInsideCell(point, a, d))
-                {
-                    surface.AddPentagonAB(i, point);
-                    wall.AddACBD(i, point);
-                    return;
-                }
-            }
-            surface.AddQuadAB(i);
-            wall.AddACBD(i);
-        }
-
-        private void TriangulateCase5(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = a.xNormal;
-            Vector2 n2 = c.xNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, c.XEdgePoint, n2);
-                if (IsInsideCell(point, a, d))
-                {
-                    surface.AddPentagonAC(i, point);
-                    wall.AddCDAB(i, point);
-                    return;
-                }
-            }
-            surface.AddQuadAC(i);
-            wall.AddCDAB(i);
-        }
-
-        private void TriangulateCase10(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = a.xNormal;
-            Vector2 n2 = c.xNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, c.XEdgePoint, n2);
-                if (IsInsideCell(point, a, d))
-                {
-                    surface.AddPentagonBD(i, point);
-                    wall.AddABCD(i, point);
-                    return;
-                }
-            }
-            surface.AddQuadBD(i);
-            wall.AddABCD(i);
-        }
-
-        private void TriangulateCase12(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = a.yNormal;
-            Vector2 n2 = b.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(a.YEdgePoint, n1, b.YEdgePoint, n2);
-                if (IsInsideCell(point, a, d))
-                {
-                    surface.AddPentagonCD(i, point);
-                    wall.AddBDAC(i, point);
-                    return;
-                }
-            }
-            surface.AddQuadCD(i);
-            wall.AddBDAC(i);
-        }
-
-        private void TriangulateCase6(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            bool sharp1, sharp2;
-            Vector2 point1, point2;
-
-            Vector2 n1 = a.xNormal;
-            Vector2 n2 = -b.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                point1 = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
-                sharp1 = ClampToCellMinMax(ref point1, a, d);
-            }
-            else
-            {
-                point1.x = point1.y = 0f;
-                sharp1 = false;
-            }
-
-            n1 = c.xNormal;
-            n2 = -a.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                point2 = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
-                sharp2 = ClampToCellMaxMin(ref point2, a, d);
-            }
-            else
-            {
-                point2.x = point2.y = 0f;
-                sharp2 = false;
-            }
-
-            if (sharp1)
-            {
-                if (sharp2)
-                {
-                    // Both sharp.
-                    if (IsBelowLine(point2, a.XEdgePoint, point1))
-                    {
-                        if (
-                            IsBelowLine(point2, point1, b.YEdgePoint) ||
-                            IsBelowLine(point1, point2, a.YEdgePoint))
-                        {
-                            TriangulateCase6Connected(i, a, b, c, d);
-                            return;
-                        }
-                    }
-                    else if (
-                        IsBelowLine(point2, point1, b.YEdgePoint) &&
-                        IsBelowLine(point1, c.XEdgePoint, point2))
-                    {
-                        TriangulateCase6Connected(i, a, b, c, d);
-                        return;
-                    }
-                    surface.AddQuadB(i, point1);
-                    surface.AddQuadC(i, point2);
-                    wall.AddABBD(i, point1);
-                    wall.AddCDAC(i, point2);
-                    return;
-                }
-                // First sharp.
-                if (IsBelowLine(point1, c.XEdgePoint, a.YEdgePoint))
-                {
-                    TriangulateCase6Connected(i, a, b, c, d);
-                    return;
-                }
-                surface.AddQuadB(i, point1);
-                surface.AddTriangleC(i);
-                wall.AddABBD(i, point1);
-                wall.AddCDAC(i, point2);
-                return;
-            }
-            if (sharp2)
-            {
-                // Second sharp.
-                if (IsBelowLine(point2, a.XEdgePoint, b.YEdgePoint))
-                {
-                    TriangulateCase6Connected(i, a, b, c, d);
-                    return;
-                }
-                surface.AddTriangleB(i);
-                surface.AddQuadC(i, point2);
-                wall.AddABBD(i, point1);
-                wall.AddCDAC(i, point2);
-                return;
-            }
-            // Neither sharp.
-            surface.AddTriangleB(i);
-            surface.AddTriangleC(i);
-            wall.AddABBD(i, point1);
-            wall.AddCDAC(i, point2);
-        }
-
-        private void TriangulateCase6Connected(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = a.xNormal;
-            Vector2 n2 = -a.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
-                if (IsInsideCell(point, a, d) && IsBelowLine(point, c.position, b.position))
-                {
-                    surface.AddPentagonBCToA(i, point);
-                    wall.AddABAC(i, point);
-                }
-                else
-                {
-                    surface.AddQuadBCToA(i);
-                    wall.AddABAC(i, point);
-                }
-            }
-            else
-            {
-                surface.AddQuadBCToA(i);
-                wall.AddABAC(i);
-            }
-
-            n1 = c.xNormal;
-            n2 = -b.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
-                if (IsInsideCell(point, a, d) && IsBelowLine(point, b.position, c.position))
-                {
-                    surface.AddPentagonBCToD(i, point);
-                    wall.AddCDBD(i, point);
-                    return;
-                }
-            }
-            surface.AddQuadBCToD(i);
-            wall.AddCDBD(i);
-        }
-
-        private void TriangulateCase9(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            bool sharp1, sharp2;
-            Vector2 point1, point2;
-            Vector2 n1 = a.xNormal;
-            Vector2 n2 = a.yNormal;
-
-            if (IsSharpFeature(n1, n2))
-            {
-                point1 = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
-                sharp1 = ClampToCellMaxMax(ref point1, a, d);
-            }
-            else
-            {
-                point1.x = point1.y = 0f;
-                sharp1 = false;
-            }
-
-            n1 = c.xNormal;
-            n2 = b.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                point2 = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
-                sharp2 = ClampToCellMinMin(ref point2, a, d);
-            }
-            else
-            {
-                point2.x = point2.y = 0f;
-                sharp2 = false;
-            }
-
-            if (sharp1)
-            {
-                if (sharp2)
-                {
-                    if (IsBelowLine(point1, b.YEdgePoint, point2))
-                    {
-                        if (
-                            IsBelowLine(point1, point2, c.XEdgePoint) ||
-                            IsBelowLine(point2, point1, a.XEdgePoint))
-                        {
-                            TriangulateCase9Connected(i, a, b, c, d);
-                            return;
-                        }
-                    }
-                    else if (
-                        IsBelowLine(point1, point2, c.XEdgePoint) &&
-                        IsBelowLine(point2, a.YEdgePoint, point1))
-                    {
-                        TriangulateCase9Connected(i, a, b, c, d);
-                        return;
-                    }
-                    surface.AddQuadA(i, point1);
-                    surface.AddQuadD(i, point2);
-                    wall.AddACAB(i, point1);
-                    wall.AddBDCD(i, point2);
-                    return;
-                }
-                if (IsBelowLine(point1, b.YEdgePoint, c.XEdgePoint))
-                {
-                    TriangulateCase9Connected(i, a, b, c, d);
-                    return;
-                }
-                surface.AddQuadA(i, point1);
-                surface.AddTriangleD(i);
-                wall.AddACAB(i, point1);
-                wall.AddBDCD(i, point2);
-                return;
-            }
-            if (sharp2)
-            {
-                if (IsBelowLine(point2, a.YEdgePoint, a.XEdgePoint))
-                {
-                    TriangulateCase9Connected(i, a, b, c, d);
-                    return;
-                }
-                surface.AddTriangleA(i);
-                surface.AddQuadD(i, point2);
-                wall.AddACAB(i, point1);
-                wall.AddBDCD(i, point2);
-                return;
-            }
-            surface.AddTriangleA(i);
-            surface.AddTriangleD(i);
-            wall.AddACAB(i, point1);
-            wall.AddBDCD(i, point2);
-        }
-
-        private void TriangulateCase9Connected(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            Vector2 n1 = a.xNormal;
-            Vector2 n2 = b.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
-                if (IsInsideCell(point, a, d) && IsBelowLine(point, a.position, d.position))
-                {
-                    surface.AddPentagonADToB(i, point);
-                    wall.AddBDAB(i, point);
-                }
-                else
-                {
-                    surface.AddQuadADToB(i);
-                    wall.AddBDAB(i, point);
-                }
-            }
-            else
-            {
-                surface.AddQuadADToB(i);
-                wall.AddBDAB(i);
-            }
-
-            n1 = c.xNormal;
-            n2 = a.yNormal;
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
-                if (IsInsideCell(point, a, d) && IsBelowLine(point, d.position, a.position))
-                {
-                    surface.AddPentagonADToC(i, point);
-                    wall.AddACCD(i, point);
-                    return;
-                }
-            }
-            surface.AddQuadADToC(i);
-            wall.AddACCD(i);
-        }
-
-        /// <summary>
-        /// Indique si les normales forment un angle dépassant l'angle limite
-        /// </summary>
-        private bool IsSharpFeature(Vector2 normal1, Vector2 normal2)
-        {
-            float dot = Vector2.Dot(normal1, -normal2);
-            return dot >= sharpFeatureLimit && dot < 0.9999f;
-        }
-
-        /// <summary>
-        /// Indique si le point renseigné est contenu dans la cellule
-        /// représentée par les voxels renseignés
-        /// </summary>
-        private static bool IsInsideCell(Vector2 point, Voxel min, Voxel max)
-        {
-            return
-                point.x > min.position.x && point.y > min.position.y &&
-                point.x < max.position.x && point.y < max.position.y;
-        }
-
-        /// <summary>
-        /// Indique si le point renseigné est en dessous d'une ligne
-        /// </summary>
-        private static bool IsBelowLine(Vector2 p, Vector2 start, Vector2 end)
-        {
-            float determinant = (end.x - start.x) * (p.y - start.y) - (end.y - start.y) * (p.x - start.x);
-            return determinant < 0f;
-        }
-
-        /// <summary>
-        /// Calcule l'intersection entre deux points
-        /// </summary>
-        /// <param name="point1"></param>
-        /// <param name="normal1"></param>
-        /// <param name="point2"></param>
-        /// <param name="normal2"></param>
-        private static Vector2 ComputeIntersection(Vector2 point1, Vector2 normal1, Vector2 point2, Vector2 normal2)
-        {
-            Vector2 d2 = new(normal2.y, -normal2.x);
-            float u2 = -Vector2.Dot(normal1, point2 - point1) / Vector2.Dot(normal1, d2);
-            return point2 + d2 * u2;
-        }
-
-        /// <summary>
-        /// Garde les points d'une surface à l'intérieur de sa cellule
-        /// </summary>
-        private static bool ClampToCellMaxMax(ref Vector2 point, Voxel min, Voxel max)
-        {
-            if (point.x < min.position.x || point.y < min.position.y)
-            {
-                return false;
-            }
-            if (point.x > max.position.x)
-            {
-                point.x = max.position.x;
-            }
-            if (point.y > max.position.y)
-            {
-                point.y = max.position.y;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Garde les points d'une surface à l'intérieur de sa cellule
-        /// </summary>
-        private static bool ClampToCellMinMin(ref Vector2 point, Voxel min, Voxel max)
-        {
-            if (point.x > max.position.x || point.y > max.position.y)
-            {
-                return false;
-            }
-            if (point.x < min.position.x)
-            {
-                point.x = min.position.x;
-            }
-            if (point.y < min.position.y)
-            {
-                point.y = min.position.y;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Garde les points d'une surface à l'intérieur de sa cellule
-        /// </summary>
-        private static bool ClampToCellMinMax(ref Vector2 point, Voxel min, Voxel max)
-        {
-            if (point.x > max.position.x || point.y < min.position.y)
-            {
-                return false;
-            }
-            if (point.x < min.position.x)
-            {
-                point.x = min.position.x;
-            }
-            if (point.y > max.position.y)
-            {
-                point.y = max.position.y;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Garde les points d'une surface à l'intérieur de sa cellule
-        /// </summary>
-        private static bool ClampToCellMaxMin(ref Vector2 point, Voxel min, Voxel max)
-        {
-            if (point.x < min.position.x || point.y > max.position.y)
-            {
-                return false;
-            }
-            if (point.x > max.position.x)
-            {
-                point.x = max.position.x;
-            }
-            if (point.y < min.position.y)
-            {
-                point.y = min.position.y;
-            }
-            return true;
-        }
-
         /// <summary>
         /// Remplit la 1è ligne de cache
         /// </summary>
@@ -1014,9 +344,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         private void CacheFirstCorner(Voxel voxel)
         {
-            if (voxel.state)
+            if (voxel.Filled)
             {
-                surface.CacheFirstCorner(voxel);
+                renderers[voxel.state].CacheFirstCorner(voxel);
             }
         }
 
@@ -1030,12 +360,26 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (xMin.state != xMax.state)
             {
-                surface.CacheXEdge(i, xMin);
-                wall.CacheXEdge(i, xMin);
+                if (xMin.Filled)
+                {
+                    if (xMax.Filled)
+                    {
+                        renderers[xMin.state].CacheXEdge(i, xMin);
+                        renderers[xMax.state].CacheXEdge(i, xMin);
+                    }
+                    else
+                    {
+                        renderers[xMin.state].CacheXEdgeWithWall(i, xMin);
+                    }
+                }
+                else
+                {
+                    renderers[xMax.state].CacheXEdgeWithWall(i, xMin);
+                }
             }
-            if (xMax.state)
+            if (xMax.Filled)
             {
-                surface.CacheNextCorner(i, xMax);
+                renderers[xMax.state].CacheNextCorner(i, xMax);
             }
         }
 
@@ -1046,12 +390,29 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <param name="yMax">Voxel du milieu droit</param>
         private void CacheNextMiddleEdge(Voxel yMin, Voxel yMax)
         {
-            surface.PrepareCacheForNextCell();
-            wall.PrepareCacheForNextCell();
+            for (int i = 1; i < renderers.Length; ++i)
+            {
+                renderers[i].PrepareCacheForNextCell();
+            }
+
             if (yMin.state != yMax.state)
             {
-                surface.CacheYEdge(yMin);
-                wall.CacheYEdge(yMin);
+                if (yMin.Filled)
+                {
+                    if (yMax.Filled)
+                    {
+                        renderers[yMin.state].CacheYEdge(yMin);
+                        renderers[yMax.state].CacheYEdge(yMin);
+                    }
+                    else
+                    {
+                        renderers[yMin.state].CacheYEdgeWithWall(yMin);
+                    }
+                }
+                else
+                {
+                    renderers[yMax.state].CacheYEdgeWithWall(yMin);
+                }
             }
         }
 
@@ -1060,8 +421,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         private void SwapRowCaches()
         {
-            surface.PrepareCacheForNextRow();
-            wall.PrepareCacheForNextRow();
+            for (int i = 1; i < renderers.Length; ++i)
+            {
+                renderers[i].PrepareCacheForNextRow();
+            }
         }
 
         /// <summary>
@@ -1144,6 +507,424 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     stencil.SetHorizontalCrossing(b, dummyX);
                 }
             }
+        }
+
+        private void TriangulateCell(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            cell.i = i;
+            cell.a = a;
+            cell.b = b;
+            cell.c = c;
+            cell.d = d;
+
+            if (a.state == b.state)
+            {
+                if (a.state == c.state)
+                {
+                    if (a.state == d.state)
+                    {
+                        Triangulate0000();
+                    }
+                    else
+                    {
+                        Triangulate0001();
+                    }
+                }
+                else
+                {
+                    if (a.state == d.state)
+                    {
+                        Triangulate0010();
+                    }
+                    else if (c.state == d.state)
+                    {
+                        Triangulate0011();
+                    }
+                    else
+                    {
+                        Triangulate0012();
+                    }
+                }
+            }
+            else
+            {
+                if (a.state == c.state)
+                {
+                    if (a.state == d.state)
+                    {
+                        Triangulate0100();
+                    }
+                    else if (b.state == d.state)
+                    {
+                        Triangulate0101();
+                    }
+                    else
+                    {
+                        Triangulate0102();
+                    }
+                }
+                else if (b.state == c.state)
+                {
+                    if (a.state == d.state)
+                    {
+                        Triangulate0110();
+                    }
+                    else if (b.state == d.state)
+                    {
+                        Triangulate0111();
+                    }
+                    else
+                    {
+                        Triangulate0112();
+                    }
+                }
+                else
+                {
+                    if (a.state == d.state)
+                    {
+                        Triangulate0120();
+                    }
+                    else if (b.state == d.state)
+                    {
+                        Triangulate0121();
+                    }
+                    else if (c.state == d.state)
+                    {
+                        Triangulate0122();
+                    }
+                    else
+                    {
+                        Triangulate0123();
+                    }
+                }
+            }
+        }
+
+        private void Triangulate0000()
+        {
+            FillABCD();
+        }
+
+        private void Triangulate0001()
+        {
+            FeaturePoint f = cell.FeatureNE;
+            FillABC(f);
+            FillD(f);
+        }
+
+        private void Triangulate0010()
+        {
+            FeaturePoint f = cell.FeatureNW;
+            FillABD(f);
+            FillC(f);
+        }
+
+        private void Triangulate0100()
+        {
+            FeaturePoint f = cell.FeatureSE;
+            FillACD(f);
+            FillB(f);
+        }
+
+        private void Triangulate0111()
+        {
+            FeaturePoint f = cell.FeatureSW;
+            FillA(f);
+            FillBCD(f);
+        }
+
+        private void Triangulate0011()
+        {
+            FeaturePoint f = cell.FeatureEW;
+            FillAB(f);
+            FillCD(f);
+        }
+
+        private void Triangulate0101()
+        {
+            FeaturePoint f = cell.FeatureNS;
+            FillAC(f);
+            FillBD(f);
+        }
+
+        private void Triangulate0012()
+        {
+            FeaturePoint f = cell.FeatureNEW;
+            FillAB(f);
+            FillC(f);
+            FillD(f);
+        }
+
+        private void Triangulate0102()
+        {
+            FeaturePoint f = cell.FeatureNSE;
+            FillAC(f);
+            FillB(f);
+            FillD(f);
+        }
+
+        private void Triangulate0121()
+        {
+            FeaturePoint f = cell.FeatureNSW;
+            FillA(f);
+            FillBD(f);
+            FillC(f);
+        }
+
+        private void Triangulate0122()
+        {
+            FeaturePoint f = cell.FeatureSEW;
+            FillA(f);
+            FillB(f);
+            FillCD(f);
+        }
+
+        private void Triangulate0110()
+        {
+            FeaturePoint
+                fA = cell.FeatureSW, fB = cell.FeatureSE,
+                fC = cell.FeatureNW, fD = cell.FeatureNE;
+
+            if (cell.HasConnectionAD(fA, fD))
+            {
+                fB.exists &= cell.IsInsideABD(fB.position);
+                fC.exists &= cell.IsInsideACD(fC.position);
+                FillADToB(fB);
+                FillADToC(fC);
+                FillB(fB);
+                FillC(fC);
+            }
+            else if (cell.HasConnectionBC(fB, fC))
+            {
+                fA.exists &= cell.IsInsideABC(fA.position);
+                fD.exists &= cell.IsInsideBCD(fD.position);
+                FillA(fA);
+                FillD(fD);
+                FillBCToA(fA);
+                FillBCToD(fD);
+            }
+            else if (cell.a.Filled && cell.b.Filled)
+            {
+                FillJoinedCorners(fA, fB, fC, fD);
+            }
+            else
+            {
+                FillA(fA);
+                FillB(fB);
+                FillC(fC);
+                FillD(fD);
+            }
+        }
+
+        private void Triangulate0112()
+        {
+            FeaturePoint
+                fA = cell.FeatureSW, fB = cell.FeatureSE,
+                fC = cell.FeatureNW, fD = cell.FeatureNE;
+
+            if (cell.HasConnectionBC(fB, fC))
+            {
+                fA.exists &= cell.IsInsideABC(fA.position);
+                fD.exists &= cell.IsInsideBCD(fD.position);
+                FillA(fA);
+                FillD(fD);
+                FillBCToA(fA);
+                FillBCToD(fD);
+            }
+            else if (cell.b.Filled || cell.HasConnectionAD(fA, fD))
+            {
+                FillJoinedCorners(fA, fB, fC, fD);
+            }
+            else
+            {
+                FillA(fA);
+                FillD(fD);
+            }
+        }
+
+        private void Triangulate0120()
+        {
+            FeaturePoint
+                fA = cell.FeatureSW, fB = cell.FeatureSE,
+                fC = cell.FeatureNW, fD = cell.FeatureNE;
+
+            if (cell.HasConnectionAD(fA, fD))
+            {
+                fB.exists &= cell.IsInsideABD(fB.position);
+                fC.exists &= cell.IsInsideACD(fC.position);
+                FillADToB(fB);
+                FillADToC(fC);
+                FillB(fB);
+                FillC(fC);
+            }
+            else if (cell.a.Filled || cell.HasConnectionBC(fB, fC))
+            {
+                FillJoinedCorners(fA, fB, fC, fD);
+            }
+            else
+            {
+                FillB(fB);
+                FillC(fC);
+            }
+        }
+
+        private void Triangulate0123()
+        {
+            FillJoinedCorners(
+                cell.FeatureSW, cell.FeatureSE,
+                cell.FeatureNW, cell.FeatureNE);
+        }
+
+        private void FillA(FeaturePoint f)
+        {
+            if (cell.a.Filled)
+            {
+                renderers[cell.a.state].FillA(cell, f);
+            }
+        }
+
+        private void FillB(FeaturePoint f)
+        {
+            if (cell.b.Filled)
+            {
+                renderers[cell.b.state].FillB(cell, f);
+            }
+        }
+
+        private void FillC(FeaturePoint f)
+        {
+            if (cell.c.Filled)
+            {
+                renderers[cell.c.state].FillC(cell, f);
+            }
+        }
+
+        private void FillD(FeaturePoint f)
+        {
+            if (cell.d.Filled)
+            {
+                renderers[cell.d.state].FillD(cell, f);
+            }
+        }
+
+        private void FillABC(FeaturePoint f)
+        {
+            if (cell.a.Filled)
+            {
+                renderers[cell.a.state].FillABC(cell, f);
+            }
+        }
+
+        private void FillABD(FeaturePoint f)
+        {
+            if (cell.a.Filled)
+            {
+                renderers[cell.a.state].FillABD(cell, f);
+            }
+        }
+
+        private void FillACD(FeaturePoint f)
+        {
+            if (cell.a.Filled)
+            {
+                renderers[cell.a.state].FillACD(cell, f);
+            }
+        }
+
+        private void FillBCD(FeaturePoint f)
+        {
+            if (cell.b.Filled)
+            {
+                renderers[cell.b.state].FillBCD(cell, f);
+            }
+        }
+
+        private void FillAB(FeaturePoint f)
+        {
+            if (cell.a.Filled)
+            {
+                renderers[cell.a.state].FillAB(cell, f);
+            }
+        }
+
+        private void FillAC(FeaturePoint f)
+        {
+            if (cell.a.Filled)
+            {
+                renderers[cell.a.state].FillAC(cell, f);
+            }
+        }
+
+        private void FillBD(FeaturePoint f)
+        {
+            if (cell.b.Filled)
+            {
+                renderers[cell.b.state].FillBD(cell, f);
+            }
+        }
+
+        private void FillCD(FeaturePoint f)
+        {
+            if (cell.c.Filled)
+            {
+                renderers[cell.c.state].FillCD(cell, f);
+            }
+        }
+
+        private void FillADToB(FeaturePoint f)
+        {
+            if (cell.a.Filled)
+            {
+                renderers[cell.a.state].FillADToB(cell, f);
+            }
+        }
+
+        private void FillADToC(FeaturePoint f)
+        {
+            if (cell.a.Filled)
+            {
+                renderers[cell.a.state].FillADToC(cell, f);
+            }
+        }
+
+        private void FillBCToA(FeaturePoint f)
+        {
+            if (cell.b.Filled)
+            {
+                renderers[cell.b.state].FillBCToA(cell, f);
+            }
+        }
+
+        private void FillBCToD(FeaturePoint f)
+        {
+            if (cell.b.Filled)
+            {
+                renderers[cell.b.state].FillBCToD(cell, f);
+            }
+        }
+
+        private void FillABCD()
+        {
+            if (cell.a.Filled)
+            {
+                renderers[cell.a.state].FillABCD(cell);
+            }
+        }
+
+        private void FillJoinedCorners(
+            FeaturePoint fA, FeaturePoint fB, FeaturePoint fC, FeaturePoint fD)
+        {
+
+            FeaturePoint point = FeaturePoint.Average(fA, fB, fC, fD);
+            if (!point.exists)
+            {
+                point.position = cell.AverageNESW;
+                point.exists = true;
+            }
+            FillA(point);
+            FillB(point);
+            FillC(point);
+            FillD(point);
         }
 
         #endregion

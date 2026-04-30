@@ -12,6 +12,17 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         #region Propriétés
 
         /// <summary>
+        /// true si le voxel contient une valeur
+        /// </summary>
+        public bool Filled
+        {
+            get
+            {
+                return state > 0f;
+            }
+        }
+
+        /// <summary>
         /// Point d'intersection sur l'edge X
         /// </summary>
         public Vector2 XEdgePoint
@@ -40,7 +51,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Etat du voxel
         /// </summary>
-        public bool state;
+        public int state;
 
         /// <summary>
         /// Position

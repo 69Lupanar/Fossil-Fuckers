@@ -50,7 +50,11 @@ MonoBehaviour:
   size: 2
   voxelResolution: 8
   chunkResolution: 2
+  maxFeatureAngle: 135
+  maxParallelAngle: 5
   voxelGridPrefab: {fileID: 6835662398029437811, guid: 7144b08785ff3964f919747fd6d74e4e, type: 3}
+  stencilVisualizations: []
+  snapToGrid: 0
 --- !u!114 &1662046016798231970
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -64,8 +68,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::Assets.Project.Scripts.Runtime.Views.MarchingSquares.VoxelStencilEditView
   fillTypeNames:
-  - Filled
-  - Empty
+  - X
+  - A
+  - B
+  - C
+  - D
+  radiusNames:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  stencilNames:
+  - Square
+  - Circle
   voxelMap: {fileID: 6237090199471055437}
 --- !u!1001 &1984657024383595350
 PrefabInstance:

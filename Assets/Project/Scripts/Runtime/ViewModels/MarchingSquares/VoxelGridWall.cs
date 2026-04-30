@@ -57,8 +57,9 @@ public class VoxelGridWall : MonoBehaviour
     /// init
     /// </summary>
     /// <param name="resolution">Résolution des voxels pour ce chunk</param>
-    public void Initialize(int resolution)
+    public void Initialize(int resolution, Material material)
     {
+        GetComponent<MeshRenderer>().material = material;
         GetComponent<MeshFilter>().mesh = mesh = new Mesh();
         mesh.name = "VoxelGridSurface Mesh";
         vertices = new List<Vector3>();
@@ -258,6 +259,45 @@ public class VoxelGridWall : MonoBehaviour
         AddSection(xEdgesMax[i], yEdgeMax, extraVertex);
     }
 
+    public void AddFromAB(int i, Vector2 extraVertex)
+    {
+        AddHalfSection(xEdgesMin[i], extraVertex);
+    }
+
+    public void AddToAB(int i, Vector2 extraVertex)
+    {
+        AddHalfSection(extraVertex, xEdgesMin[i]);
+    }
+
+    public void AddFromAC(int i, Vector2 extraVertex)
+    {
+        AddHalfSection(yEdgeMin, extraVertex);
+    }
+
+    public void AddToAC(int i, Vector2 extraVertex)
+    {
+        AddHalfSection(extraVertex, yEdgeMin);
+    }
+
+    public void AddFromBD(int i, Vector2 extraVertex)
+    {
+        AddHalfSection(yEdgeMax, extraVertex);
+    }
+
+    public void AddToBD(int i, Vector2 extraVertex)
+    {
+        AddHalfSection(extraVertex, yEdgeMax);
+    }
+
+    public void AddFromCD(int i, Vector2 extraVertex)
+    {
+        AddHalfSection(xEdgesMax[i], extraVertex);
+    }
+
+    public void AddToCD(int i, Vector2 extraVertex)
+    {
+        AddHalfSection(extraVertex, xEdgesMax[i]);
+    }
     #endregion
 
     #region Méthodes privées
@@ -280,25 +320,31 @@ public class VoxelGridWall : MonoBehaviour
     /// </summary>
     private void AddSection(int a, int b, Vector3 extraPoint)
     {
+        AddSection(a, AddPoint(extraPoint, a));
+        AddSection(AddPoint(extraPoint, b), b);
+    }
+
+    private void AddHalfSection(int a, Vector3 extraPoint)
+    {
+        AddSection(a, AddPoint(extraPoint, a));
+    }
+
+    private void AddHalfSection(Vector3 extraPoint, int a)
+    {
+        AddSection(AddPoint(extraPoint, a), a);
+    }
+
+    private int AddPoint(Vector3 extraPoint, int normalIndex)
+    {
         int p = vertices.Count;
         extraPoint.z = bottom;
         vertices.Add(extraPoint);
         extraPoint.z = top;
         vertices.Add(extraPoint);
-        Vector3 n = normals[a];
+        Vector3 n = normals[normalIndex];
         normals.Add(n);
         normals.Add(n);
-        AddSection(a, p);
-
-        p = vertices.Count;
-        extraPoint.z = bottom;
-        vertices.Add(extraPoint);
-        extraPoint.z = top;
-        vertices.Add(extraPoint);
-        n = normals[b];
-        normals.Add(n);
-        normals.Add(n);
-        AddSection(p, b);
+        return p;
     }
 
     #endregion

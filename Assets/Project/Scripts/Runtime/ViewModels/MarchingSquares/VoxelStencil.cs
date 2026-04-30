@@ -36,7 +36,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Type de remplissage de la brosse
         /// </summary>
-        protected bool fillType;
+        protected int fillType;
 
         /// <summary>
         /// Coord X
@@ -62,7 +62,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         /// <param name="fillType">Type de remplissage de la brosse</param>
         /// <param name="radius">Rayon de la brosse</param>
-        public virtual void Initialize(bool fillType, float radius)
+        public virtual void Initialize(int fillType, float radius)
         {
             this.fillType = fillType;
             this.radius = radius;
@@ -147,7 +147,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (xMin.xEdge == float.MinValue || xMin.xEdge < XEnd)
                     {
                         xMin.xEdge = XEnd;
-                        xMin.xNormal = new Vector2(fillType ? 1f : -1f, 0f);
+                        xMin.xNormal = new Vector2(fillType > xMax.state ? 1f : -1f, 0f);
+                    }
+                    else
+                    {
+                        ValidateHorizontalNormal(xMin, xMax);
                     }
                 }
             }
@@ -158,9 +162,31 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (xMin.xEdge == float.MinValue || xMin.xEdge > XStart)
                     {
                         xMin.xEdge = XStart;
-                        xMin.xNormal = new Vector2(fillType ? -1f : 1f, 0f);
+                        xMin.xNormal = new Vector2(fillType > xMin.state ? -1f : 1f, 0f);
+                    }
+                    else
+                    {
+                        ValidateHorizontalNormal(xMin, xMax);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Assure que la normale pointe dans la bonne direction
+        /// </summary>
+        protected static void ValidateHorizontalNormal(Voxel xMin, Voxel xMax)
+        {
+            if (xMin.state < xMax.state)
+            {
+                if (xMin.xNormal.x > 0f)
+                {
+                    xMin.xNormal = -xMin.xNormal;
+                }
+            }
+            else if (xMin.xNormal.x < 0f)
+            {
+                xMin.xNormal = -xMin.xNormal;
             }
         }
 
@@ -182,7 +208,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (yMin.yEdge == float.MinValue || yMin.yEdge < YEnd)
                     {
                         yMin.yEdge = YEnd;
-                        yMin.yNormal = new Vector2(0f, fillType ? 1f : -1f);
+                        yMin.yNormal = new Vector2(0f, fillType > yMax.state ? 1f : -1f);
+                    }
+                    else
+                    {
+                        ValidateVerticalNormal(yMin, yMax);
                     }
                 }
             }
@@ -193,9 +223,31 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (yMin.yEdge == float.MinValue || yMin.yEdge > YStart)
                     {
                         yMin.yEdge = YStart;
-                        yMin.yNormal = new Vector2(0f, fillType ? -1f : 1f);
+                        yMin.yNormal = new Vector2(0f, fillType > yMin.state ? -1f : 1f);
+                    }
+                    else
+                    {
+                        ValidateVerticalNormal(yMin, yMax);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Assure que la normale pointe dans la bonne direction
+        /// </summary>
+        protected static void ValidateVerticalNormal(Voxel yMin, Voxel yMax)
+        {
+            if (yMin.state < yMax.state)
+            {
+                if (yMin.yNormal.y > 0f)
+                {
+                    yMin.yNormal = -yMin.yNormal;
+                }
+            }
+            else if (yMin.yNormal.y < 0f)
+            {
+                yMin.yNormal = -yMin.yNormal;
             }
         }
 

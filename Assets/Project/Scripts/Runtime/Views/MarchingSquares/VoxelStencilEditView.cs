@@ -15,7 +15,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// Noms des types de remplissage des brosses
         /// </summary>
         [Tooltip("Noms des types de remplissage des brosses")]
-        public string[] fillTypeNames = { "Filled", "Empty" };
+        public string[] fillTypeNames = { "X", "A", "B", "C", "D" };
 
         /// <summary>
         /// Tailles des brosses
@@ -46,7 +46,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             GUILayout.BeginArea(new Rect(4f, 4f, 150f, 500f));
             GUILayout.Label("Fill Type");
-            voxelMap.FillTypeIndex = GUILayout.SelectionGrid(voxelMap.FillTypeIndex, fillTypeNames, 2);
+            voxelMap.FillTypeIndex = GUILayout.SelectionGrid(voxelMap.FillTypeIndex, fillTypeNames, 5);
             GUILayout.Label("Radius");
             voxelMap.RadiusIndex = GUILayout.SelectionGrid(voxelMap.RadiusIndex, radiusNames, 6);
             GUILayout.Label("Stencil");

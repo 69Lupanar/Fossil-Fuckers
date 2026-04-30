@@ -12,7 +12,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Le type de remplissage de la brosse active
         /// </summary>
-        public int FillTypeIndex { get; set; }
+        public int FillTypeIndex { get; set; } = 1;
 
         /// <summary>
         /// Le rayon de la brosse active
@@ -50,7 +50,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// Angle max d'une section du mesh qui peut apparaître
         /// </summary>
         [Tooltip("Angle max d'une section du mesh qui peut apparaître")]
-        public float maxFeatureAngle = 135f;
+        public float maxFeatureAngle = 135f, maxParallelAngle = 5f;
 
         /// <summary>
         /// Prefab de la grille de voxels
@@ -172,7 +172,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         private void CreateChunk(int i, int x, int y)
         {
             VoxelGrid chunk = Instantiate(voxelGridPrefab, transform);
-            chunk.Initialize(voxelResolution, chunkSize, maxFeatureAngle);
+            chunk.Initialize(voxelResolution, chunkSize, maxFeatureAngle, maxParallelAngle);
             chunk.transform.localPosition = new Vector3(x * chunkSize/* - halfSize*/, y * chunkSize/* - halfSize*/);
             chunks[i] = chunk;
 
@@ -197,7 +197,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         private void EditVoxels(Vector3 center)
         {
             VoxelStencil activeStencil = stencils[StencilIndex];
-            activeStencil.Initialize(FillTypeIndex == 0, (RadiusIndex + 0.5f) * voxelSize);
+            activeStencil.Initialize(FillTypeIndex, (RadiusIndex + 0.5f) * voxelSize);
             activeStencil.SetCenter(center.x, center.y);
 
             int xStart = Mathf.Max(0, (int)((activeStencil.XStart - voxelSize) / chunkSize));

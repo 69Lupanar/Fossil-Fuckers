@@ -48,8 +48,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// init
         /// </summary>
         /// <param name="resolution">Résolution des voxels pour ce chunk</param>
-        public void Initialize(int resolution)
+        public void Initialize(int resolution, Material material)
         {
+            GetComponent<MeshRenderer>().material = material;
             GetComponent<MeshFilter>().mesh = mesh = new Mesh();
             mesh.name = "VoxelGridSurface Mesh";
             vertices = new List<Vector3>();

@@ -19,7 +19,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         #region Méthodes publiques
 
         /// <inheritdoc/>
-        public override void Initialize(bool fillType, float radius)
+        public override void Initialize(int fillType, float radius)
         {
             base.Initialize(fillType, radius);
             sqrRadius = radius * radius;
@@ -59,7 +59,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (xMin.xEdge == float.MinValue || xMin.xEdge < x)
                     {
                         xMin.xEdge = x;
-                        xMin.xNormal = ComputeNormal(x, xMin.position.y);
+                        xMin.xNormal = ComputeNormal(x, xMin.position.y, xMax);
+                    }
+                    else
+                    {
+                        ValidateHorizontalNormal(xMin, xMax);
                     }
                 }
             }
@@ -72,7 +76,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (xMin.xEdge == float.MinValue || xMin.xEdge > x)
                     {
                         xMin.xEdge = x;
-                        xMin.xNormal = ComputeNormal(x, xMin.position.y);
+                        xMin.xNormal = ComputeNormal(x, xMin.position.y, xMin);
+                    }
+                    else
+                    {
+                        ValidateHorizontalNormal(xMin, xMax);
                     }
                 }
             }
@@ -96,7 +104,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (yMin.yEdge == float.MinValue || yMin.yEdge < y)
                     {
                         yMin.yEdge = y;
-                        yMin.yNormal = ComputeNormal(yMin.position.x, y);
+                        yMin.yNormal = ComputeNormal(yMin.position.x, y, yMax);
+                    }
+                    else
+                    {
+                        ValidateVerticalNormal(yMin, yMax);
                     }
                 }
             }
@@ -109,7 +121,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (yMin.yEdge == float.MinValue || yMin.yEdge > y)
                     {
                         yMin.yEdge = y;
-                        yMin.yNormal = ComputeNormal(yMin.position.x, y);
+                        yMin.yNormal = ComputeNormal(yMin.position.x, y, yMin);
+                    }
+                    else
+                    {
+                        ValidateVerticalNormal(yMin, yMax);
                     }
                 }
             }
@@ -122,9 +138,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Obtient la normale aux coordonnées renseignées
         /// </summary>
-        private Vector3 ComputeNormal(float x, float y)
+        private Vector3 ComputeNormal(float x, float y, Voxel other)
         {
-            if (fillType)
+            if (fillType > other.state)
             {
                 return new Vector2(x - centerX, y - centerY).normalized;
             }

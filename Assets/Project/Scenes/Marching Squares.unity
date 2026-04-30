@@ -455,6 +455,18 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: chunkResolution
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: voxelResolution
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: stencilVisualizations.Array.size
       value: 2
       objectReference: {fileID: 0}
