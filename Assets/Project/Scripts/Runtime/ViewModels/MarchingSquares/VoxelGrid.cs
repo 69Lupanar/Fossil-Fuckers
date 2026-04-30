@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
@@ -29,6 +28,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         [Tooltip("Prefab d'un voxel")]
         public GameObject voxelPrefab;
 
+        /// <summary>
+        /// Prefab du mesh du chunk
+        /// </summary>
+        [Tooltip("Prefab du mesh du chunk")]
+        public VoxelGridSurface surfacePrefab;
+
+        /// <summary>
+        /// Prefab du mesh du chunk
+        /// </summary>
+        [Tooltip("Prefab du mesh du chunk")]
+        public VoxelGridWall wallPrefab;
+
         #endregion
 
         #region Variables d'instance
@@ -56,17 +67,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Mesh généré
         /// </summary>
-        private Mesh mesh;
+        private VoxelGridSurface surface;
 
         /// <summary>
-        /// Vertices du mesh
+        /// Mesh généré
         /// </summary>
-        private List<Vector3> vertices;
-
-        /// <summary>
-        /// Triangles du mesh
-        /// </summary>
-        private List<int> triangles;
+        private VoxelGridWall wall;
 
         /// <summary>
         /// Chunk voisin
@@ -78,16 +84,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// Faux voxel utilisé lors de la triangulation pour relier les chunks entre eux
         /// </summary>
         private Voxel dummyX, dummyY, dummyT;
-
-        /// <summary>
-        /// Cache des vertices
-        /// </summary>
-        private int[] rowCacheMax, rowCacheMin;
-
-        /// <summary>
-        /// Cache des vertices
-        /// </summary>
-        private int edgeCacheMin, edgeCacheMax;
 
         /// <summary>
         /// Cosinus de la limite autorisée pour un angle d'une section du mesh
@@ -102,7 +98,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// init
         /// </summary>
         /// <param name="resolution">Résolution des voxels pour ce chunk</param>
-        /// <param name="resolution">Taille du chunk</param>
+        /// <param name="size">Taille du chunk</param>
         /// <param name="maxFeatureAngle">Angle max d'une section du mesh qui peut apparaître</param>
         public void Initialize(int resolution, float size, float maxFeatureAngle)
         {
@@ -125,12 +121,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 }
             }
 
-            GetComponent<MeshFilter>().mesh = mesh = new Mesh();
-            mesh.name = "VoxelGrid Mesh";
-            vertices = new List<Vector3>();
-            triangles = new List<int>();
-            rowCacheMax = new int[resolution * 2 + 1];
-            rowCacheMin = new int[resolution * 2 + 1];
+            surface = Instantiate(surfacePrefab);
+            surface.transform.parent = transform;
+            surface.transform.localPosition = Vector3.zero;
+            surface.Initialize(resolution);
+
+            wall = Instantiate(wallPrefab);
+            wall.transform.parent = transform;
+            wall.transform.localPosition = Vector3.zero;
+            wall.Initialize(resolution);
+
             Refresh();
         }
 
@@ -203,8 +203,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         private void Triangulate()
         {
-            triangles.Clear();
-            mesh.Clear();
+            surface.Clear();
+            wall.Clear();
 
             FillFirstRowCache();
             TriangulateCellRows();
@@ -214,9 +214,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 TriangulateGapRow();
             }
 
-            // TAF : Passer à des tableaux fixes au lieu de listes
-            mesh.vertices = vertices.ToArray();
-            mesh.triangles = triangles.ToArray();
+            surface.Apply();
+            wall.Apply();
         }
 
         /// <summary>
@@ -238,10 +237,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                      b = voxels[i + 1],
                      c = voxels[i + resolution],
                      d = voxels[i + resolution + 1];
-                    int cacheIndex = x * 2;
-                    CacheNextEdgeAndCorner(cacheIndex, c, d);
+                    CacheNextEdgeAndCorner(x, c, d);
                     CacheNextMiddleEdge(b, d);
-                    TriangulateCell(cacheIndex, a, b, c, d);
+                    TriangulateCell(x, a, b, c, d);
                 }
                 if (xNeighbor != null)
                 {
@@ -344,7 +342,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             dummySwap.BecomeXDummyOf(xNeighbor.voxels[i + 1], gridSize);
             dummyT = dummyX;
             dummyX = dummySwap;
-            int cacheIndex = (resolution - 1) * 2;
+            int cacheIndex = resolution - 1;
             CacheNextEdgeAndCorner(cacheIndex, voxels[i + resolution], dummyX);
             CacheNextMiddleEdge(dummyT, dummyX);
             TriangulateCell(cacheIndex, voxels[i], dummyT, voxels[i + resolution], dummyX);
@@ -368,59 +366,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 dummySwap.BecomeYDummyOf(yNeighbor.voxels[x + 1], gridSize);
                 dummyT = dummyY;
                 dummyY = dummySwap;
-                int cacheIndex = x * 2;
-                CacheNextEdgeAndCorner(cacheIndex, dummyT, dummyY);
+                CacheNextEdgeAndCorner(x, dummyT, dummyY);
                 CacheNextMiddleEdge(voxels[x + offset + 1], dummyY);
-                TriangulateCell(cacheIndex, voxels[x + offset], voxels[x + offset + 1], dummyT, dummyY);
+                TriangulateCell(x, voxels[x + offset], voxels[x + offset + 1], dummyT, dummyY);
             }
 
             if (xNeighbor != null)
             {
                 dummyT.BecomeXYDummyOf(xyNeighbor.voxels[0], gridSize);
-                int cacheIndex = cells * 2;
-                CacheNextEdgeAndCorner(cacheIndex, dummyY, dummyT);
+                CacheNextEdgeAndCorner(cells, dummyY, dummyT);
                 CacheNextMiddleEdge(dummyX, dummyT);
-                TriangulateCell(cacheIndex, voxels[^1], dummyX, dummyY, dummyT);
+                TriangulateCell(cells, voxels[^1], dummyX, dummyY, dummyT);
             }
-        }
-
-        /// <summary>
-        /// Crée un triangle à partir des vertices renseignés
-        /// </summary>
-        private void AddTriangle(int a, int b, int c)
-        {
-            triangles.Add(a);
-            triangles.Add(b);
-            triangles.Add(c);
-        }
-
-        /// <summary>
-        /// Crée un quad à partir des vertices renseignés
-        /// </summary>
-        private void AddQuad(int a, int b, int c, int d)
-        {
-            triangles.Add(a);
-            triangles.Add(b);
-            triangles.Add(c);
-            triangles.Add(a);
-            triangles.Add(c);
-            triangles.Add(d);
-        }
-
-        /// <summary>
-        /// Crée un pentagone à partir des vertices renseignés
-        /// </summary>
-        private void AddPentagon(int a, int b, int c, int d, int e)
-        {
-            triangles.Add(a);
-            triangles.Add(b);
-            triangles.Add(c);
-            triangles.Add(a);
-            triangles.Add(c);
-            triangles.Add(d);
-            triangles.Add(a);
-            triangles.Add(d);
-            triangles.Add(e);
         }
 
         private void TriangulateCase0(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -429,7 +386,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         private void TriangulateCase15(int i, Voxel a, Voxel b, Voxel c, Voxel d)
         {
-            AddQuadABCD(i);
+            surface.AddQuadABCD(i);
         }
 
         private void TriangulateCase1(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -441,12 +398,14 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
                 if (ClampToCellMaxMax(ref point, a, d))
                 {
-                    AddQuadA(i, point);
+                    surface.AddQuadA(i, point);
+                    wall.AddACAB(i, point);
                     return;
                 }
             }
 
-            AddTriangleA(i);
+            surface.AddTriangleA(i);
+            wall.AddACAB(i);
         }
 
         private void TriangulateCase2(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -458,12 +417,14 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
                 if (ClampToCellMinMax(ref point, a, d))
                 {
-                    AddQuadB(i, point);
+                    surface.AddQuadB(i, point);
+                    wall.AddABBD(i, point);
                     return;
                 }
             }
 
-            AddTriangleB(i);
+            surface.AddTriangleB(i);
+            wall.AddABBD(i);
         }
 
         private void TriangulateCase4(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -475,11 +436,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
                 if (ClampToCellMaxMin(ref point, a, d))
                 {
-                    AddQuadC(i, point);
+                    surface.AddQuadC(i, point);
+                    wall.AddCDAC(i, point);
                     return;
                 }
             }
-            AddTriangleC(i);
+            surface.AddTriangleC(i);
+            wall.AddCDAC(i);
         }
 
         private void TriangulateCase8(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -491,11 +454,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
                 if (ClampToCellMinMin(ref point, a, d))
                 {
-                    AddQuadD(i, point);
+                    surface.AddQuadD(i, point);
+                    wall.AddBDCD(i, point);
                     return;
                 }
             }
-            AddTriangleD(i);
+            surface.AddTriangleD(i);
+            wall.AddBDCD(i);
         }
 
         private void TriangulateCase7(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -507,11 +472,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
                 if (IsInsideCell(point, a, d))
                 {
-                    AddHexagonABC(i, point);
+                    surface.AddHexagonABC(i, point);
+                    wall.AddCDBD(i, point);
                     return;
                 }
             }
-            AddPentagonABC(i);
+            surface.AddPentagonABC(i);
+            wall.AddCDBD(i);
         }
 
         private void TriangulateCase11(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -523,11 +490,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
                 if (IsInsideCell(point, a, d))
                 {
-                    AddHexagonABD(i, point);
+                    surface.AddHexagonABD(i, point);
+                    wall.AddACCD(i, point);
                     return;
                 }
             }
-            AddPentagonABD(i);
+            surface.AddPentagonABD(i);
+            wall.AddACCD(i);
         }
 
         private void TriangulateCase13(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -539,11 +508,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
                 if (IsInsideCell(point, a, d))
                 {
-                    AddHexagonACD(i, point);
+                    surface.AddHexagonACD(i, point);
+                    wall.AddBDAB(i, point);
                     return;
                 }
             }
-            AddPentagonACD(i);
+            surface.AddPentagonACD(i);
+            wall.AddBDAB(i);
         }
 
         private void TriangulateCase14(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -555,11 +526,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
                 if (IsInsideCell(point, a, d))
                 {
-                    AddHexagonBCD(i, point);
+                    surface.AddHexagonBCD(i, point);
+                    wall.AddABAC(i, point);
                     return;
                 }
             }
-            AddPentagonBCD(i);
+            surface.AddPentagonBCD(i);
+            wall.AddABAC(i);
         }
 
         private void TriangulateCase3(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -571,11 +544,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(a.YEdgePoint, n1, b.YEdgePoint, n2);
                 if (IsInsideCell(point, a, d))
                 {
-                    AddPentagonAB(i, point);
+                    surface.AddPentagonAB(i, point);
+                    wall.AddACBD(i, point);
                     return;
                 }
             }
-            AddQuadAB(i);
+            surface.AddQuadAB(i);
+            wall.AddACBD(i);
         }
 
         private void TriangulateCase5(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -587,11 +562,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(a.XEdgePoint, n1, c.XEdgePoint, n2);
                 if (IsInsideCell(point, a, d))
                 {
-                    AddPentagonAC(i, point);
+                    surface.AddPentagonAC(i, point);
+                    wall.AddCDAB(i, point);
                     return;
                 }
             }
-            AddQuadAC(i);
+            surface.AddQuadAC(i);
+            wall.AddCDAB(i);
         }
 
         private void TriangulateCase10(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -603,11 +580,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(a.XEdgePoint, n1, c.XEdgePoint, n2);
                 if (IsInsideCell(point, a, d))
                 {
-                    AddPentagonBD(i, point);
+                    surface.AddPentagonBD(i, point);
+                    wall.AddABCD(i, point);
                     return;
                 }
             }
-            AddQuadBD(i);
+            surface.AddQuadBD(i);
+            wall.AddABCD(i);
         }
 
         private void TriangulateCase12(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -619,11 +598,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(a.YEdgePoint, n1, b.YEdgePoint, n2);
                 if (IsInsideCell(point, a, d))
                 {
-                    AddPentagonCD(i, point);
+                    surface.AddPentagonCD(i, point);
+                    wall.AddBDAC(i, point);
                     return;
                 }
             }
-            AddQuadCD(i);
+            surface.AddQuadCD(i);
+            wall.AddBDAC(i);
         }
 
         private void TriangulateCase6(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -679,8 +660,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                         TriangulateCase6Connected(i, a, b, c, d);
                         return;
                     }
-                    AddQuadB(i, point1);
-                    AddQuadC(i, point2);
+                    surface.AddQuadB(i, point1);
+                    surface.AddQuadC(i, point2);
+                    wall.AddABBD(i, point1);
+                    wall.AddCDAC(i, point2);
                     return;
                 }
                 // First sharp.
@@ -689,8 +672,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     TriangulateCase6Connected(i, a, b, c, d);
                     return;
                 }
-                AddQuadB(i, point1);
-                AddTriangleC(i);
+                surface.AddQuadB(i, point1);
+                surface.AddTriangleC(i);
+                wall.AddABBD(i, point1);
+                wall.AddCDAC(i, point2);
                 return;
             }
             if (sharp2)
@@ -701,13 +686,17 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     TriangulateCase6Connected(i, a, b, c, d);
                     return;
                 }
-                AddTriangleB(i);
-                AddQuadC(i, point2);
+                surface.AddTriangleB(i);
+                surface.AddQuadC(i, point2);
+                wall.AddABBD(i, point1);
+                wall.AddCDAC(i, point2);
                 return;
             }
             // Neither sharp.
-            AddTriangleB(i);
-            AddTriangleC(i);
+            surface.AddTriangleB(i);
+            surface.AddTriangleC(i);
+            wall.AddABBD(i, point1);
+            wall.AddCDAC(i, point2);
         }
 
         private void TriangulateCase6Connected(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -719,16 +708,19 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
                 if (IsInsideCell(point, a, d) && IsBelowLine(point, c.position, b.position))
                 {
-                    AddPentagonBCToA(i, point);
+                    surface.AddPentagonBCToA(i, point);
+                    wall.AddABAC(i, point);
                 }
                 else
                 {
-                    AddQuadBCToA(i);
+                    surface.AddQuadBCToA(i);
+                    wall.AddABAC(i, point);
                 }
             }
             else
             {
-                AddQuadBCToA(i);
+                surface.AddQuadBCToA(i);
+                wall.AddABAC(i);
             }
 
             n1 = c.xNormal;
@@ -738,11 +730,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
                 if (IsInsideCell(point, a, d) && IsBelowLine(point, b.position, c.position))
                 {
-                    AddPentagonBCToD(i, point);
+                    surface.AddPentagonBCToD(i, point);
+                    wall.AddCDBD(i, point);
                     return;
                 }
             }
-            AddQuadBCToD(i);
+            surface.AddQuadBCToD(i);
+            wall.AddCDBD(i);
         }
 
         private void TriangulateCase9(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -797,8 +791,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                         TriangulateCase9Connected(i, a, b, c, d);
                         return;
                     }
-                    AddQuadA(i, point1);
-                    AddQuadD(i, point2);
+                    surface.AddQuadA(i, point1);
+                    surface.AddQuadD(i, point2);
+                    wall.AddACAB(i, point1);
+                    wall.AddBDCD(i, point2);
                     return;
                 }
                 if (IsBelowLine(point1, b.YEdgePoint, c.XEdgePoint))
@@ -806,8 +802,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     TriangulateCase9Connected(i, a, b, c, d);
                     return;
                 }
-                AddQuadA(i, point1);
-                AddTriangleD(i);
+                surface.AddQuadA(i, point1);
+                surface.AddTriangleD(i);
+                wall.AddACAB(i, point1);
+                wall.AddBDCD(i, point2);
                 return;
             }
             if (sharp2)
@@ -817,12 +815,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     TriangulateCase9Connected(i, a, b, c, d);
                     return;
                 }
-                AddTriangleA(i);
-                AddQuadD(i, point2);
+                surface.AddTriangleA(i);
+                surface.AddQuadD(i, point2);
+                wall.AddACAB(i, point1);
+                wall.AddBDCD(i, point2);
                 return;
             }
-            AddTriangleA(i);
-            AddTriangleD(i);
+            surface.AddTriangleA(i);
+            surface.AddTriangleD(i);
+            wall.AddACAB(i, point1);
+            wall.AddBDCD(i, point2);
         }
 
         private void TriangulateCase9Connected(int i, Voxel a, Voxel b, Voxel c, Voxel d)
@@ -834,16 +836,19 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
                 if (IsInsideCell(point, a, d) && IsBelowLine(point, a.position, d.position))
                 {
-                    AddPentagonADToB(i, point);
+                    surface.AddPentagonADToB(i, point);
+                    wall.AddBDAB(i, point);
                 }
                 else
                 {
-                    AddQuadADToB(i);
+                    surface.AddQuadADToB(i);
+                    wall.AddBDAB(i, point);
                 }
             }
             else
             {
-                AddQuadADToB(i);
+                surface.AddQuadADToB(i);
+                wall.AddBDAB(i);
             }
 
             n1 = c.xNormal;
@@ -853,217 +858,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 Vector2 point = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
                 if (IsInsideCell(point, a, d) && IsBelowLine(point, d.position, a.position))
                 {
-                    AddPentagonADToC(i, point);
+                    surface.AddPentagonADToC(i, point);
+                    wall.AddACCD(i, point);
                     return;
                 }
             }
-            AddQuadADToC(i);
-        }
-
-        private void AddQuadABCD(int i)
-        {
-            AddQuad(rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 2], rowCacheMin[i + 2]);
-        }
-
-        private void AddTriangleA(int i)
-        {
-            AddTriangle(rowCacheMin[i], edgeCacheMin, rowCacheMin[i + 1]);
-        }
-
-        private void AddTriangleB(int i)
-        {
-            AddTriangle(rowCacheMin[i + 2], rowCacheMin[i + 1], edgeCacheMax);
-        }
-
-        private void AddTriangleC(int i)
-        {
-            AddTriangle(rowCacheMax[i], rowCacheMax[i + 1], edgeCacheMin);
-        }
-
-        private void AddTriangleD(int i)
-        {
-            AddTriangle(rowCacheMax[i + 2], edgeCacheMax, rowCacheMax[i + 1]);
-        }
-
-        private void AddPentagonABC(int i)
-        {
-            AddPentagon(rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1], edgeCacheMax, rowCacheMin[i + 2]);
-        }
-
-        private void AddPentagonABD(int i)
-        {
-            AddPentagon(rowCacheMin[i + 2], rowCacheMin[i], edgeCacheMin, rowCacheMax[i + 1], rowCacheMax[i + 2]);
-        }
-
-        private void AddPentagonACD(int i)
-        {
-            AddPentagon(rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax, rowCacheMin[i + 1], rowCacheMin[i]);
-        }
-
-        private void AddPentagonBCD(int i)
-        {
-            AddPentagon(rowCacheMax[i + 2], rowCacheMin[i + 2], rowCacheMin[i + 1], edgeCacheMin, rowCacheMax[i]);
-        }
-
-        private void AddPentagonAB(int i, Vector2 extraVertex)
-        {
-            AddPentagon(vertices.Count, edgeCacheMax, rowCacheMin[i + 2], rowCacheMin[i], edgeCacheMin);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddPentagonAC(int i, Vector2 extraVertex)
-        {
-            AddPentagon(vertices.Count, rowCacheMin[i + 1], rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1]);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddPentagonBD(int i, Vector2 extraVertex)
-        {
-            AddPentagon(
-                vertices.Count, rowCacheMax[i + 1], rowCacheMax[i + 2], rowCacheMin[i + 2], rowCacheMin[i + 1]);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddPentagonCD(int i, Vector2 extraVertex)
-        {
-            AddPentagon(vertices.Count, edgeCacheMin, rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddPentagonBCToA(int i, Vector2 extraVertex)
-        {
-            AddPentagon(vertices.Count, edgeCacheMin, rowCacheMax[i], rowCacheMin[i + 2], rowCacheMin[i + 1]);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddPentagonBCToD(int i, Vector2 extraVertex)
-        {
-            AddPentagon(vertices.Count, edgeCacheMax, rowCacheMin[i + 2], rowCacheMax[i], rowCacheMax[i + 1]);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddPentagonADToB(int i, Vector2 extraVertex)
-        {
-            AddPentagon(vertices.Count, rowCacheMin[i + 1], rowCacheMin[i], rowCacheMax[i + 2], edgeCacheMax);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddPentagonADToC(int i, Vector2 extraVertex)
-        {
-            AddPentagon(vertices.Count, rowCacheMax[i + 1], rowCacheMax[i + 2], rowCacheMin[i], edgeCacheMin);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddQuadAB(int i)
-        {
-            AddQuad(rowCacheMin[i], edgeCacheMin, edgeCacheMax, rowCacheMin[i + 2]);
-        }
-
-        private void AddQuadAC(int i)
-        {
-            AddQuad(rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1], rowCacheMin[i + 1]);
-        }
-
-        private void AddQuadBD(int i)
-        {
-            AddQuad(rowCacheMin[i + 1], rowCacheMax[i + 1], rowCacheMax[i + 2], rowCacheMin[i + 2]);
-        }
-
-        private void AddQuadCD(int i)
-        {
-            AddQuad(edgeCacheMin, rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax);
-        }
-
-        private void AddQuadA(int i, Vector2 extraVertex)
-        {
-            AddQuad(vertices.Count, rowCacheMin[i + 1], rowCacheMin[i], edgeCacheMin);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddQuadB(int i, Vector2 extraVertex)
-        {
-            AddQuad(vertices.Count, edgeCacheMax, rowCacheMin[i + 2], rowCacheMin[i + 1]);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddQuadC(int i, Vector2 extraVertex)
-        {
-            AddQuad(vertices.Count, edgeCacheMin, rowCacheMax[i], rowCacheMax[i + 1]);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddQuadD(int i, Vector2 extraVertex)
-        {
-            AddQuad(vertices.Count, rowCacheMax[i + 1], rowCacheMax[i + 2], edgeCacheMax);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddQuadBCToA(int i)
-        {
-            AddQuad(edgeCacheMin, rowCacheMax[i], rowCacheMin[i + 2], rowCacheMin[i + 1]);
-        }
-
-        private void AddQuadBCToD(int i)
-        {
-            AddQuad(edgeCacheMax, rowCacheMin[i + 2], rowCacheMax[i], rowCacheMax[i + 1]);
-        }
-
-        private void AddQuadADToB(int i)
-        {
-            AddQuad(rowCacheMin[i + 1], rowCacheMin[i], rowCacheMax[i + 2], edgeCacheMax);
-        }
-
-        private void AddQuadADToC(int i)
-        {
-            AddQuad(rowCacheMax[i + 1], rowCacheMax[i + 2], rowCacheMin[i], edgeCacheMin);
-        }
-
-        private void AddHexagon(int a, int b, int c, int d, int e, int f)
-        {
-            triangles.Add(a);
-            triangles.Add(b);
-            triangles.Add(c);
-            triangles.Add(a);
-            triangles.Add(c);
-            triangles.Add(d);
-            triangles.Add(a);
-            triangles.Add(d);
-            triangles.Add(e);
-            triangles.Add(a);
-            triangles.Add(e);
-            triangles.Add(f);
-        }
-
-        private void AddHexagonABC(int i, Vector2 extraVertex)
-        {
-            AddHexagon(
-                vertices.Count, edgeCacheMax, rowCacheMin[i + 2],
-                rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1]);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddHexagonABD(int i, Vector2 extraVertex)
-        {
-            AddHexagon(
-                vertices.Count, rowCacheMax[i + 1], rowCacheMax[i + 2],
-                rowCacheMin[i + 2], rowCacheMin[i], edgeCacheMin);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddHexagonACD(int i, Vector2 extraVertex)
-        {
-            AddHexagon(
-                vertices.Count, rowCacheMin[i + 1], rowCacheMin[i],
-                rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax);
-            vertices.Add(extraVertex);
-        }
-
-        private void AddHexagonBCD(int i, Vector2 extraVertex)
-        {
-            AddHexagon(
-                vertices.Count, edgeCacheMin, rowCacheMax[i],
-                rowCacheMax[i + 2], rowCacheMin[i + 2], rowCacheMin[i + 1]);
-            vertices.Add(extraVertex);
+            surface.AddQuadADToC(i);
+            wall.AddACCD(i);
         }
 
         /// <summary>
@@ -1199,12 +1000,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
             for (i = 0; i < resolution - 1; ++i)
             {
-                CacheNextEdgeAndCorner(i * 2, voxels[i], voxels[i + 1]);
+                CacheNextEdgeAndCorner(i, voxels[i], voxels[i + 1]);
             }
             if (xNeighbor != null)
             {
                 dummyX.BecomeXDummyOf(xNeighbor.voxels[0], gridSize);
-                CacheNextEdgeAndCorner(i * 2, voxels[i], dummyX);
+                CacheNextEdgeAndCorner(i, voxels[i], dummyX);
             }
         }
 
@@ -1215,8 +1016,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (voxel.state)
             {
-                rowCacheMax[0] = vertices.Count;
-                vertices.Add(voxel.position);
+                surface.CacheFirstCorner(voxel);
             }
         }
 
@@ -1230,14 +1030,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (xMin.state != xMax.state)
             {
-                rowCacheMax[i + 1] = vertices.Count;
-                Vector3 p = new(xMin.xEdge, xMin.position.y, 0f);
-                vertices.Add(p);
+                surface.CacheXEdge(i, xMin);
+                wall.CacheXEdge(i, xMin);
             }
             if (xMax.state)
             {
-                rowCacheMax[i + 2] = vertices.Count;
-                vertices.Add(xMax.position);
+                surface.CacheNextCorner(i, xMax);
             }
         }
 
@@ -1248,12 +1046,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <param name="yMax">Voxel du milieu droit</param>
         private void CacheNextMiddleEdge(Voxel yMin, Voxel yMax)
         {
-            edgeCacheMin = edgeCacheMax;
+            surface.PrepareCacheForNextCell();
+            wall.PrepareCacheForNextCell();
             if (yMin.state != yMax.state)
             {
-                edgeCacheMax = vertices.Count;
-                Vector3 p = new(yMin.position.x, yMin.yEdge, 0f);
-                vertices.Add(p);
+                surface.CacheYEdge(yMin);
+                wall.CacheYEdge(yMin);
             }
         }
 
@@ -1262,7 +1060,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         private void SwapRowCaches()
         {
-            (rowCacheMax, rowCacheMin) = (rowCacheMin, rowCacheMax);
+            surface.PrepareCacheForNextRow();
+            wall.PrepareCacheForNextRow();
         }
 
         /// <summary>
