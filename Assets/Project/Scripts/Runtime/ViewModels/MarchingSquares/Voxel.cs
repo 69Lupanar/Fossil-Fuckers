@@ -9,6 +9,32 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
     [Serializable]
     public class Voxel
     {
+        #region Propriétés
+
+        /// <summary>
+        /// Point d'intersection sur l'edge X
+        /// </summary>
+        public Vector2 XEdgePoint
+        {
+            get
+            {
+                return new Vector2(xEdge, position.y);
+            }
+        }
+
+        /// <summary>
+        /// Point d'intersection sur l'edge Y
+        /// </summary>
+        public Vector2 YEdgePoint
+        {
+            get
+            {
+                return new Vector2(position.x, yEdge);
+            }
+        }
+
+        #endregion
+
         #region Variables d'instance
 
         /// <summary>
@@ -30,6 +56,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// Position du vertex de l'edge sur l'axe Y
         /// </summary>
         public float yEdge;
+
+        /// <summary>
+        /// Normale du voxel
+        /// </summary>
+        public Vector2 xNormal, yNormal;
 
         #endregion
 
@@ -71,6 +102,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             position.x += offset;
             xEdge = voxel.xEdge + offset;
             yEdge = voxel.yEdge;
+            yNormal = voxel.yNormal;
         }
 
         /// <summary>
@@ -85,6 +117,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             position.y += offset;
             xEdge = voxel.xEdge;
             yEdge = voxel.yEdge + offset;
+            xNormal = voxel.xNormal;
         }
 
         /// <summary>

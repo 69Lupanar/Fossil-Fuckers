@@ -147,6 +147,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (xMin.xEdge == float.MinValue || xMin.xEdge < XEnd)
                     {
                         xMin.xEdge = XEnd;
+                        xMin.xNormal = new Vector2(fillType ? 1f : -1f, 0f);
                     }
                 }
             }
@@ -157,6 +158,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (xMin.xEdge == float.MinValue || xMin.xEdge > XStart)
                     {
                         xMin.xEdge = XStart;
+                        xMin.xNormal = new Vector2(fillType ? -1f : 1f, 0f);
                     }
                 }
             }
@@ -180,6 +182,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (yMin.yEdge == float.MinValue || yMin.yEdge < YEnd)
                     {
                         yMin.yEdge = YEnd;
+                        yMin.yNormal = new Vector2(0f, fillType ? 1f : -1f);
                     }
                 }
             }
@@ -190,6 +193,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (yMin.yEdge == float.MinValue || yMin.yEdge > YStart)
                     {
                         yMin.yEdge = YStart;
+                        yMin.yNormal = new Vector2(0f, fillType ? -1f : 1f);
                     }
                 }
             }

@@ -50,20 +50,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             float y2 = xMin.position.y - centerY;
             y2 *= y2;
-            // Circle edge: x * x + y * y = sqrRadius.
             if (xMin.state == fillType)
             {
-                // Possibly on right side of circle.
                 float x = xMin.position.x - centerX;
                 if (x * x + y2 <= sqrRadius)
                 {
-                    // Left is inside, right must be outside.
-                    // We want to find x * x + y2 = sqrRadius.
-                    // Or x * x = sqrRadius - y2.
                     x = centerX + Mathf.Sqrt(sqrRadius - y2);
                     if (xMin.xEdge == float.MinValue || xMin.xEdge < x)
                     {
                         xMin.xEdge = x;
+                        xMin.xNormal = ComputeNormal(x, xMin.position.y);
                     }
                 }
             }
@@ -76,6 +72,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (xMin.xEdge == float.MinValue || xMin.xEdge > x)
                     {
                         xMin.xEdge = x;
+                        xMin.xNormal = ComputeNormal(x, xMin.position.y);
                     }
                 }
             }
@@ -90,20 +87,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             float x2 = yMin.position.x - centerX;
             x2 *= x2;
-            // Circle edge: x * x + y * y = sqrRadius.
             if (yMin.state == fillType)
             {
-                // Possibly on top side of circle.
                 float y = yMin.position.y - centerY;
                 if (y * y + x2 <= sqrRadius)
                 {
-                    // Bottom is inside, top must be outside.
-                    // We want to find y * y + x2 = sqrRadius.
-                    // Or y * y = sqrRadius - x2.
                     y = centerY + Mathf.Sqrt(sqrRadius - x2);
                     if (yMin.yEdge == float.MinValue || yMin.yEdge < y)
                     {
                         yMin.yEdge = y;
+                        yMin.yNormal = ComputeNormal(yMin.position.x, y);
                     }
                 }
             }
@@ -116,8 +109,28 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     if (yMin.yEdge == float.MinValue || yMin.yEdge > y)
                     {
                         yMin.yEdge = y;
+                        yMin.yNormal = ComputeNormal(yMin.position.x, y);
                     }
                 }
+            }
+        }
+
+        #endregion
+
+        #region Méthodes privées
+
+        /// <summary>
+        /// Obtient la normale aux coordonnées renseignées
+        /// </summary>
+        private Vector3 ComputeNormal(float x, float y)
+        {
+            if (fillType)
+            {
+                return new Vector2(x - centerX, y - centerY).normalized;
+            }
+            else
+            {
+                return new Vector2(centerX - x, centerY - y).normalized;
             }
         }
 

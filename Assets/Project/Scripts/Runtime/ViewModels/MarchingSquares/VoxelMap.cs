@@ -47,6 +47,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         public int chunkResolution = 2;
 
         /// <summary>
+        /// Angle max d'une section du mesh qui peut apparaître
+        /// </summary>
+        [Tooltip("Angle max d'une section du mesh qui peut apparaître")]
+        public float maxFeatureAngle = 135f;
+
+        /// <summary>
         /// Prefab de la grille de voxels
         /// </summary>
         [Tooltip("Prefab de la grille de voxels")]
@@ -166,7 +172,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         private void CreateChunk(int i, int x, int y)
         {
             VoxelGrid chunk = Instantiate(voxelGridPrefab, transform);
-            chunk.Initialize(voxelResolution, chunkSize);
+            chunk.Initialize(voxelResolution, chunkSize, maxFeatureAngle);
             chunk.transform.localPosition = new Vector3(x * chunkSize/* - halfSize*/, y * chunkSize/* - halfSize*/);
             chunks[i] = chunk;
 

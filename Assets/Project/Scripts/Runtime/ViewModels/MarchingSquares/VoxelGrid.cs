@@ -89,6 +89,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         private int edgeCacheMin, edgeCacheMax;
 
+        /// <summary>
+        /// Cosinus de la limite autorisée pour un angle d'une section du mesh
+        /// </summary>
+        private float sharpFeatureLimit;
+
         #endregion
 
         #region Méthodes publiques
@@ -98,8 +103,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         /// <param name="resolution">Résolution des voxels pour ce chunk</param>
         /// <param name="resolution">Taille du chunk</param>
-        public void Initialize(int resolution, float size)
+        /// <param name="maxFeatureAngle">Angle max d'une section du mesh qui peut apparaître</param>
+        public void Initialize(int resolution, float size, float maxFeatureAngle)
         {
+            sharpFeatureLimit = Mathf.Cos(maxFeatureAngle * Mathf.Deg2Rad);
             this.resolution = resolution;
             voxelSize = size / resolution;
             gridSize = size;
@@ -277,57 +284,52 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             switch (cellType)
             {
                 case 0:
-                    return;
+                    TriangulateCase0(i, a, b, c, d);
+                    break;
                 case 1:
-                    AddTriangle(rowCacheMin[i], edgeCacheMin, rowCacheMin[i + 1]);
+                    TriangulateCase1(i, a, b, c, d);
                     break;
                 case 2:
-                    AddTriangle(rowCacheMin[i + 2], rowCacheMin[i + 1], edgeCacheMax);
+                    TriangulateCase2(i, a, b, c, d);
                     break;
                 case 3:
-                    AddQuad(rowCacheMin[i], edgeCacheMin, edgeCacheMax, rowCacheMin[i + 2]);
+                    TriangulateCase3(i, a, b, c, d);
                     break;
                 case 4:
-                    AddTriangle(rowCacheMax[i], rowCacheMax[i + 1], edgeCacheMin);
+                    TriangulateCase4(i, a, b, c, d);
                     break;
                 case 5:
-                    AddQuad(rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1], rowCacheMin[i + 1]);
+                    TriangulateCase5(i, a, b, c, d);
                     break;
                 case 6:
-                    AddTriangle(rowCacheMin[i + 2], rowCacheMin[i + 1], edgeCacheMax);
-                    AddTriangle(rowCacheMax[i], rowCacheMax[i + 1], edgeCacheMin);
+                    TriangulateCase6(i, a, b, c, d);
                     break;
                 case 7:
-                    AddPentagon(
-                        rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1], edgeCacheMax, rowCacheMin[i + 2]);
+                    TriangulateCase7(i, a, b, c, d);
                     break;
                 case 8:
-                    AddTriangle(rowCacheMax[i + 2], edgeCacheMax, rowCacheMax[i + 1]);
+                    TriangulateCase8(i, a, b, c, d);
                     break;
                 case 9:
-                    AddTriangle(rowCacheMin[i], edgeCacheMin, rowCacheMin[i + 1]);
-                    AddTriangle(rowCacheMax[i + 2], edgeCacheMax, rowCacheMax[i + 1]);
+                    TriangulateCase9(i, a, b, c, d);
                     break;
                 case 10:
-                    AddQuad(rowCacheMin[i + 1], rowCacheMax[i + 1], rowCacheMax[i + 2], rowCacheMin[i + 2]);
+                    TriangulateCase10(i, a, b, c, d);
                     break;
                 case 11:
-                    AddPentagon(
-                        rowCacheMin[i + 2], rowCacheMin[i], edgeCacheMin, rowCacheMax[i + 1], rowCacheMax[i + 2]);
+                    TriangulateCase11(i, a, b, c, d);
                     break;
                 case 12:
-                    AddQuad(edgeCacheMin, rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax);
+                    TriangulateCase12(i, a, b, c, d);
                     break;
                 case 13:
-                    AddPentagon(
-                        rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax, rowCacheMin[i + 1], rowCacheMin[i]);
+                    TriangulateCase13(i, a, b, c, d);
                     break;
                 case 14:
-                    AddPentagon(
-                        rowCacheMax[i + 2], rowCacheMin[i + 2], rowCacheMin[i + 1], edgeCacheMin, rowCacheMax[i]);
+                    TriangulateCase14(i, a, b, c, d);
                     break;
                 case 15:
-                    AddQuad(rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 2], rowCacheMin[i + 2]);
+                    TriangulateCase15(i, a, b, c, d);
                     break;
             }
         }
@@ -420,6 +422,773 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             triangles.Add(d);
             triangles.Add(e);
         }
+
+        private void TriangulateCase0(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+        }
+
+        private void TriangulateCase15(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            AddQuadABCD(i);
+        }
+
+        private void TriangulateCase1(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = a.xNormal;
+            Vector2 n2 = a.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
+                if (ClampToCellMaxMax(ref point, a, d))
+                {
+                    AddQuadA(i, point);
+                    return;
+                }
+            }
+
+            AddTriangleA(i);
+        }
+
+        private void TriangulateCase2(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = a.xNormal;
+            Vector2 n2 = b.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
+                if (ClampToCellMinMax(ref point, a, d))
+                {
+                    AddQuadB(i, point);
+                    return;
+                }
+            }
+
+            AddTriangleB(i);
+        }
+
+        private void TriangulateCase4(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = c.xNormal;
+            Vector2 n2 = a.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
+                if (ClampToCellMaxMin(ref point, a, d))
+                {
+                    AddQuadC(i, point);
+                    return;
+                }
+            }
+            AddTriangleC(i);
+        }
+
+        private void TriangulateCase8(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = c.xNormal;
+            Vector2 n2 = b.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
+                if (ClampToCellMinMin(ref point, a, d))
+                {
+                    AddQuadD(i, point);
+                    return;
+                }
+            }
+            AddTriangleD(i);
+        }
+
+        private void TriangulateCase7(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = c.xNormal;
+            Vector2 n2 = b.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
+                if (IsInsideCell(point, a, d))
+                {
+                    AddHexagonABC(i, point);
+                    return;
+                }
+            }
+            AddPentagonABC(i);
+        }
+
+        private void TriangulateCase11(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = c.xNormal;
+            Vector2 n2 = a.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
+                if (IsInsideCell(point, a, d))
+                {
+                    AddHexagonABD(i, point);
+                    return;
+                }
+            }
+            AddPentagonABD(i);
+        }
+
+        private void TriangulateCase13(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = a.xNormal;
+            Vector2 n2 = b.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
+                if (IsInsideCell(point, a, d))
+                {
+                    AddHexagonACD(i, point);
+                    return;
+                }
+            }
+            AddPentagonACD(i);
+        }
+
+        private void TriangulateCase14(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = a.xNormal;
+            Vector2 n2 = a.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
+                if (IsInsideCell(point, a, d))
+                {
+                    AddHexagonBCD(i, point);
+                    return;
+                }
+            }
+            AddPentagonBCD(i);
+        }
+
+        private void TriangulateCase3(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = a.yNormal;
+            Vector2 n2 = b.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(a.YEdgePoint, n1, b.YEdgePoint, n2);
+                if (IsInsideCell(point, a, d))
+                {
+                    AddPentagonAB(i, point);
+                    return;
+                }
+            }
+            AddQuadAB(i);
+        }
+
+        private void TriangulateCase5(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = a.xNormal;
+            Vector2 n2 = c.xNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, c.XEdgePoint, n2);
+                if (IsInsideCell(point, a, d))
+                {
+                    AddPentagonAC(i, point);
+                    return;
+                }
+            }
+            AddQuadAC(i);
+        }
+
+        private void TriangulateCase10(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = a.xNormal;
+            Vector2 n2 = c.xNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, c.XEdgePoint, n2);
+                if (IsInsideCell(point, a, d))
+                {
+                    AddPentagonBD(i, point);
+                    return;
+                }
+            }
+            AddQuadBD(i);
+        }
+
+        private void TriangulateCase12(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = a.yNormal;
+            Vector2 n2 = b.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(a.YEdgePoint, n1, b.YEdgePoint, n2);
+                if (IsInsideCell(point, a, d))
+                {
+                    AddPentagonCD(i, point);
+                    return;
+                }
+            }
+            AddQuadCD(i);
+        }
+
+        private void TriangulateCase6(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            bool sharp1, sharp2;
+            Vector2 point1, point2;
+
+            Vector2 n1 = a.xNormal;
+            Vector2 n2 = -b.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                point1 = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
+                sharp1 = ClampToCellMinMax(ref point1, a, d);
+            }
+            else
+            {
+                point1.x = point1.y = 0f;
+                sharp1 = false;
+            }
+
+            n1 = c.xNormal;
+            n2 = -a.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                point2 = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
+                sharp2 = ClampToCellMaxMin(ref point2, a, d);
+            }
+            else
+            {
+                point2.x = point2.y = 0f;
+                sharp2 = false;
+            }
+
+            if (sharp1)
+            {
+                if (sharp2)
+                {
+                    // Both sharp.
+                    if (IsBelowLine(point2, a.XEdgePoint, point1))
+                    {
+                        if (
+                            IsBelowLine(point2, point1, b.YEdgePoint) ||
+                            IsBelowLine(point1, point2, a.YEdgePoint))
+                        {
+                            TriangulateCase6Connected(i, a, b, c, d);
+                            return;
+                        }
+                    }
+                    else if (
+                        IsBelowLine(point2, point1, b.YEdgePoint) &&
+                        IsBelowLine(point1, c.XEdgePoint, point2))
+                    {
+                        TriangulateCase6Connected(i, a, b, c, d);
+                        return;
+                    }
+                    AddQuadB(i, point1);
+                    AddQuadC(i, point2);
+                    return;
+                }
+                // First sharp.
+                if (IsBelowLine(point1, c.XEdgePoint, a.YEdgePoint))
+                {
+                    TriangulateCase6Connected(i, a, b, c, d);
+                    return;
+                }
+                AddQuadB(i, point1);
+                AddTriangleC(i);
+                return;
+            }
+            if (sharp2)
+            {
+                // Second sharp.
+                if (IsBelowLine(point2, a.XEdgePoint, b.YEdgePoint))
+                {
+                    TriangulateCase6Connected(i, a, b, c, d);
+                    return;
+                }
+                AddTriangleB(i);
+                AddQuadC(i, point2);
+                return;
+            }
+            // Neither sharp.
+            AddTriangleB(i);
+            AddTriangleC(i);
+        }
+
+        private void TriangulateCase6Connected(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = a.xNormal;
+            Vector2 n2 = -a.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
+                if (IsInsideCell(point, a, d) && IsBelowLine(point, c.position, b.position))
+                {
+                    AddPentagonBCToA(i, point);
+                }
+                else
+                {
+                    AddQuadBCToA(i);
+                }
+            }
+            else
+            {
+                AddQuadBCToA(i);
+            }
+
+            n1 = c.xNormal;
+            n2 = -b.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
+                if (IsInsideCell(point, a, d) && IsBelowLine(point, b.position, c.position))
+                {
+                    AddPentagonBCToD(i, point);
+                    return;
+                }
+            }
+            AddQuadBCToD(i);
+        }
+
+        private void TriangulateCase9(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            bool sharp1, sharp2;
+            Vector2 point1, point2;
+            Vector2 n1 = a.xNormal;
+            Vector2 n2 = a.yNormal;
+
+            if (IsSharpFeature(n1, n2))
+            {
+                point1 = ComputeIntersection(a.XEdgePoint, n1, a.YEdgePoint, n2);
+                sharp1 = ClampToCellMaxMax(ref point1, a, d);
+            }
+            else
+            {
+                point1.x = point1.y = 0f;
+                sharp1 = false;
+            }
+
+            n1 = c.xNormal;
+            n2 = b.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                point2 = ComputeIntersection(c.XEdgePoint, n1, b.YEdgePoint, n2);
+                sharp2 = ClampToCellMinMin(ref point2, a, d);
+            }
+            else
+            {
+                point2.x = point2.y = 0f;
+                sharp2 = false;
+            }
+
+            if (sharp1)
+            {
+                if (sharp2)
+                {
+                    if (IsBelowLine(point1, b.YEdgePoint, point2))
+                    {
+                        if (
+                            IsBelowLine(point1, point2, c.XEdgePoint) ||
+                            IsBelowLine(point2, point1, a.XEdgePoint))
+                        {
+                            TriangulateCase9Connected(i, a, b, c, d);
+                            return;
+                        }
+                    }
+                    else if (
+                        IsBelowLine(point1, point2, c.XEdgePoint) &&
+                        IsBelowLine(point2, a.YEdgePoint, point1))
+                    {
+                        TriangulateCase9Connected(i, a, b, c, d);
+                        return;
+                    }
+                    AddQuadA(i, point1);
+                    AddQuadD(i, point2);
+                    return;
+                }
+                if (IsBelowLine(point1, b.YEdgePoint, c.XEdgePoint))
+                {
+                    TriangulateCase9Connected(i, a, b, c, d);
+                    return;
+                }
+                AddQuadA(i, point1);
+                AddTriangleD(i);
+                return;
+            }
+            if (sharp2)
+            {
+                if (IsBelowLine(point2, a.YEdgePoint, a.XEdgePoint))
+                {
+                    TriangulateCase9Connected(i, a, b, c, d);
+                    return;
+                }
+                AddTriangleA(i);
+                AddQuadD(i, point2);
+                return;
+            }
+            AddTriangleA(i);
+            AddTriangleD(i);
+        }
+
+        private void TriangulateCase9Connected(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        {
+            Vector2 n1 = a.xNormal;
+            Vector2 n2 = b.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(a.XEdgePoint, n1, b.YEdgePoint, n2);
+                if (IsInsideCell(point, a, d) && IsBelowLine(point, a.position, d.position))
+                {
+                    AddPentagonADToB(i, point);
+                }
+                else
+                {
+                    AddQuadADToB(i);
+                }
+            }
+            else
+            {
+                AddQuadADToB(i);
+            }
+
+            n1 = c.xNormal;
+            n2 = a.yNormal;
+            if (IsSharpFeature(n1, n2))
+            {
+                Vector2 point = ComputeIntersection(c.XEdgePoint, n1, a.YEdgePoint, n2);
+                if (IsInsideCell(point, a, d) && IsBelowLine(point, d.position, a.position))
+                {
+                    AddPentagonADToC(i, point);
+                    return;
+                }
+            }
+            AddQuadADToC(i);
+        }
+
+        private void AddQuadABCD(int i)
+        {
+            AddQuad(rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 2], rowCacheMin[i + 2]);
+        }
+
+        private void AddTriangleA(int i)
+        {
+            AddTriangle(rowCacheMin[i], edgeCacheMin, rowCacheMin[i + 1]);
+        }
+
+        private void AddTriangleB(int i)
+        {
+            AddTriangle(rowCacheMin[i + 2], rowCacheMin[i + 1], edgeCacheMax);
+        }
+
+        private void AddTriangleC(int i)
+        {
+            AddTriangle(rowCacheMax[i], rowCacheMax[i + 1], edgeCacheMin);
+        }
+
+        private void AddTriangleD(int i)
+        {
+            AddTriangle(rowCacheMax[i + 2], edgeCacheMax, rowCacheMax[i + 1]);
+        }
+
+        private void AddPentagonABC(int i)
+        {
+            AddPentagon(rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1], edgeCacheMax, rowCacheMin[i + 2]);
+        }
+
+        private void AddPentagonABD(int i)
+        {
+            AddPentagon(rowCacheMin[i + 2], rowCacheMin[i], edgeCacheMin, rowCacheMax[i + 1], rowCacheMax[i + 2]);
+        }
+
+        private void AddPentagonACD(int i)
+        {
+            AddPentagon(rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax, rowCacheMin[i + 1], rowCacheMin[i]);
+        }
+
+        private void AddPentagonBCD(int i)
+        {
+            AddPentagon(rowCacheMax[i + 2], rowCacheMin[i + 2], rowCacheMin[i + 1], edgeCacheMin, rowCacheMax[i]);
+        }
+
+        private void AddPentagonAB(int i, Vector2 extraVertex)
+        {
+            AddPentagon(vertices.Count, edgeCacheMax, rowCacheMin[i + 2], rowCacheMin[i], edgeCacheMin);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddPentagonAC(int i, Vector2 extraVertex)
+        {
+            AddPentagon(vertices.Count, rowCacheMin[i + 1], rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1]);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddPentagonBD(int i, Vector2 extraVertex)
+        {
+            AddPentagon(
+                vertices.Count, rowCacheMax[i + 1], rowCacheMax[i + 2], rowCacheMin[i + 2], rowCacheMin[i + 1]);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddPentagonCD(int i, Vector2 extraVertex)
+        {
+            AddPentagon(vertices.Count, edgeCacheMin, rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddPentagonBCToA(int i, Vector2 extraVertex)
+        {
+            AddPentagon(vertices.Count, edgeCacheMin, rowCacheMax[i], rowCacheMin[i + 2], rowCacheMin[i + 1]);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddPentagonBCToD(int i, Vector2 extraVertex)
+        {
+            AddPentagon(vertices.Count, edgeCacheMax, rowCacheMin[i + 2], rowCacheMax[i], rowCacheMax[i + 1]);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddPentagonADToB(int i, Vector2 extraVertex)
+        {
+            AddPentagon(vertices.Count, rowCacheMin[i + 1], rowCacheMin[i], rowCacheMax[i + 2], edgeCacheMax);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddPentagonADToC(int i, Vector2 extraVertex)
+        {
+            AddPentagon(vertices.Count, rowCacheMax[i + 1], rowCacheMax[i + 2], rowCacheMin[i], edgeCacheMin);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddQuadAB(int i)
+        {
+            AddQuad(rowCacheMin[i], edgeCacheMin, edgeCacheMax, rowCacheMin[i + 2]);
+        }
+
+        private void AddQuadAC(int i)
+        {
+            AddQuad(rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1], rowCacheMin[i + 1]);
+        }
+
+        private void AddQuadBD(int i)
+        {
+            AddQuad(rowCacheMin[i + 1], rowCacheMax[i + 1], rowCacheMax[i + 2], rowCacheMin[i + 2]);
+        }
+
+        private void AddQuadCD(int i)
+        {
+            AddQuad(edgeCacheMin, rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax);
+        }
+
+        private void AddQuadA(int i, Vector2 extraVertex)
+        {
+            AddQuad(vertices.Count, rowCacheMin[i + 1], rowCacheMin[i], edgeCacheMin);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddQuadB(int i, Vector2 extraVertex)
+        {
+            AddQuad(vertices.Count, edgeCacheMax, rowCacheMin[i + 2], rowCacheMin[i + 1]);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddQuadC(int i, Vector2 extraVertex)
+        {
+            AddQuad(vertices.Count, edgeCacheMin, rowCacheMax[i], rowCacheMax[i + 1]);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddQuadD(int i, Vector2 extraVertex)
+        {
+            AddQuad(vertices.Count, rowCacheMax[i + 1], rowCacheMax[i + 2], edgeCacheMax);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddQuadBCToA(int i)
+        {
+            AddQuad(edgeCacheMin, rowCacheMax[i], rowCacheMin[i + 2], rowCacheMin[i + 1]);
+        }
+
+        private void AddQuadBCToD(int i)
+        {
+            AddQuad(edgeCacheMax, rowCacheMin[i + 2], rowCacheMax[i], rowCacheMax[i + 1]);
+        }
+
+        private void AddQuadADToB(int i)
+        {
+            AddQuad(rowCacheMin[i + 1], rowCacheMin[i], rowCacheMax[i + 2], edgeCacheMax);
+        }
+
+        private void AddQuadADToC(int i)
+        {
+            AddQuad(rowCacheMax[i + 1], rowCacheMax[i + 2], rowCacheMin[i], edgeCacheMin);
+        }
+
+        private void AddHexagon(int a, int b, int c, int d, int e, int f)
+        {
+            triangles.Add(a);
+            triangles.Add(b);
+            triangles.Add(c);
+            triangles.Add(a);
+            triangles.Add(c);
+            triangles.Add(d);
+            triangles.Add(a);
+            triangles.Add(d);
+            triangles.Add(e);
+            triangles.Add(a);
+            triangles.Add(e);
+            triangles.Add(f);
+        }
+
+        private void AddHexagonABC(int i, Vector2 extraVertex)
+        {
+            AddHexagon(
+                vertices.Count, edgeCacheMax, rowCacheMin[i + 2],
+                rowCacheMin[i], rowCacheMax[i], rowCacheMax[i + 1]);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddHexagonABD(int i, Vector2 extraVertex)
+        {
+            AddHexagon(
+                vertices.Count, rowCacheMax[i + 1], rowCacheMax[i + 2],
+                rowCacheMin[i + 2], rowCacheMin[i], edgeCacheMin);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddHexagonACD(int i, Vector2 extraVertex)
+        {
+            AddHexagon(
+                vertices.Count, rowCacheMin[i + 1], rowCacheMin[i],
+                rowCacheMax[i], rowCacheMax[i + 2], edgeCacheMax);
+            vertices.Add(extraVertex);
+        }
+
+        private void AddHexagonBCD(int i, Vector2 extraVertex)
+        {
+            AddHexagon(
+                vertices.Count, edgeCacheMin, rowCacheMax[i],
+                rowCacheMax[i + 2], rowCacheMin[i + 2], rowCacheMin[i + 1]);
+            vertices.Add(extraVertex);
+        }
+
+        /// <summary>
+        /// Indique si les normales forment un angle dépassant l'angle limite
+        /// </summary>
+        private bool IsSharpFeature(Vector2 normal1, Vector2 normal2)
+        {
+            float dot = Vector2.Dot(normal1, -normal2);
+            return dot >= sharpFeatureLimit && dot < 0.9999f;
+        }
+
+        /// <summary>
+        /// Indique si le point renseigné est contenu dans la cellule
+        /// représentée par les voxels renseignés
+        /// </summary>
+        private static bool IsInsideCell(Vector2 point, Voxel min, Voxel max)
+        {
+            return
+                point.x > min.position.x && point.y > min.position.y &&
+                point.x < max.position.x && point.y < max.position.y;
+        }
+
+        /// <summary>
+        /// Indique si le point renseigné est en dessous d'une ligne
+        /// </summary>
+        private static bool IsBelowLine(Vector2 p, Vector2 start, Vector2 end)
+        {
+            float determinant = (end.x - start.x) * (p.y - start.y) - (end.y - start.y) * (p.x - start.x);
+            return determinant < 0f;
+        }
+
+        /// <summary>
+        /// Calcule l'intersection entre deux points
+        /// </summary>
+        /// <param name="point1"></param>
+        /// <param name="normal1"></param>
+        /// <param name="point2"></param>
+        /// <param name="normal2"></param>
+        private static Vector2 ComputeIntersection(Vector2 point1, Vector2 normal1, Vector2 point2, Vector2 normal2)
+        {
+            Vector2 d2 = new(normal2.y, -normal2.x);
+            float u2 = -Vector2.Dot(normal1, point2 - point1) / Vector2.Dot(normal1, d2);
+            return point2 + d2 * u2;
+        }
+
+        /// <summary>
+        /// Garde les points d'une surface à l'intérieur de sa cellule
+        /// </summary>
+        private static bool ClampToCellMaxMax(ref Vector2 point, Voxel min, Voxel max)
+        {
+            if (point.x < min.position.x || point.y < min.position.y)
+            {
+                return false;
+            }
+            if (point.x > max.position.x)
+            {
+                point.x = max.position.x;
+            }
+            if (point.y > max.position.y)
+            {
+                point.y = max.position.y;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Garde les points d'une surface à l'intérieur de sa cellule
+        /// </summary>
+        private static bool ClampToCellMinMin(ref Vector2 point, Voxel min, Voxel max)
+        {
+            if (point.x > max.position.x || point.y > max.position.y)
+            {
+                return false;
+            }
+            if (point.x < min.position.x)
+            {
+                point.x = min.position.x;
+            }
+            if (point.y < min.position.y)
+            {
+                point.y = min.position.y;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Garde les points d'une surface à l'intérieur de sa cellule
+        /// </summary>
+        private static bool ClampToCellMinMax(ref Vector2 point, Voxel min, Voxel max)
+        {
+            if (point.x > max.position.x || point.y < min.position.y)
+            {
+                return false;
+            }
+            if (point.x < min.position.x)
+            {
+                point.x = min.position.x;
+            }
+            if (point.y > max.position.y)
+            {
+                point.y = max.position.y;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Garde les points d'une surface à l'intérieur de sa cellule
+        /// </summary>
+        private static bool ClampToCellMaxMin(ref Vector2 point, Voxel min, Voxel max)
+        {
+            if (point.x < min.position.x || point.y > max.position.y)
+            {
+                return false;
+            }
+            if (point.x > max.position.x)
+            {
+                point.x = max.position.x;
+            }
+            if (point.y < min.position.y)
+            {
+                point.y = min.position.y;
+            }
+            return true;
+        }
+
         /// <summary>
         /// Remplit la 1è ligne de cache
         /// </summary>
