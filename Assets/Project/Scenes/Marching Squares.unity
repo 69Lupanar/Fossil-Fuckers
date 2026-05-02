@@ -402,6 +402,17 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &2104701632 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+  m_PrefabInstance: {fileID: 6945605081276770205}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6eb9418d0cc024695928b083ccdb9813, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.ViewModels::VoxelMap
 --- !u!1001 &6945605081276770205
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -412,7 +423,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1359065666056280568, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: m_Name
-      value: Voxel Map
+      value: Voxel Grid
       objectReference: {fileID: 0}
     - target: {fileID: 3913852497459597252, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: m_LocalPosition.x
@@ -456,7 +467,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: size
-      value: 4
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: mapSize
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: voxelSpacing
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: chunkResolution
@@ -465,6 +484,10 @@ PrefabInstance:
     - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: voxelResolution
       value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: <VoxelSpacing>k__BackingField
+      value: 0.9
       objectReference: {fileID: 0}
     - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: stencilVisualizations.Array.size
@@ -478,6 +501,86 @@ PrefabInstance:
       propertyPath: 'stencilVisualizations.Array.data[1]'
       value: 
       objectReference: {fileID: 1354930912}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _grid
+      value: 
+      objectReference: {fileID: 2104701632}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[0].a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[0].b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[0].g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[0].r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[1].a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[1].b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[1].g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[1].r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[2].a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[2].b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[2].g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[2].r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[3].a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[3].b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[3].g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[3].r
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[4].a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _voxelStateColors.Array.data[4].b
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

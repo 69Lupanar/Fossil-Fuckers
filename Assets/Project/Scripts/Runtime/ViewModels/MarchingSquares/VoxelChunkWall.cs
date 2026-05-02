@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 /// Chargé de l'affichage du mesh des murs d'un chunk
 /// </summary>
-public class VoxelGridWall : MonoBehaviour
+public class VoxelChunkWall : MonoBehaviour
 {
     #region Variables Unity
 

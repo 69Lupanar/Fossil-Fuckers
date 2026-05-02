@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &3627490711468792019
+--- !u!1 &1359065666056280568
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,8 +8,10 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 5032934857508896774}
-  - component: {fileID: 6835662398029437811}
+  - component: {fileID: 3913852497459597252}
+  - component: {fileID: 6237090199471055437}
+  - component: {fileID: 1662046016798231970}
+  - component: {fileID: 8803021385803124385}
   m_Layer: 0
   m_Name: Voxel Grid
   m_TagString: Untagged
@@ -17,47 +19,212 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &5032934857508896774
+--- !u!4 &3913852497459597252
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3627490711468792019}
+  m_GameObject: {fileID: 1359065666056280568}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 4179844321039818934}
+  - {fileID: 1608451359196424891}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6835662398029437811
+--- !u!114 &6237090199471055437
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3627490711468792019}
+  m_GameObject: {fileID: 1359065666056280568}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96c84de9be2e91e4c9ffb0efd1f59b63, type: 3}
+  m_Script: {fileID: 11500000, guid: 6eb9418d0cc024695928b083ccdb9813, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Models::VoxelGrid
-  resolution: 8
-  voxelSpacing: 0.9
-  voxelPrefab: {fileID: 8126443910553182534, guid: d0a9ac7561e109c4ab1288bbaf6c6d78, type: 3}
-  surfacePrefab: {fileID: 2690795676495520682, guid: 47c68f0fb6217be4fa3a79a6bdf1401b, type: 3}
-  wallPrefab: {fileID: 3953689494265326127, guid: 30c13de4b32e70746b7a2ab8f8c3333f, type: 3}
-  materials:
-  - surfaceMaterial: {fileID: 2100000, guid: ea572728d3fa84861b12ea2bd2f167d4, type: 2}
-    wallMaterial: {fileID: 2100000, guid: 5ab78445f72ca4c1f8ff37d8290cd6c4, type: 2}
-  - surfaceMaterial: {fileID: 2100000, guid: d92927af6814b46198abad9e8e7d41e4, type: 2}
-    wallMaterial: {fileID: 2100000, guid: 1a33bc3afdbc349428415adf19497db5, type: 2}
-  - surfaceMaterial: {fileID: 2100000, guid: d8850b4a07a50478999ae13366157fc6, type: 2}
-    wallMaterial: {fileID: 2100000, guid: 1b58a44c7d3dd47ddba26c140b07a27f, type: 2}
-  - surfaceMaterial: {fileID: 2100000, guid: 606e24c30ff644223a123cd42eac5aa5, type: 2}
-    wallMaterial: {fileID: 2100000, guid: 20e8a06403f06433195638a6d797d2f1, type: 2}
-  xNeighbor: {fileID: 0}
-  yNeighbor: {fileID: 0}
-  xyNeighbor: {fileID: 0}
+  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.ViewModels::VoxelMap
+  <MapSize>k__BackingField: 2
+  <VoxelResolution>k__BackingField: 8
+  <VoxelSpacing>k__BackingField: 0.1
+  <ChunkResolution>k__BackingField: 2
+  <MaxFeatureAngle>k__BackingField: 135
+  <MaxParallelAngle>k__BackingField: 5
+  <VoxelGridPrefab>k__BackingField: {fileID: 6835662398029437811, guid: 7144b08785ff3964f919747fd6d74e4e, type: 3}
+  <StencilVisualizations>k__BackingField:
+  - {fileID: 4179844321039818934}
+  - {fileID: 1608451359196424891}
+  <SnapToGrid>k__BackingField: 0
+--- !u!114 &1662046016798231970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359065666056280568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ca1c7d89b9cf604da90e200736ec700, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::Assets.Project.Scripts.Runtime.Views.MarchingSquares.VoxelStencilEditView
+  fillTypeNames:
+  - X
+  - A
+  - B
+  - C
+  - D
+  radiusNames:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  stencilNames:
+  - Square
+  - Circle
+  voxelMap: {fileID: 6237090199471055437}
+--- !u!114 &8803021385803124385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359065666056280568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89f0548b5ed5907439fa4cd7e2d144e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::VoxelGizmosView
+  _map: {fileID: 6237090199471055437}
+  _showGizmos: 1
+  _emptyVoxelColor: {r: 1, g: 1, b: 1, a: 1}
+  _filledVoxelColor: {r: 0, g: 0, b: 0, a: 1}
+--- !u!1001 &1984657024383595350
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3913852497459597252}
+    m_Modifications:
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.01416
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.05401
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3294458408155929931, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_Name
+      value: Stencil Cylinder
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+--- !u!4 &1608451359196424891 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+  m_PrefabInstance: {fileID: 1984657024383595350}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5310028941242992833
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3913852497459597252}
+    m_Modifications:
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.01416
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.05401
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8878935600651321910, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_Name
+      value: Stencil Square
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+--- !u!4 &4179844321039818934 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+  m_PrefabInstance: {fileID: 5310028941242992833}
+  m_PrefabAsset: {fileID: 0}

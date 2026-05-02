@@ -13,12 +13,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Surface
         /// </summary>
-        private VoxelGridSurface surface;
+        private VoxelChunkSurface surface;
 
         /// <summary>
         /// Mur
         /// </summary>
-        private VoxelGridWall wall;
+        private VoxelChunkWall wall;
 
         #endregion
 
@@ -29,7 +29,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         /// <param name="surface">Surface</param>
         /// <param name="wall">Mur</param>
-        public VoxelRenderer(VoxelGridSurface surface, VoxelGridWall wall)
+        public VoxelRenderer(VoxelChunkSurface surface, VoxelChunkWall wall)
         {
             this.surface = surface;
             this.wall = wall;

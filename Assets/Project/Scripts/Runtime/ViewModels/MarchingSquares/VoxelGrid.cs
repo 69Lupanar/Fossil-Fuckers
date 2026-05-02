@@ -1,932 +1,234 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 {
     /// <summary>
-    /// Chunk contenant une grille de voxels
+    /// Grille de voxels divisÃ©e en chunks
     /// </summary>
-    [SelectionBase]
     public class VoxelGrid : MonoBehaviour
     {
+        #region PropriÃ©tÃ©s
+
+        /// <summary>
+        /// Le type de remplissage de la brosse active
+        /// </summary>
+        public int FillTypeIndex { get; set; } = 1;
+
+        /// <summary>
+        /// Le rayon de la brosse active
+        /// </summary>
+        public int RadiusIndex { get; set; }
+
+        /// <summary>
+        /// Le type de la brosse active
+        /// </summary>
+        public int StencilIndex { get; set; }
+
+        /// <summary>
+        /// Chunks
+        /// </summary>
+        public VoxelChunk[] Chunks { get; private set; }
+
+        #endregion
+
         #region Variables Unity
 
         /// <summary>
-        /// Taille du chunk
+        /// Nombre de chunks par dimension de la carte
         /// </summary>
-        [Tooltip("Taille du chunk")]
-        public int resolution = 8;
+        [field: SerializeField, Tooltip("Nombres de chunks par dimensions de la carte")]
+        public float MapSize { get; private set; } = 2f;
+
+        /// <summary>
+        /// Nombre de voxels par dimension de la carte
+        /// </summary>
+        [field: SerializeField, Tooltip("Nombre de voxels par dimension de la carte")]
+        public int VoxelResolution { get; private set; } = 8;
 
         /// <summary>
         /// Espacement entre les voxels
         /// </summary>
-        [Tooltip("Espacement entre les voxels")]
-        public float voxelSpacing = .9f;
+        [field: SerializeField, Tooltip("Espacement entre les voxels"), Range(0f, 1f)]
+        public float VoxelSpacing { get; private set; } = .1f;
 
         /// <summary>
-        /// Prefab d'un voxel
+        /// Taille d'un chunk
         /// </summary>
-        [Tooltip("Prefab d'un voxel")]
-        public GameObject voxelPrefab;
+        [field: SerializeField, Tooltip("Taille d'un chunk")]
+        public int ChunkResolution { get; private set; } = 2;
 
         /// <summary>
-        /// Prefab du mesh du chunk
+        /// Angle max d'une section du mesh qui peut apparaÃ®tre
         /// </summary>
-        [Tooltip("Prefab du mesh du chunk")]
-        public VoxelGridSurface surfacePrefab;
+        [field: SerializeField, Tooltip("Angle max d'une section du mesh qui peut apparaÃ®tre")]
+        public float MaxFeatureAngle { get; private set; } = 135f;
 
         /// <summary>
-        /// Prefab du mesh du chunk
+        /// Angle max d'une section du mesh qui peut apparaÃ®tre
         /// </summary>
-        [Tooltip("Prefab du mesh du chunk")]
-        public VoxelGridWall wallPrefab;
+        [field: SerializeField, Tooltip("Angle max d'une section du mesh qui peut apparaÃ®tre")]
+        public float MaxParallelAngle { get; private set; } = 5f;
 
         /// <summary>
-        /// Prefab du mesh du chunk
+        /// Prefab de la grille de voxels
         /// </summary>
-        [Tooltip("Liste de Materials pour les surfaces et les murs")]
-        public VoxelMaterials[] materials;
+        [field: SerializeField, Tooltip("Prefab de la grille de voxels")]
+        public VoxelChunk VoxelGridPrefab { get; private set; }
+
+        /// <summary>
+        /// Les objets 3D reprÃ©sentant les brosses
+        /// </summary>
+        [field: SerializeField, Tooltip("Les objets 3D reprÃ©sentant les brosses")]
+        public Transform[] StencilVisualizations { get; private set; }
+
+        /// <summary>
+        /// true si la visualisation des brosses doit s'aligner avec la grille
+        /// </summary>
+        [field: SerializeField, Tooltip("true si la visualisation des brosses doit s'aligner avec la grille")]
+        public bool SnapToGrid { get; private set; } = false;
 
         #endregion
 
         #region Variables d'instance
 
         /// <summary>
-        /// Grille de voxels
+        /// Taille d'un chunk
         /// </summary>
-        private Voxel[] voxels;
-
-        /// <summary>
-        /// Materials de chaque voxel
-        /// </summary>
-        private Material[] voxelMaterials;
+        private float _chunkSize;
 
         /// <summary>
         /// Taille d'un voxel
         /// </summary>
-        private float voxelSize;
+        private float _voxelSize;
 
         /// <summary>
-        /// Taille du chunk
+        /// MoitiÃ© de la taille de la grille
         /// </summary>
-        private float gridSize;
+        private float _halfSize;
 
         /// <summary>
-        /// Renderers pour les surfaces/murs
+        /// Brosses
         /// </summary>
-        private VoxelRenderer[] renderers;
-
-        /// <summary>
-        /// Chunk voisin
-        /// </summary>
-        [HideInInspector]
-        public VoxelGrid xNeighbor, yNeighbor, xyNeighbor;
-
-        /// <summary>
-        /// Faux voxel utilisé lors de la triangulation pour relier les chunks entre eux
-        /// </summary>
-        private Voxel dummyX, dummyY, dummyT;
-
-        /// <summary>
-        /// Celle factice pour faciliter le déplacement des valeurs
-        /// </summary>
-        private VoxelCell cell = new();
+        private VoxelStencil[] _stencils = { new VoxelStencil(), new VoxelStencilCircle() };
 
         #endregion
 
-        #region Méthodes publiques
+        #region MÃ©thodes Unity
 
         /// <summary>
         /// init
         /// </summary>
-        /// <param name="resolution">Résolution des voxels pour ce chunk</param>
-        /// <param name="size">Taille du chunk</param>
-        /// <param name="maxFeatureAngle">Angle max d'une section du mesh qui peut apparaître</param>
-        public void Initialize(int resolution, float size, float maxFeatureAngle, float maxParallelAngle)
+        private void Awake()
         {
-            cell.sharpFeatureLimit = Mathf.Cos(maxFeatureAngle * Mathf.Deg2Rad);
-            cell.parallelLimit = Mathf.Cos(maxParallelAngle * Mathf.Deg2Rad);
-            this.resolution = resolution;
-            voxelSize = size / resolution;
-            gridSize = size;
-            voxels = new Voxel[resolution * resolution];
-            voxelMaterials = new Material[voxels.Length];
+            _halfSize = MapSize * 0.5f;
+            _chunkSize = MapSize / ChunkResolution;
+            _voxelSize = _chunkSize / VoxelResolution;
+            Chunks = new VoxelChunk[ChunkResolution * ChunkResolution];
+            BoxCollider box = gameObject.AddComponent<BoxCollider>();
+            box.size = new Vector3(MapSize, MapSize);
+            box.center = new Vector3(_halfSize, _halfSize);
 
-            dummyX = new Voxel();
-            dummyY = new Voxel();
-            dummyT = new Voxel();
-
-            for (int i = 0, y = 0; y < resolution; ++y)
+            for (int i = 0, y = 0; y < ChunkResolution; ++y)
             {
-                for (int x = 0; x < resolution; ++x, ++i)
+                for (int x = 0; x < ChunkResolution; ++x, ++i)
                 {
-                    CreateVoxel(i, x, y);
+                    CreateChunk(i, x, y);
                 }
             }
-
-            CreateRenderers();
-            Refresh();
         }
 
         /// <summary>
-        /// Modifie l'état d'un voxel
+        /// mÃ j Ã  chaque frame
         /// </summary>
-        /// <param name="stencil">Brosse utilisée</param>
-        public void Apply(VoxelStencil stencil)
+        private void Update()
         {
-            int xStart = Mathf.Max(0, (int)(stencil.XStart / voxelSize));
-            int xEnd = Mathf.Min((int)(stencil.XEnd / voxelSize), resolution - 1);
-            int yStart = Mathf.Max(0, (int)(stencil.YStart / voxelSize));
-            int yEnd = Mathf.Min((int)(stencil.YEnd / voxelSize), resolution - 1);
+            Transform visualization = StencilVisualizations[StencilIndex];
 
-            // On traverse toute la zone rectangulaire englobant la brosse
-            // pour modifier les voxels concernés
-
-            for (int y = yStart; y <= yEnd; ++y)
+            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo) &&
+                hitInfo.collider.gameObject == gameObject)
             {
-                int i = y * resolution + xStart;
-
-                for (int x = xStart; x <= xEnd; ++x, ++i)
+                Vector2 center = transform.InverseTransformPoint(hitInfo.point);
+                //center.x += halfSize;
+                //center.y += halfSize;
+                if (SnapToGrid)
                 {
-                    stencil.Apply(voxels[i]);
+                    center.x = ((int)(center.x / _voxelSize) + 0.5f) * _voxelSize;
+                    center.y = ((int)(center.y / _voxelSize) + 0.5f) * _voxelSize;
                 }
-            }
 
-            SetCrossings(stencil, xStart, xEnd, yStart, yEnd);
-            Refresh();
+                if (Input.GetMouseButton(0))
+                {
+                    EditVoxels(transform.InverseTransformPoint(center));
+                }
+
+                //center.x -= halfSize;
+                //center.y -= halfSize;
+                visualization.localPosition = center;
+                visualization.localScale = Vector3.one * ((RadiusIndex + 0.5f) * _voxelSize * 2f);
+                visualization.gameObject.SetActive(true);
+            }
+            else
+            {
+                visualization.gameObject.SetActive(false);
+            }
         }
 
         #endregion
 
-        #region Méthodes privées
-
         /// <summary>
-        /// Crée les renderers pour les surfaces et murs
+        /// CrÃ©e un chunk Ã  partir des coordonnÃ©es renseignÃ©es
         /// </summary>
-        private void CreateRenderers()
+        /// <param name="i"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        private void CreateChunk(int i, int x, int y)
         {
-            // On crée un Renderer de plus que nécessaire
-            // pour pouvoir utiliser directement l'état de voxel comme index.
-            // Ca nous éviter de soustraire 1 à chaque fois.
+            VoxelChunk chunk = Instantiate(VoxelGridPrefab, transform);
+            chunk.Initialize(VoxelResolution, _chunkSize, MaxFeatureAngle, MaxParallelAngle);
+            chunk.transform.localPosition = new Vector3(x * _chunkSize/* - halfSize*/, y * _chunkSize/* - halfSize*/);
+            Chunks[i] = chunk;
 
-            renderers = new VoxelRenderer[materials.Length + 1];
-
-            for (int i = 0; i < materials.Length; ++i)
+            if (x > 0)
             {
-                VoxelGridSurface surface = Instantiate(surfacePrefab);
-                surface.transform.parent = transform;
-                surface.transform.localPosition = Vector3.zero;
-                surface.Initialize(resolution, materials[i].surfaceMaterial);
-
-                VoxelGridWall wall = Instantiate(wallPrefab);
-                wall.transform.parent = transform;
-                wall.transform.localPosition = Vector3.zero;
-                wall.Initialize(resolution, materials[i].wallMaterial);
-
-                renderers[i + 1] = new VoxelRenderer(surface, wall);
+                Chunks[i - 1].xNeighbor = chunk;
             }
-        }
-
-        /// <summary>
-        /// Crée un voxel aux coordonnées renseignées
-        /// </summary>
-        private void CreateVoxel(int i, int x, int y)
-        {
-            GameObject o = Instantiate(voxelPrefab, transform);
-            o.transform.localPosition = new Vector3((x + 0.5f) * voxelSize, (y + 0.5f) * voxelSize);
-            o.transform.localScale = (1f - voxelSpacing) * voxelSize * Vector3.one;
-            voxelMaterials[i] = o.GetComponent<MeshRenderer>().material;
-            voxels[i] = new Voxel(x, y, voxelSize);
-        }
-
-        /// <summary>
-        /// Assigne les couleurs de chaque voxel en fonction de leur état
-        /// </summary>
-        private void SetVoxelColors()
-        {
-            for (int i = 0; i < voxels.Length; ++i)
+            if (y > 0)
             {
-                voxelMaterials[i].color = voxels[i].Filled ? Color.black : Color.white;
-            }
-        }
-
-        /// <summary>
-        /// Màj le mesh
-        /// </summary>
-        private void Refresh()
-        {
-            SetVoxelColors();
-            Triangulate();
-        }
-
-        /// <summary>
-        /// Calcule les triangles du mesh
-        /// </summary>
-        private void Triangulate()
-        {
-            for (int i = 1; i < renderers.Length; ++i)
-            {
-                renderers[i].Clear();
-            }
-
-            FillFirstRowCache();
-            TriangulateCellRows();
-
-            if (yNeighbor != null)
-            {
-                TriangulateGapRow();
-            }
-
-            for (int i = 1; i < renderers.Length; ++i)
-            {
-                renderers[i].Apply();
-            }
-        }
-
-        /// <summary>
-        /// Calcule les triangles de chaque rangée de cellules
-        /// </summary>
-        private void TriangulateCellRows()
-        {
-            int cells = resolution - 1;
-            for (int i = 0, y = 0; y < cells; ++y, ++i)
-            {
-                SwapRowCaches();
-                CacheFirstCorner(voxels[i + resolution]);
-                CacheNextMiddleEdge(voxels[i], voxels[i + resolution]);
-
-                for (int x = 0; x < cells; ++x, ++i)
+                Chunks[i - ChunkResolution].yNeighbor = chunk;
+                if (x > 0)
                 {
-                    Voxel
-                     a = voxels[i],
-                     b = voxels[i + 1],
-                     c = voxels[i + resolution],
-                     d = voxels[i + resolution + 1];
-                    CacheNextEdgeAndCorner(x, c, d);
-                    CacheNextMiddleEdge(b, d);
-                    TriangulateCell(x, a, b, c, d);
-                }
-                if (xNeighbor != null)
-                {
-                    TriangulateGapCell(i);
+                    Chunks[i - ChunkResolution - 1].xyNeighbor = chunk;
                 }
             }
         }
 
         /// <summary>
-        /// Calcules les truangles d'une cellule séparant deux chunks
+        /// MÃ j l'Ã©tat des voxels affectÃ©spar la brosse active
         /// </summary>
-        /// <param name="i">La position du voxel dans la liste</param>
-        private void TriangulateGapCell(int i)
+        /// <param name="center">Position du curseur</param>
+        private void EditVoxels(Vector3 center)
         {
-            Voxel dummySwap = dummyT;
-            dummySwap.BecomeXDummyOf(xNeighbor.voxels[i + 1], gridSize);
-            dummyT = dummyX;
-            dummyX = dummySwap;
-            int cacheIndex = resolution - 1;
-            CacheNextEdgeAndCorner(cacheIndex, voxels[i + resolution], dummyX);
-            CacheNextMiddleEdge(dummyT, dummyX);
-            TriangulateCell(cacheIndex, voxels[i], dummyT, voxels[i + resolution], dummyX);
-        }
+            VoxelStencil activeStencil = _stencils[StencilIndex];
+            activeStencil.Initialize(FillTypeIndex, (RadiusIndex + 0.5f) * _voxelSize);
+            activeStencil.SetCenter(center.x, center.y);
 
-        /// <summary>
-        /// Calcules les truangles des cellules séparant deux chunks
-        /// </summary>
-        private void TriangulateGapRow()
-        {
-            dummyY.BecomeYDummyOf(yNeighbor.voxels[0], gridSize);
-            int cells = resolution - 1;
-            int offset = cells * resolution;
-            SwapRowCaches();
-            CacheFirstCorner(dummyY);
-            CacheNextMiddleEdge(voxels[cells * resolution], dummyY);
+            int xStart = Mathf.Max(0, (int)((activeStencil.XStart - _voxelSize) / _chunkSize));
+            int xEnd = Mathf.Min((int)((activeStencil.XEnd + _voxelSize) / _chunkSize), ChunkResolution - 1);
+            int yStart = Mathf.Max(0, (int)((activeStencil.YStart - _voxelSize) / _chunkSize));
+            int yEnd = Mathf.Min((int)((activeStencil.YEnd + _voxelSize) / _chunkSize), ChunkResolution - 1);
 
-            for (int x = 0; x < cells; ++x)
+            int voxelYOffset = yEnd * VoxelResolution;
+
+            for (int y = yEnd; y >= yStart; --y)
             {
-                Voxel dummySwap = dummyT;
-                dummySwap.BecomeYDummyOf(yNeighbor.voxels[x + 1], gridSize);
-                dummyT = dummyY;
-                dummyY = dummySwap;
-                CacheNextEdgeAndCorner(x, dummyT, dummyY);
-                CacheNextMiddleEdge(voxels[x + offset + 1], dummyY);
-                TriangulateCell(x, voxels[x + offset], voxels[x + offset + 1], dummyT, dummyY);
-            }
+                int i = y * ChunkResolution + xEnd;
 
-            if (xNeighbor != null)
-            {
-                dummyT.BecomeXYDummyOf(xyNeighbor.voxels[0], gridSize);
-                CacheNextEdgeAndCorner(cells, dummyY, dummyT);
-                CacheNextMiddleEdge(dummyX, dummyT);
-                TriangulateCell(cells, voxels[^1], dummyX, dummyY, dummyT);
-            }
-        }
-
-        /// <summary>
-        /// Remplit la 1è ligne de cache
-        /// </summary>
-        private void FillFirstRowCache()
-        {
-            CacheFirstCorner(voxels[0]);
-            int i;
-
-            for (i = 0; i < resolution - 1; ++i)
-            {
-                CacheNextEdgeAndCorner(i, voxels[i], voxels[i + 1]);
-            }
-            if (xNeighbor != null)
-            {
-                dummyX.BecomeXDummyOf(xNeighbor.voxels[0], gridSize);
-                CacheNextEdgeAndCorner(i, voxels[i], dummyX);
-            }
-        }
-
-        /// <summary>
-        /// Cache le 1er voxel (bas gauche)
-        /// </summary>
-        private void CacheFirstCorner(Voxel voxel)
-        {
-            if (voxel.Filled)
-            {
-                renderers[voxel.state].CacheFirstCorner(voxel);
-            }
-        }
-
-        /// <summary>
-        /// Cache l'edge et le voxel suivant
-        /// </summary>
-        /// <param name="i">Position du voxel dans le cache</param>
-        /// <param name="xMin">Voxel de gauche</param>
-        /// <param name="xMax">Voxel de droite</param>
-        private void CacheNextEdgeAndCorner(int i, Voxel xMin, Voxel xMax)
-        {
-            if (xMin.state != xMax.state)
-            {
-                if (xMin.Filled)
+                for (int x = xEnd; x >= xStart; --x, --i)
                 {
-                    if (xMax.Filled)
-                    {
-                        renderers[xMin.state].CacheXEdge(i, xMin);
-                        renderers[xMax.state].CacheXEdge(i, xMin);
-                    }
-                    else
-                    {
-                        renderers[xMin.state].CacheXEdgeWithWall(i, xMin);
-                    }
-                }
-                else
-                {
-                    renderers[xMax.state].CacheXEdgeWithWall(i, xMin);
-                }
-            }
-            if (xMax.Filled)
-            {
-                renderers[xMax.state].CacheNextCorner(i, xMax);
-            }
-        }
-
-        /// <summary>
-        /// Cache l'edge du milieu
-        /// </summary>
-        /// <param name="yMin">Voxel du milieu gauche</param>
-        /// <param name="yMax">Voxel du milieu droit</param>
-        private void CacheNextMiddleEdge(Voxel yMin, Voxel yMax)
-        {
-            for (int i = 1; i < renderers.Length; ++i)
-            {
-                renderers[i].PrepareCacheForNextCell();
-            }
-
-            if (yMin.state != yMax.state)
-            {
-                if (yMin.Filled)
-                {
-                    if (yMax.Filled)
-                    {
-                        renderers[yMin.state].CacheYEdge(yMin);
-                        renderers[yMax.state].CacheYEdge(yMin);
-                    }
-                    else
-                    {
-                        renderers[yMin.state].CacheYEdgeWithWall(yMin);
-                    }
-                }
-                else
-                {
-                    renderers[yMax.state].CacheYEdgeWithWall(yMin);
+                    activeStencil.SetCenter(center.x - x * _chunkSize, center.y - y * _chunkSize);
+                    Chunks[i].Apply(activeStencil);
                 }
             }
         }
-
-        /// <summary>
-        /// Echange les lignes de cache
-        /// </summary>
-        private void SwapRowCaches()
-        {
-            for (int i = 1; i < renderers.Length; ++i)
-            {
-                renderers[i].PrepareCacheForNextRow();
-            }
-        }
-
-        /// <summary>
-        /// Calcule les intersections
-        /// </summary>
-        /// <param name="stencil">La brosse</param>
-        /// <param name="xStart">Limite de la zone rectangulaire affectée par la brosse</param>
-        /// <param name="xEnd">Limite de la zone rectangulaire affectée par la brosse</param>
-        /// <param name="yStart">Limite de la zone rectangulaire affectée par la brosse</param>
-        /// <param name="yEnd">Limite de la zone rectangulaire affectée par la brosse</param>
-        private void SetCrossings(VoxelStencil stencil, int xStart, int xEnd, int yStart, int yEnd)
-        {
-            bool crossHorizontalGap = false;
-            bool includeLastVerticalRow = false;
-            bool crossVerticalGap = false;
-
-            if (xStart > 0)
-            {
-                xStart -= 1;
-            }
-            if (xEnd == resolution - 1)
-            {
-                xEnd -= 1;
-                crossHorizontalGap = xNeighbor != null;
-            }
-            if (yStart > 0)
-            {
-                yStart -= 1;
-            }
-            if (yEnd == resolution - 1)
-            {
-                yEnd -= 1;
-                includeLastVerticalRow = true;
-                crossVerticalGap = yNeighbor != null;
-            }
-
-            Voxel a, b;
-            for (int y = yStart; y <= yEnd; y++)
-            {
-                int i = y * resolution + xStart;
-                b = voxels[i];
-                for (int x = xStart; x <= xEnd; x++, i++)
-                {
-                    a = b;
-                    b = voxels[i + 1];
-                    stencil.SetHorizontalCrossing(a, b);
-                    stencil.SetVerticalCrossing(a, voxels[i + resolution]);
-                }
-                stencil.SetVerticalCrossing(b, voxels[i + resolution]);
-                if (crossHorizontalGap)
-                {
-                    dummyX.BecomeXDummyOf(xNeighbor.voxels[y * resolution], gridSize);
-                    stencil.SetHorizontalCrossing(b, dummyX);
-                }
-            }
-
-            if (includeLastVerticalRow)
-            {
-                int i = voxels.Length - resolution + xStart;
-                b = voxels[i];
-                for (int x = xStart; x <= xEnd; x++, i++)
-                {
-                    a = b;
-                    b = voxels[i + 1];
-                    stencil.SetHorizontalCrossing(a, b);
-                    if (crossVerticalGap)
-                    {
-                        dummyY.BecomeYDummyOf(yNeighbor.voxels[x], gridSize);
-                        stencil.SetVerticalCrossing(a, dummyY);
-                    }
-                }
-                if (crossVerticalGap)
-                {
-                    dummyY.BecomeYDummyOf(yNeighbor.voxels[xEnd + 1], gridSize);
-                    stencil.SetVerticalCrossing(b, dummyY);
-                }
-                if (crossHorizontalGap)
-                {
-                    dummyX.BecomeXDummyOf(xNeighbor.voxels[voxels.Length - resolution], gridSize);
-                    stencil.SetHorizontalCrossing(b, dummyX);
-                }
-            }
-        }
-
-        private void TriangulateCell(int i, Voxel a, Voxel b, Voxel c, Voxel d)
-        {
-            cell.i = i;
-            cell.a = a;
-            cell.b = b;
-            cell.c = c;
-            cell.d = d;
-
-            if (a.state == b.state)
-            {
-                if (a.state == c.state)
-                {
-                    if (a.state == d.state)
-                    {
-                        Triangulate0000();
-                    }
-                    else
-                    {
-                        Triangulate0001();
-                    }
-                }
-                else
-                {
-                    if (a.state == d.state)
-                    {
-                        Triangulate0010();
-                    }
-                    else if (c.state == d.state)
-                    {
-                        Triangulate0011();
-                    }
-                    else
-                    {
-                        Triangulate0012();
-                    }
-                }
-            }
-            else
-            {
-                if (a.state == c.state)
-                {
-                    if (a.state == d.state)
-                    {
-                        Triangulate0100();
-                    }
-                    else if (b.state == d.state)
-                    {
-                        Triangulate0101();
-                    }
-                    else
-                    {
-                        Triangulate0102();
-                    }
-                }
-                else if (b.state == c.state)
-                {
-                    if (a.state == d.state)
-                    {
-                        Triangulate0110();
-                    }
-                    else if (b.state == d.state)
-                    {
-                        Triangulate0111();
-                    }
-                    else
-                    {
-                        Triangulate0112();
-                    }
-                }
-                else
-                {
-                    if (a.state == d.state)
-                    {
-                        Triangulate0120();
-                    }
-                    else if (b.state == d.state)
-                    {
-                        Triangulate0121();
-                    }
-                    else if (c.state == d.state)
-                    {
-                        Triangulate0122();
-                    }
-                    else
-                    {
-                        Triangulate0123();
-                    }
-                }
-            }
-        }
-
-        private void Triangulate0000()
-        {
-            FillABCD();
-        }
-
-        private void Triangulate0001()
-        {
-            FeaturePoint f = cell.FeatureNE;
-            FillABC(f);
-            FillD(f);
-        }
-
-        private void Triangulate0010()
-        {
-            FeaturePoint f = cell.FeatureNW;
-            FillABD(f);
-            FillC(f);
-        }
-
-        private void Triangulate0100()
-        {
-            FeaturePoint f = cell.FeatureSE;
-            FillACD(f);
-            FillB(f);
-        }
-
-        private void Triangulate0111()
-        {
-            FeaturePoint f = cell.FeatureSW;
-            FillA(f);
-            FillBCD(f);
-        }
-
-        private void Triangulate0011()
-        {
-            FeaturePoint f = cell.FeatureEW;
-            FillAB(f);
-            FillCD(f);
-        }
-
-        private void Triangulate0101()
-        {
-            FeaturePoint f = cell.FeatureNS;
-            FillAC(f);
-            FillBD(f);
-        }
-
-        private void Triangulate0012()
-        {
-            FeaturePoint f = cell.FeatureNEW;
-            FillAB(f);
-            FillC(f);
-            FillD(f);
-        }
-
-        private void Triangulate0102()
-        {
-            FeaturePoint f = cell.FeatureNSE;
-            FillAC(f);
-            FillB(f);
-            FillD(f);
-        }
-
-        private void Triangulate0121()
-        {
-            FeaturePoint f = cell.FeatureNSW;
-            FillA(f);
-            FillBD(f);
-            FillC(f);
-        }
-
-        private void Triangulate0122()
-        {
-            FeaturePoint f = cell.FeatureSEW;
-            FillA(f);
-            FillB(f);
-            FillCD(f);
-        }
-
-        private void Triangulate0110()
-        {
-            FeaturePoint
-                fA = cell.FeatureSW, fB = cell.FeatureSE,
-                fC = cell.FeatureNW, fD = cell.FeatureNE;
-
-            if (cell.HasConnectionAD(fA, fD))
-            {
-                fB.exists &= cell.IsInsideABD(fB.position);
-                fC.exists &= cell.IsInsideACD(fC.position);
-                FillADToB(fB);
-                FillADToC(fC);
-                FillB(fB);
-                FillC(fC);
-            }
-            else if (cell.HasConnectionBC(fB, fC))
-            {
-                fA.exists &= cell.IsInsideABC(fA.position);
-                fD.exists &= cell.IsInsideBCD(fD.position);
-                FillA(fA);
-                FillD(fD);
-                FillBCToA(fA);
-                FillBCToD(fD);
-            }
-            else if (cell.a.Filled && cell.b.Filled)
-            {
-                FillJoinedCorners(fA, fB, fC, fD);
-            }
-            else
-            {
-                FillA(fA);
-                FillB(fB);
-                FillC(fC);
-                FillD(fD);
-            }
-        }
-
-        private void Triangulate0112()
-        {
-            FeaturePoint
-                fA = cell.FeatureSW, fB = cell.FeatureSE,
-                fC = cell.FeatureNW, fD = cell.FeatureNE;
-
-            if (cell.HasConnectionBC(fB, fC))
-            {
-                fA.exists &= cell.IsInsideABC(fA.position);
-                fD.exists &= cell.IsInsideBCD(fD.position);
-                FillA(fA);
-                FillD(fD);
-                FillBCToA(fA);
-                FillBCToD(fD);
-            }
-            else if (cell.b.Filled || cell.HasConnectionAD(fA, fD))
-            {
-                FillJoinedCorners(fA, fB, fC, fD);
-            }
-            else
-            {
-                FillA(fA);
-                FillD(fD);
-            }
-        }
-
-        private void Triangulate0120()
-        {
-            FeaturePoint
-                fA = cell.FeatureSW, fB = cell.FeatureSE,
-                fC = cell.FeatureNW, fD = cell.FeatureNE;
-
-            if (cell.HasConnectionAD(fA, fD))
-            {
-                fB.exists &= cell.IsInsideABD(fB.position);
-                fC.exists &= cell.IsInsideACD(fC.position);
-                FillADToB(fB);
-                FillADToC(fC);
-                FillB(fB);
-                FillC(fC);
-            }
-            else if (cell.a.Filled || cell.HasConnectionBC(fB, fC))
-            {
-                FillJoinedCorners(fA, fB, fC, fD);
-            }
-            else
-            {
-                FillB(fB);
-                FillC(fC);
-            }
-        }
-
-        private void Triangulate0123()
-        {
-            FillJoinedCorners(
-                cell.FeatureSW, cell.FeatureSE,
-                cell.FeatureNW, cell.FeatureNE);
-        }
-
-        private void FillA(FeaturePoint f)
-        {
-            if (cell.a.Filled)
-            {
-                renderers[cell.a.state].FillA(cell, f);
-            }
-        }
-
-        private void FillB(FeaturePoint f)
-        {
-            if (cell.b.Filled)
-            {
-                renderers[cell.b.state].FillB(cell, f);
-            }
-        }
-
-        private void FillC(FeaturePoint f)
-        {
-            if (cell.c.Filled)
-            {
-                renderers[cell.c.state].FillC(cell, f);
-            }
-        }
-
-        private void FillD(FeaturePoint f)
-        {
-            if (cell.d.Filled)
-            {
-                renderers[cell.d.state].FillD(cell, f);
-            }
-        }
-
-        private void FillABC(FeaturePoint f)
-        {
-            if (cell.a.Filled)
-            {
-                renderers[cell.a.state].FillABC(cell, f);
-            }
-        }
-
-        private void FillABD(FeaturePoint f)
-        {
-            if (cell.a.Filled)
-            {
-                renderers[cell.a.state].FillABD(cell, f);
-            }
-        }
-
-        private void FillACD(FeaturePoint f)
-        {
-            if (cell.a.Filled)
-            {
-                renderers[cell.a.state].FillACD(cell, f);
-            }
-        }
-
-        private void FillBCD(FeaturePoint f)
-        {
-            if (cell.b.Filled)
-            {
-                renderers[cell.b.state].FillBCD(cell, f);
-            }
-        }
-
-        private void FillAB(FeaturePoint f)
-        {
-            if (cell.a.Filled)
-            {
-                renderers[cell.a.state].FillAB(cell, f);
-            }
-        }
-
-        private void FillAC(FeaturePoint f)
-        {
-            if (cell.a.Filled)
-            {
-                renderers[cell.a.state].FillAC(cell, f);
-            }
-        }
-
-        private void FillBD(FeaturePoint f)
-        {
-            if (cell.b.Filled)
-            {
-                renderers[cell.b.state].FillBD(cell, f);
-            }
-        }
-
-        private void FillCD(FeaturePoint f)
-        {
-            if (cell.c.Filled)
-            {
-                renderers[cell.c.state].FillCD(cell, f);
-            }
-        }
-
-        private void FillADToB(FeaturePoint f)
-        {
-            if (cell.a.Filled)
-            {
-                renderers[cell.a.state].FillADToB(cell, f);
-            }
-        }
-
-        private void FillADToC(FeaturePoint f)
-        {
-            if (cell.a.Filled)
-            {
-                renderers[cell.a.state].FillADToC(cell, f);
-            }
-        }
-
-        private void FillBCToA(FeaturePoint f)
-        {
-            if (cell.b.Filled)
-            {
-                renderers[cell.b.state].FillBCToA(cell, f);
-            }
-        }
-
-        private void FillBCToD(FeaturePoint f)
-        {
-            if (cell.b.Filled)
-            {
-                renderers[cell.b.state].FillBCToD(cell, f);
-            }
-        }
-
-        private void FillABCD()
-        {
-            if (cell.a.Filled)
-            {
-                renderers[cell.a.state].FillABCD(cell);
-            }
-        }
-
-        private void FillJoinedCorners(
-            FeaturePoint fA, FeaturePoint fB, FeaturePoint fC, FeaturePoint fD)
-        {
-
-            FeaturePoint point = FeaturePoint.Average(fA, fB, fC, fD);
-            if (!point.exists)
-            {
-                point.position = cell.AverageNESW;
-                point.exists = true;
-            }
-            FillA(point);
-            FillB(point);
-            FillC(point);
-            FillD(point);
-        }
-
-        #endregion
     }
 }

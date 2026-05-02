@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3627490711468792019
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5032934857508896774}
+  - component: {fileID: 6835662398029437811}
+  m_Layer: 0
+  m_Name: Voxel Chunk
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5032934857508896774
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3627490711468792019}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6835662398029437811
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3627490711468792019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96c84de9be2e91e4c9ffb0efd1f59b63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Models::VoxelGrid
+  <VoxelPrefab>k__BackingField: {fileID: 8126443910553182534, guid: d0a9ac7561e109c4ab1288bbaf6c6d78, type: 3}
+  <SurfacePrefab>k__BackingField: {fileID: 2690795676495520682, guid: 47c68f0fb6217be4fa3a79a6bdf1401b, type: 3}
+  <WallPrefab>k__BackingField: {fileID: 3953689494265326127, guid: 30c13de4b32e70746b7a2ab8f8c3333f, type: 3}
+  <Materials>k__BackingField:
+  - surfaceMaterial: {fileID: 2100000, guid: ea572728d3fa84861b12ea2bd2f167d4, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 5ab78445f72ca4c1f8ff37d8290cd6c4, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: d92927af6814b46198abad9e8e7d41e4, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 1a33bc3afdbc349428415adf19497db5, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: d8850b4a07a50478999ae13366157fc6, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 1b58a44c7d3dd47ddba26c140b07a27f, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: 606e24c30ff644223a123cd42eac5aa5, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 20e8a06403f06433195638a6d797d2f1, type: 2}
+  _resolution: 8
+  xNeighbor: {fileID: 0}
+  yNeighbor: {fileID: 0}
+  xyNeighbor: {fileID: 0}

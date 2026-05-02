@@ -6,7 +6,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
     /// <summary>
     /// Chargé de l'affichage du mesh de la surface d'un chunk
     /// </summary>
-    public class VoxelGridSurface : MonoBehaviour
+    public class VoxelChunkSurface : MonoBehaviour
     {
         #region Variables d'instance
 

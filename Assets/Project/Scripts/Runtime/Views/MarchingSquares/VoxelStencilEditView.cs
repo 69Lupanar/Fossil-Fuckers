@@ -33,7 +33,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// Grille des voxels
         /// </summary>
         [Tooltip("Grille des voxels")]
-        public VoxelMap voxelMap;
+        public VoxelGrid voxelMap;
 
         #endregion
 
