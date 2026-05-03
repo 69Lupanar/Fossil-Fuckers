@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs
 {
     /// <summary>
@@ -6,6 +8,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs
     public class VoxelChunkInitializedEventArgs : System.EventArgs
     {
         #region Propriétés
+
+        /// <summary>
+        /// Positions de chaque chunk
+        /// </summary>
+        public Vector3[] ChunkPositions { get; }
 
         /// <summary>
         /// Résolution des voxels pour ce chunk
@@ -33,13 +40,14 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs
 
         /// <summary>
         /// Constructeur
-        /// </summary>
+        /// </summary>4<param name="chunkPositions">Positions de chaque chunk</param>
         /// <param name="voxelResolution">Résolution des voxels pour ce chunk</param>
         /// <param name="chunkSize">Taille du chunk</param>
         /// <param name="maxFeatureAngle">Angle max d'une section du mesh qui peut apparaître</param>
         /// <param name="maxParallelAngle">Angle max d'une section du mesh qui peut apparaître</param>
-        public VoxelChunkInitializedEventArgs(int voxelResolution, float chunkSize, float maxFeatureAngle, float maxParallelAngle)
+        public VoxelChunkInitializedEventArgs(Vector3[] chunkPositions, int voxelResolution, float chunkSize, float maxFeatureAngle, float maxParallelAngle)
         {
+            ChunkPositions = chunkPositions;
             VoxelResolution = voxelResolution;
             ChunkSize = chunkSize;
             MaxFeatureAngle = maxFeatureAngle;

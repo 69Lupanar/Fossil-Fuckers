@@ -164,8 +164,8 @@ Camera:
   m_GameObject: {fileID: 1179272108}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0.019607844}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -476,7 +476,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: <VoxelSpacing>k__BackingField
-      value: 0.9
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: stencilVisualizations.Array.size
@@ -490,11 +490,46 @@ PrefabInstance:
       propertyPath: 'stencilVisualizations.Array.data[1]'
       value: 
       objectReference: {fileID: 1354930912}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _useVoxelStateAsColors
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1359065666056280568, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6945605081276770207}
   m_SourcePrefab: {fileID: 100100000, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+--- !u!1 &6945605081276770206 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1359065666056280568, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+  m_PrefabInstance: {fileID: 6945605081276770205}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6945605081276770207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6945605081276770206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3205d0c92756d934d804fe0720e992b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::VoxelGridRendererView
+  <SurfacePrefab>k__BackingField: {fileID: 2690795676495520682, guid: 47c68f0fb6217be4fa3a79a6bdf1401b, type: 3}
+  <WallPrefab>k__BackingField: {fileID: 3953689494265326127, guid: 30c13de4b32e70746b7a2ab8f8c3333f, type: 3}
+  <Materials>k__BackingField:
+  - surfaceMaterial: {fileID: 2100000, guid: ea572728d3fa84861b12ea2bd2f167d4, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 5ab78445f72ca4c1f8ff37d8290cd6c4, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: d92927af6814b46198abad9e8e7d41e4, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 1a33bc3afdbc349428415adf19497db5, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: d8850b4a07a50478999ae13366157fc6, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 1b58a44c7d3dd47ddba26c140b07a27f, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: 606e24c30ff644223a123cd42eac5aa5, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 20e8a06403f06433195638a6d797d2f1, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

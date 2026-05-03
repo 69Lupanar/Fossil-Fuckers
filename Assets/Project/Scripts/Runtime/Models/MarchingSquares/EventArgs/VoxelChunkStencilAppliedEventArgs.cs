@@ -15,6 +15,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs
         public VoxelStencil Stencil { get; }
 
         /// <summary>
+        /// Index du chunk dans la grille
+        /// </summary>
+        public int ChunkIndex { get; set; }
+
+        /// <summary>
         /// Limite de la zone rectangulaire affectée par la brosse
         /// </summary>
         public int XStart { get; set; }
@@ -41,13 +46,16 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs
         /// <summary>
         /// Constructeur
         /// </summary>
+        /// <param name="stencil">La brosse</param>
+        /// <param name="chunkIndex">Index du chunk dans la grille</param>
         /// <param name="xStart">Limite de la zone rectangulaire affectée par la brosse</param>
         /// <param name="xEnd">Limite de la zone rectangulaire affectée par la brosse</param>
         /// <param name="yStart">Limite de la zone rectangulaire affectée par la brosse</param>
         /// <param name="yEnd">Limite de la zone rectangulaire affectée par la brosse</param>
-        public VoxelChunkStencilAppliedEventArgs(VoxelStencil stencil, int xStart, int xEnd, int yStart, int yEnd)
+        public VoxelChunkStencilAppliedEventArgs(VoxelStencil stencil, int chunkIndex, int xStart, int xEnd, int yStart, int yEnd)
         {
             Stencil = stencil;
+            ChunkIndex = chunkIndex;
             XStart = xStart;
             XEnd = xEnd;
             YStart = yStart;

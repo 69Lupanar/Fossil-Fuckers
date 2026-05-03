@@ -58,7 +58,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <summary>
         /// Affiche les gizmos dans l'éditeur
         /// </summary>
-        private void OnDrawGizmosSelected()
+        private void OnDrawGizmos()
         {
             if (!_showGizmos)
                 return;

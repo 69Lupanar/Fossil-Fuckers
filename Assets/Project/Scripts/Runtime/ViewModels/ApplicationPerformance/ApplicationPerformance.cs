@@ -18,7 +18,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.ApplicationPerformance
         /// <summary>
         /// Framerate used when the application runs in the background
         /// </summary>
-        private const int DEFAULT_UNFOCUSED_FRAMERATE = 1;
+        private static readonly int DEFAULT_UNFOCUSED_FRAMERATE = (int)Screen.currentResolution.refreshRateRatio.value;//1;
 
         #endregion
 
