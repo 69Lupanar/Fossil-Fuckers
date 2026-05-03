@@ -100,10 +100,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89f0548b5ed5907439fa4cd7e2d144e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::VoxelGizmosView
-  _map: {fileID: 6237090199471055437}
+  _grid: {fileID: 6237090199471055437}
   _showGizmos: 1
+  _useVoxelStateAsColors: 0
   _emptyVoxelColor: {r: 1, g: 1, b: 1, a: 1}
   _filledVoxelColor: {r: 0, g: 0, b: 0, a: 1}
+  _voxelStateColors:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 1, g: 1, b: 0, a: 1}
+  - {r: 0, g: 1, b: 0, a: 1}
+  - {r: 0, g: 0, b: 1, a: 1}
 --- !u!1001 &1984657024383595350
 PrefabInstance:
   m_ObjectHideFlags: 0

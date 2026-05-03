@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares;
+using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using UnityEngine;
 
 /// <summary>
@@ -298,6 +298,7 @@ public class VoxelChunkWall : MonoBehaviour
     {
         AddHalfSection(extraVertex, xEdgesMax[i]);
     }
+
     #endregion
 
     #region Méthodes privées

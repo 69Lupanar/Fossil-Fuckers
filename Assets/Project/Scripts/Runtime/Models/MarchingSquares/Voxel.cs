@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
+namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
 {
     /// <summary>
     /// Vartice d'une cellule du mesh généré par la triangulation

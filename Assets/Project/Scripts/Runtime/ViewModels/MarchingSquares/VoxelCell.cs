@@ -1,4 +1,5 @@
 using System;
+using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares

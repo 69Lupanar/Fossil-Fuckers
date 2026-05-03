@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
+using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 {
@@ -190,14 +191,14 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
             if (x > 0)
             {
-                Chunks[i - 1].xNeighbor = chunk;
+                Chunks[i - 1].XNeighbor = chunk;
             }
             if (y > 0)
             {
-                Chunks[i - ChunkResolution].yNeighbor = chunk;
+                Chunks[i - ChunkResolution].YNeighbor = chunk;
                 if (x > 0)
                 {
-                    Chunks[i - ChunkResolution - 1].xyNeighbor = chunk;
+                    Chunks[i - ChunkResolution - 1].XYNeighbor = chunk;
                 }
             }
         }

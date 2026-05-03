@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
+namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
 {
     /// <summary>
     /// Brosse circulaire
@@ -32,9 +32,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             float y = voxel.position.y - centerY;
 
             if (x * x + y * y <= sqrRadius)
-            {
                 voxel.state = fillType;
-            }
         }
 
         #endregion
@@ -141,9 +139,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         private Vector3 ComputeNormal(float x, float y, Voxel other)
         {
             if (fillType > other.state)
-            {
                 return new Vector2(x - centerX, y - centerY).normalized;
-            }
             else
             {
                 return new Vector2(centerX - x, centerY - y).normalized;

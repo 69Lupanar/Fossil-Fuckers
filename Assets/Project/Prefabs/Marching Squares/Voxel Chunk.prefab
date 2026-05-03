@@ -56,9 +56,6 @@ MonoBehaviour:
     wallMaterial: {fileID: 2100000, guid: 1b58a44c7d3dd47ddba26c140b07a27f, type: 2}
   - surfaceMaterial: {fileID: 2100000, guid: 606e24c30ff644223a123cd42eac5aa5, type: 2}
     wallMaterial: {fileID: 2100000, guid: 20e8a06403f06433195638a6d797d2f1, type: 2}
-  xNeighbor: {fileID: 0}
-  yNeighbor: {fileID: 0}
-  xyNeighbor: {fileID: 0}
 --- !u!114 &8222185779180968270
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -71,3 +68,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd2ee8d0a12b8394783d5c7721ec3b95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::Assets.Project.Scripts.Runtime.Views.MarchingSquares.VoxelChunkRenderer
+  <SurfacePrefab>k__BackingField: {fileID: 2690795676495520682, guid: 47c68f0fb6217be4fa3a79a6bdf1401b, type: 3}
+  <WallPrefab>k__BackingField: {fileID: 3953689494265326127, guid: 30c13de4b32e70746b7a2ab8f8c3333f, type: 3}
+  <Materials>k__BackingField:
+  - surfaceMaterial: {fileID: 2100000, guid: ea572728d3fa84861b12ea2bd2f167d4, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 5ab78445f72ca4c1f8ff37d8290cd6c4, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: d92927af6814b46198abad9e8e7d41e4, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 1a33bc3afdbc349428415adf19497db5, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: d8850b4a07a50478999ae13366157fc6, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 1b58a44c7d3dd47ddba26c140b07a27f, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: 606e24c30ff644223a123cd42eac5aa5, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 20e8a06403f06433195638a6d797d2f1, type: 2}

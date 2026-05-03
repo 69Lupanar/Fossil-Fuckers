@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
+namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
 {
     /// <summary>
     /// Brosse permettant de modifier plusieurs voxels à la fois
@@ -86,9 +86,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             Vector2 p = voxel.position;
 
             if (p.x >= XStart && p.x <= XEnd && p.y >= YStart && p.y <= YEnd)
-            {
                 voxel.state = fillType;
-            }
         }
 
         /// <summary>
@@ -99,9 +97,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         public void SetHorizontalCrossing(Voxel xMin, Voxel xMax)
         {
             if (xMin.state != xMax.state)
-            {
                 FindHorizontalCrossing(xMin, xMax);
-            }
             else
             {
                 xMin.xEdge = float.MinValue;
@@ -116,9 +112,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         public void SetVerticalCrossing(Voxel yMin, Voxel yMax)
         {
             if (yMin.state != yMax.state)
-            {
                 FindVerticalCrossing(yMin, yMax);
-            }
             else
             {
                 yMin.yEdge = float.MinValue;
@@ -137,9 +131,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         protected virtual void FindHorizontalCrossing(Voxel xMin, Voxel xMax)
         {
             if (xMin.position.y < YStart || xMin.position.y > YEnd)
-            {
                 return;
-            }
             if (xMin.state == fillType)
             {
                 if (xMin.position.x <= XEnd && xMax.position.x >= XEnd)
@@ -180,9 +172,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             if (xMin.state < xMax.state)
             {
                 if (xMin.xNormal.x > 0f)
-                {
                     xMin.xNormal = -xMin.xNormal;
-                }
             }
             else if (xMin.xNormal.x < 0f)
             {
@@ -198,9 +188,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         protected virtual void FindVerticalCrossing(Voxel yMin, Voxel yMax)
         {
             if (yMin.position.x < XStart || yMin.position.x > XEnd)
-            {
                 return;
-            }
             if (yMin.state == fillType)
             {
                 if (yMin.position.y <= YEnd && yMax.position.y >= YEnd)
@@ -241,9 +229,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             if (yMin.state < yMax.state)
             {
                 if (yMin.yNormal.y > 0f)
-                {
                     yMin.yNormal = -yMin.yNormal;
-                }
             }
             else if (yMin.yNormal.y < 0f)
             {
