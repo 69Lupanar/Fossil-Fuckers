@@ -64,7 +64,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 return;
 
             //float halfSize = _map.mapSize * 0.5f;
-            float chunkSize = _grid.MapSize / _grid.ChunkResolution;
+            float chunkSize = _grid.GridSize / _grid.ChunkResolution;
             float voxelSize = chunkSize / _grid.VoxelResolution;
 
             for (int chunkIndex = 0, y = 0; y < _grid.ChunkResolution; ++y)

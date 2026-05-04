@@ -28,21 +28,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         #region Propriétés
 
         /// <summary>
-        /// Le type de remplissage de la brosse active
-        /// </summary>
-        public int FillTypeIndex { get; set; } = 1;
-
-        /// <summary>
-        /// Le rayon de la brosse active
-        /// </summary>
-        public int RadiusIndex { get; set; }
-
-        /// <summary>
-        /// Le type de la brosse active
-        /// </summary>
-        public int StencilIndex { get; set; }
-
-        /// <summary>
         /// Chunks
         /// </summary>
         public VoxelChunk[] Chunks { get; private set; }
@@ -55,7 +40,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// Nombre de chunks par dimension de la carte
         /// </summary>
         [field: SerializeField, Tooltip("Nombres de chunks par dimensions de la carte")]
-        public float MapSize { get; private set; } = 2f;
+        public float GridSize { get; private set; } = 2f;
 
         /// <summary>
         /// Nombre de voxels par dimension de la carte
@@ -79,25 +64,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// Angle max d'une section du mesh qui peut apparaître
         /// </summary>
         [field: SerializeField, Tooltip("Angle max d'une section du mesh qui peut apparaître")]
-        public float MaxFeatureAngle { get; private set; } = 135f;
+        private float MaxFeatureAngle { get; set; } = 135f;
 
         /// <summary>
         /// Angle max d'une section du mesh qui peut apparaître
         /// </summary>
         [field: SerializeField, Tooltip("Angle max d'une section du mesh qui peut apparaître")]
-        public float MaxParallelAngle { get; private set; } = 5f;
-
-        /// <summary>
-        /// Les objets 3D représentant les brosses
-        /// </summary>
-        [field: SerializeField, Tooltip("Les objets 3D représentant les brosses")]
-        public Transform[] StencilVisualizations { get; private set; }
-
-        /// <summary>
-        /// true si la visualisation des brosses doit s'aligner avec la grille
-        /// </summary>
-        [field: SerializeField, Tooltip("true si la visualisation des brosses doit s'aligner avec la grille")]
-        public bool SnapToGrid { get; private set; } = false;
+        private float MaxParallelAngle { get; set; } = 5f;
 
         #endregion
 
@@ -118,11 +91,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         private float _halfSize;
 
-        /// <summary>
-        /// Brosses
-        /// </summary>
-        private VoxelStencil[] _stencils = { new VoxelStencil(), new VoxelStencilCircle() };
-
         #endregion
 
         #region Méthodes Unity
@@ -132,13 +100,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         private void Start()
         {
-            _halfSize = MapSize * 0.5f;
-            _chunkSize = MapSize / ChunkResolution;
+            _halfSize = GridSize * 0.5f;
+            _chunkSize = GridSize / ChunkResolution;
             _voxelSize = _chunkSize / VoxelResolution;
             Chunks = new VoxelChunk[ChunkResolution * ChunkResolution];
             Vector3[] chunkPositions = new Vector3[ChunkResolution * ChunkResolution];
             BoxCollider box = gameObject.AddComponent<BoxCollider>();
-            box.size = new Vector3(MapSize, MapSize);
+            box.size = new Vector3(GridSize, GridSize);
             box.center = new Vector3(_halfSize, _halfSize);
 
             for (int i = 0, y = 0; y < ChunkResolution; ++y)
@@ -153,50 +121,44 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             OnChunksCreated?.Invoke(this, new VoxelChunkInitializedEventArgs(chunkPositions, VoxelResolution, _chunkSize, MaxFeatureAngle, MaxParallelAngle));
         }
 
+        #endregion
+
+        #region Méthodes publiques
+
         /// <summary>
-        /// màj à chaque frame
+        /// Màj l'état des voxels affectéspar la brosse active
         /// </summary>
-        private void Update()
+        /// <param name="stencil">La brosse active</param>
+        /// <param name="center">Position du curseur</param>
+        public void EditVoxels(VoxelStencil stencil, Vector3 center)
         {
-            Transform visualization = StencilVisualizations[StencilIndex];
+            int xStart = Mathf.Max(0, (int)((stencil.XStart - _voxelSize) / _chunkSize));
+            int xEnd = Mathf.Min((int)((stencil.XEnd + _voxelSize) / _chunkSize), ChunkResolution - 1);
+            int yStart = Mathf.Max(0, (int)((stencil.YStart - _voxelSize) / _chunkSize));
+            int yEnd = Mathf.Min((int)((stencil.YEnd + _voxelSize) / _chunkSize), ChunkResolution - 1);
 
-            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo) &&
-                hitInfo.collider.gameObject == gameObject)
+            for (int y = yEnd; y >= yStart; --y)
             {
-                Vector2 center = transform.InverseTransformPoint(hitInfo.point);
-                //center.x += halfSize;
-                //center.y += halfSize;
-                if (SnapToGrid)
-                {
-                    center.x = ((int)(center.x / _voxelSize) + 0.5f) * _voxelSize;
-                    center.y = ((int)(center.y / _voxelSize) + 0.5f) * _voxelSize;
-                }
+                int chunkIndex = y * ChunkResolution + xEnd;
 
-                if (Input.GetMouseButton(0))
+                for (int x = xEnd; x >= xStart; --x, --chunkIndex)
                 {
-                    EditVoxels(transform.InverseTransformPoint(center));
+                    stencil.SetCenter(center.x - x * _chunkSize, center.y - y * _chunkSize);
+                    Apply(stencil, Chunks[chunkIndex], chunkIndex);
                 }
-
-                //center.x -= halfSize;
-                //center.y -= halfSize;
-                visualization.localPosition = center;
-                visualization.localScale = Vector3.one * ((RadiusIndex + 0.5f) * _voxelSize * 2f);
-                visualization.gameObject.SetActive(true);
-            }
-            else
-            {
-                visualization.gameObject.SetActive(false);
             }
         }
 
         #endregion
 
+        #region Méthodes privées
+
         /// <summary>
         /// Crée un chunk à partir des coordonnées renseignées
         /// </summary>
-        /// <param name="i"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
+        /// <param name="i">Index du chunk dans la grille</param>
+        /// <param name="x">Position X</param>
+        /// <param name="y">Position Y</param>
         private VoxelChunk CreateChunk(int i, int x, int y)
         {
             VoxelChunk chunk = new(VoxelResolution, _chunkSize);
@@ -222,37 +184,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Màj l'état des voxels affectéspar la brosse active
         /// </summary>
-        /// <param name="center">Position du curseur</param>
-        private void EditVoxels(Vector3 center)
-        {
-            VoxelStencil activeStencil = _stencils[StencilIndex];
-            activeStencil.Initialize(FillTypeIndex, (RadiusIndex + 0.5f) * _voxelSize);
-            activeStencil.SetCenter(center.x, center.y);
-
-            int xStart = Mathf.Max(0, (int)((activeStencil.XStart - _voxelSize) / _chunkSize));
-            int xEnd = Mathf.Min((int)((activeStencil.XEnd + _voxelSize) / _chunkSize), ChunkResolution - 1);
-            int yStart = Mathf.Max(0, (int)((activeStencil.YStart - _voxelSize) / _chunkSize));
-            int yEnd = Mathf.Min((int)((activeStencil.YEnd + _voxelSize) / _chunkSize), ChunkResolution - 1);
-
-            for (int y = yEnd; y >= yStart; --y)
-            {
-                int chunkIndex = y * ChunkResolution + xEnd;
-
-                for (int x = xEnd; x >= xStart; --x, --chunkIndex)
-                {
-                    activeStencil.SetCenter(center.x - x * _chunkSize, center.y - y * _chunkSize);
-                    Apply(activeStencil, Chunks[chunkIndex], chunkIndex);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Màj l'état des voxels affectéspar la brosse active
-        /// </summary>
         /// <param name="stencil">Brosse utilisée</param>
         /// <param name="chunk">Le chunk</param>
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
-        public void Apply(VoxelStencil stencil, VoxelChunk chunk, int chunkIndex)
+        private void Apply(VoxelStencil stencil, VoxelChunk chunk, int chunkIndex)
         {
             int xStart = Mathf.Max(0, (int)(stencil.XStart / _voxelSize));
             int xEnd = Mathf.Min((int)(stencil.XEnd / _voxelSize), VoxelResolution - 1);
@@ -274,5 +209,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
             OnStencilApplied?.Invoke(this, new VoxelChunkStencilAppliedEventArgs(stencil, chunkIndex, xStart, xEnd, yStart, yEnd));
         }
+
+        #endregion
     }
 }

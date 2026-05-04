@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6237090199471055437}
   - component: {fileID: 1662046016798231970}
   - component: {fileID: 8803021385803124385}
+  - component: {fileID: 4728409264632557542}
   m_Layer: 0
   m_Name: Voxel Grid
   m_TagString: Untagged
@@ -54,11 +55,6 @@ MonoBehaviour:
   <ChunkResolution>k__BackingField: 2
   <MaxFeatureAngle>k__BackingField: 135
   <MaxParallelAngle>k__BackingField: 5
-  <VoxelGridPrefab>k__BackingField: {fileID: 6835662398029437811, guid: 7144b08785ff3964f919747fd6d74e4e, type: 3}
-  <StencilVisualizations>k__BackingField:
-  - {fileID: 4179844321039818934}
-  - {fileID: 1608451359196424891}
-  <SnapToGrid>k__BackingField: 0
 --- !u!114 &1662046016798231970
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -71,23 +67,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ca1c7d89b9cf604da90e200736ec700, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::Assets.Project.Scripts.Runtime.Views.MarchingSquares.VoxelStencilEditView
-  fillTypeNames:
+  <Grid>k__BackingField: {fileID: 6237090199471055437}
+  <MaterialTypeIndex>k__BackingField: 1
+  <RadiusIndex>k__BackingField: 0
+  <StencilIndex>k__BackingField: 1
+  <SnapToGrid>k__BackingField: 0
+  <FillTypeNames>k__BackingField:
   - X
   - A
   - B
   - C
   - D
-  radiusNames:
+  <RadiusNames>k__BackingField:
   - 0
   - 1
   - 2
   - 3
   - 4
   - 5
-  stencilNames:
+  <StencilNames>k__BackingField:
+  - None
   - Square
   - Circle
-  voxelMap: {fileID: 6237090199471055437}
+  <StencilVisualizations>k__BackingField:
+  - {fileID: 4179844321039818934}
+  - {fileID: 1608451359196424891}
 --- !u!114 &8803021385803124385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,6 +115,29 @@ MonoBehaviour:
   - {r: 1, g: 1, b: 0, a: 1}
   - {r: 0, g: 1, b: 0, a: 1}
   - {r: 0, g: 0, b: 1, a: 1}
+--- !u!114 &4728409264632557542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359065666056280568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3205d0c92756d934d804fe0720e992b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::VoxelGridRendererView
+  <SurfacePrefab>k__BackingField: {fileID: 2690795676495520682, guid: 47c68f0fb6217be4fa3a79a6bdf1401b, type: 3}
+  <WallPrefab>k__BackingField: {fileID: 3953689494265326127, guid: 30c13de4b32e70746b7a2ab8f8c3333f, type: 3}
+  <Materials>k__BackingField:
+  - surfaceMaterial: {fileID: 2100000, guid: ea572728d3fa84861b12ea2bd2f167d4, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 5ab78445f72ca4c1f8ff37d8290cd6c4, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: d92927af6814b46198abad9e8e7d41e4, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 1a33bc3afdbc349428415adf19497db5, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: d8850b4a07a50478999ae13366157fc6, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 1b58a44c7d3dd47ddba26c140b07a27f, type: 2}
+  - surfaceMaterial: {fileID: 2100000, guid: 606e24c30ff644223a123cd42eac5aa5, type: 2}
+    wallMaterial: {fileID: 2100000, guid: 20e8a06403f06433195638a6d797d2f1, type: 2}
 --- !u!1001 &1984657024383595350
 PrefabInstance:
   m_ObjectHideFlags: 0
