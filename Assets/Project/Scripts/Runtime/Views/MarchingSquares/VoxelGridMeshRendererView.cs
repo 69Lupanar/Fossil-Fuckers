@@ -123,15 +123,12 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
             for (int i = 0; i < e.ChunkPositions.Length; ++i)
             {
-                _cells[i] = new VoxelCell();
+                _cells[i] = new VoxelCell(Mathf.Cos(e.MaxFeatureAngle * Mathf.Deg2Rad), Mathf.Cos(e.MaxParallelAngle * Mathf.Deg2Rad));
                 _dummyXs[i] = new Voxel();
                 _dummyYs[i] = new Voxel();
                 _dummyTs[i] = new Voxel();
-                _cells[i].sharpFeatureLimit = Mathf.Cos(e.MaxFeatureAngle * Mathf.Deg2Rad);
-                _cells[i].parallelLimit = Mathf.Cos(e.MaxParallelAngle * Mathf.Deg2Rad);
 
                 CreateRenderers(e.ChunkPositions[i], i);
-                //Refresh(_grid.Chunks[i], i);
             }
         }
 
@@ -543,11 +540,8 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
         private void TriangulateCell(int chunkIndex, int cellIndex, in Voxel a, in Voxel b, in Voxel c, in Voxel d)
         {
-            _cells[chunkIndex].i = cellIndex;
-            _cells[chunkIndex].a = a;
-            _cells[chunkIndex].b = b;
-            _cells[chunkIndex].c = c;
-            _cells[chunkIndex].d = d;
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            cell.SetData(cellIndex, a, b, c, d);
 
             if (a.State == b.State)
             {
@@ -745,7 +739,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 FillBCToA(chunkIndex, fA);
                 FillBCToD(chunkIndex, fD);
             }
-            else if (_cells[chunkIndex].a.Filled && _cells[chunkIndex].b.Filled)
+            else if (_cells[chunkIndex].A.Filled && _cells[chunkIndex].B.Filled)
             {
                 FillJoinedCorners(chunkIndex, fA, fB, fC, fD);
             }
@@ -778,7 +772,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 FillBCToA(chunkIndex, fA);
                 FillBCToD(chunkIndex, fD);
             }
-            else if (_cells[chunkIndex].b.Filled || _cells[chunkIndex].HasConnectionAD(fA, fD))
+            else if (_cells[chunkIndex].B.Filled || _cells[chunkIndex].HasConnectionAD(fA, fD))
             {
                 FillJoinedCorners(chunkIndex, fA, fB, fC, fD);
             }
@@ -809,7 +803,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 FillB(chunkIndex, fB);
                 FillC(chunkIndex, fC);
             }
-            else if (_cells[chunkIndex].a.Filled || _cells[chunkIndex].HasConnectionBC(fB, fC))
+            else if (_cells[chunkIndex].A.Filled || _cells[chunkIndex].HasConnectionBC(fB, fC))
             {
                 FillJoinedCorners(chunkIndex, fA, fB, fC, fD);
             }
@@ -829,137 +823,137 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
         private void FillA(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].a.Filled)
+            if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillA(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillA(_cells[chunkIndex], f);
             }
         }
 
         private void FillB(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].b.Filled)
+            if (_cells[chunkIndex].B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].b.State].FillB(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillB(_cells[chunkIndex], f);
             }
         }
 
         private void FillC(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].c.Filled)
+            if (_cells[chunkIndex].C.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].c.State].FillC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].C.State].FillC(_cells[chunkIndex], f);
             }
         }
 
         private void FillD(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].d.Filled)
+            if (_cells[chunkIndex].D.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].d.State].FillD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].D.State].FillD(_cells[chunkIndex], f);
             }
         }
 
         private void FillABC(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].a.Filled)
+            if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillABC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillABC(_cells[chunkIndex], f);
             }
         }
 
         private void FillABD(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].a.Filled)
+            if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillABD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillABD(_cells[chunkIndex], f);
             }
         }
 
         private void FillACD(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].a.Filled)
+            if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillACD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillACD(_cells[chunkIndex], f);
             }
         }
 
         private void FillBCD(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].b.Filled)
+            if (_cells[chunkIndex].B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].b.State].FillBCD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCD(_cells[chunkIndex], f);
             }
         }
 
         private void FillAB(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].a.Filled)
+            if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillAB(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillAB(_cells[chunkIndex], f);
             }
         }
 
         private void FillAC(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].a.Filled)
+            if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillAC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillAC(_cells[chunkIndex], f);
             }
         }
 
         private void FillBD(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].b.Filled)
+            if (_cells[chunkIndex].B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].b.State].FillBD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBD(_cells[chunkIndex], f);
             }
         }
 
         private void FillCD(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].c.Filled)
+            if (_cells[chunkIndex].C.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].c.State].FillCD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].C.State].FillCD(_cells[chunkIndex], f);
             }
         }
 
         private void FillADToB(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].a.Filled)
+            if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillADToB(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillADToB(_cells[chunkIndex], f);
             }
         }
 
         private void FillADToC(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].a.Filled)
+            if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillADToC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillADToC(_cells[chunkIndex], f);
             }
         }
 
         private void FillBCToA(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].b.Filled)
+            if (_cells[chunkIndex].B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].b.State].FillBCToA(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCToA(_cells[chunkIndex], f);
             }
         }
 
         private void FillBCToD(int chunkIndex, FeaturePoint f)
         {
-            if (_cells[chunkIndex].b.Filled)
+            if (_cells[chunkIndex].B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].b.State].FillBCToD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCToD(_cells[chunkIndex], f);
             }
         }
 
         private void FillABCD(int chunkIndex)
         {
-            if (_cells[chunkIndex].a.Filled)
+            if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillABCD(_cells[chunkIndex]);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillABCD(_cells[chunkIndex]);
             }
         }
 

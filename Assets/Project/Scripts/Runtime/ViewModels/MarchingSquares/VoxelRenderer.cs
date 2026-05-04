@@ -131,22 +131,22 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddQuadA(cell.i, f.Position);
-                if (!cell.c.Filled)
+                _surface.AddQuadA(cell.I, f.Position);
+                if (!cell.C.Filled)
                 {
-                    _wall.AddFromAC(cell.i, f.Position);
+                    _wall.AddFromAC(cell.I, f.Position);
                 }
-                if (!cell.b.Filled)
+                if (!cell.B.Filled)
                 {
-                    _wall.AddToAB(cell.i, f.Position);
+                    _wall.AddToAB(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddTriangleA(cell.i);
-                if (!cell.b.Filled)
+                _surface.AddTriangleA(cell.I);
+                if (!cell.B.Filled)
                 {
-                    _wall.AddACAB(cell.i);
+                    _wall.AddACAB(cell.I);
                 }
             }
         }
@@ -155,22 +155,22 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddQuadB(cell.i, f.Position);
-                if (!cell.a.Filled)
+                _surface.AddQuadB(cell.I, f.Position);
+                if (!cell.A.Filled)
                 {
-                    _wall.AddFromAB(cell.i, f.Position);
+                    _wall.AddFromAB(cell.I, f.Position);
                 }
-                if (!cell.d.Filled)
+                if (!cell.D.Filled)
                 {
-                    _wall.AddToBD(cell.i, f.Position);
+                    _wall.AddToBD(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddTriangleB(cell.i);
-                if (!cell.a.Filled)
+                _surface.AddTriangleB(cell.I);
+                if (!cell.A.Filled)
                 {
-                    _wall.AddABBD(cell.i);
+                    _wall.AddABBD(cell.I);
                 }
             }
         }
@@ -179,22 +179,22 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddQuadC(cell.i, f.Position);
-                if (!cell.d.Filled)
+                _surface.AddQuadC(cell.I, f.Position);
+                if (!cell.D.Filled)
                 {
-                    _wall.AddFromCD(cell.i, f.Position);
+                    _wall.AddFromCD(cell.I, f.Position);
                 }
-                if (!cell.a.Filled)
+                if (!cell.A.Filled)
                 {
-                    _wall.AddToAC(cell.i, f.Position);
+                    _wall.AddToAC(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddTriangleC(cell.i);
-                if (!cell.a.Filled)
+                _surface.AddTriangleC(cell.I);
+                if (!cell.A.Filled)
                 {
-                    _wall.AddCDAC(cell.i);
+                    _wall.AddCDAC(cell.I);
                 }
             }
         }
@@ -203,22 +203,22 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddQuadD(cell.i, f.Position);
-                if (!cell.b.Filled)
+                _surface.AddQuadD(cell.I, f.Position);
+                if (!cell.B.Filled)
                 {
-                    _wall.AddFromBD(cell.i, f.Position);
+                    _wall.AddFromBD(cell.I, f.Position);
                 }
-                if (!cell.c.Filled)
+                if (!cell.C.Filled)
                 {
-                    _wall.AddToCD(cell.i, f.Position);
+                    _wall.AddToCD(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddTriangleD(cell.i);
-                if (!cell.b.Filled)
+                _surface.AddTriangleD(cell.I);
+                if (!cell.B.Filled)
                 {
-                    _wall.AddBDCD(cell.i);
+                    _wall.AddBDCD(cell.I);
                 }
             }
         }
@@ -227,18 +227,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddHexagonABC(cell.i, f.Position);
-                if (!cell.d.Filled)
+                _surface.AddHexagonABC(cell.I, f.Position);
+                if (!cell.D.Filled)
                 {
-                    _wall.AddCDBD(cell.i, f.Position);
+                    _wall.AddCDBD(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddPentagonABC(cell.i);
-                if (!cell.d.Filled)
+                _surface.AddPentagonABC(cell.I);
+                if (!cell.D.Filled)
                 {
-                    _wall.AddCDBD(cell.i);
+                    _wall.AddCDBD(cell.I);
                 }
             }
         }
@@ -247,18 +247,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddHexagonABD(cell.i, f.Position);
-                if (!cell.c.Filled)
+                _surface.AddHexagonABD(cell.I, f.Position);
+                if (!cell.C.Filled)
                 {
-                    _wall.AddACCD(cell.i, f.Position);
+                    _wall.AddACCD(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddPentagonABD(cell.i);
-                if (!cell.c.Filled)
+                _surface.AddPentagonABD(cell.I);
+                if (!cell.C.Filled)
                 {
-                    _wall.AddACCD(cell.i);
+                    _wall.AddACCD(cell.I);
                 }
             }
         }
@@ -267,18 +267,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddHexagonACD(cell.i, f.Position);
-                if (!cell.b.Filled)
+                _surface.AddHexagonACD(cell.I, f.Position);
+                if (!cell.B.Filled)
                 {
-                    _wall.AddBDAB(cell.i, f.Position);
+                    _wall.AddBDAB(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddPentagonACD(cell.i);
-                if (!cell.b.Filled)
+                _surface.AddPentagonACD(cell.I);
+                if (!cell.B.Filled)
                 {
-                    _wall.AddBDAB(cell.i);
+                    _wall.AddBDAB(cell.I);
                 }
             }
         }
@@ -287,18 +287,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddHexagonBCD(cell.i, f.Position);
-                if (!cell.a.Filled)
+                _surface.AddHexagonBCD(cell.I, f.Position);
+                if (!cell.A.Filled)
                 {
-                    _wall.AddABAC(cell.i, f.Position);
+                    _wall.AddABAC(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddPentagonBCD(cell.i);
-                if (!cell.a.Filled)
+                _surface.AddPentagonBCD(cell.I);
+                if (!cell.A.Filled)
                 {
-                    _wall.AddABAC(cell.i);
+                    _wall.AddABAC(cell.I);
                 }
             }
         }
@@ -307,22 +307,22 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddPentagonAB(cell.i, f.Position);
-                if (!cell.c.Filled)
+                _surface.AddPentagonAB(cell.I, f.Position);
+                if (!cell.C.Filled)
                 {
-                    _wall.AddFromAC(cell.i, f.Position);
+                    _wall.AddFromAC(cell.I, f.Position);
                 }
-                if (!cell.d.Filled)
+                if (!cell.D.Filled)
                 {
-                    _wall.AddToBD(cell.i, f.Position);
+                    _wall.AddToBD(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddQuadAB(cell.i);
-                if (!cell.c.Filled)
+                _surface.AddQuadAB(cell.I);
+                if (!cell.C.Filled)
                 {
-                    _wall.AddACBD(cell.i);
+                    _wall.AddACBD(cell.I);
                 }
             }
         }
@@ -331,22 +331,22 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddPentagonAC(cell.i, f.Position);
-                if (!cell.d.Filled)
+                _surface.AddPentagonAC(cell.I, f.Position);
+                if (!cell.D.Filled)
                 {
-                    _wall.AddFromCD(cell.i, f.Position);
+                    _wall.AddFromCD(cell.I, f.Position);
                 }
-                if (!cell.b.Filled)
+                if (!cell.B.Filled)
                 {
-                    _wall.AddToAB(cell.i, f.Position);
+                    _wall.AddToAB(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddQuadAC(cell.i);
-                if (!cell.b.Filled)
+                _surface.AddQuadAC(cell.I);
+                if (!cell.B.Filled)
                 {
-                    _wall.AddCDAB(cell.i);
+                    _wall.AddCDAB(cell.I);
                 }
             }
         }
@@ -355,22 +355,22 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddPentagonBD(cell.i, f.Position);
-                if (!cell.a.Filled)
+                _surface.AddPentagonBD(cell.I, f.Position);
+                if (!cell.A.Filled)
                 {
-                    _wall.AddFromAB(cell.i, f.Position);
+                    _wall.AddFromAB(cell.I, f.Position);
                 }
-                if (!cell.c.Filled)
+                if (!cell.C.Filled)
                 {
-                    _wall.AddToCD(cell.i, f.Position);
+                    _wall.AddToCD(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddQuadBD(cell.i);
-                if (!cell.a.Filled)
+                _surface.AddQuadBD(cell.I);
+                if (!cell.A.Filled)
                 {
-                    _wall.AddABCD(cell.i);
+                    _wall.AddABCD(cell.I);
                 }
             }
         }
@@ -379,22 +379,22 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddPentagonCD(cell.i, f.Position);
-                if (!cell.b.Filled)
+                _surface.AddPentagonCD(cell.I, f.Position);
+                if (!cell.B.Filled)
                 {
-                    _wall.AddFromBD(cell.i, f.Position);
+                    _wall.AddFromBD(cell.I, f.Position);
                 }
-                if (!cell.a.Filled)
+                if (!cell.A.Filled)
                 {
-                    _wall.AddToAC(cell.i, f.Position);
+                    _wall.AddToAC(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddQuadCD(cell.i);
-                if (!cell.a.Filled)
+                _surface.AddQuadCD(cell.I);
+                if (!cell.A.Filled)
                 {
-                    _wall.AddBDAC(cell.i);
+                    _wall.AddBDAC(cell.I);
                 }
             }
         }
@@ -403,18 +403,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddPentagonADToB(cell.i, f.Position);
-                if (!cell.b.Filled)
+                _surface.AddPentagonADToB(cell.I, f.Position);
+                if (!cell.B.Filled)
                 {
-                    _wall.AddBDAB(cell.i, f.Position);
+                    _wall.AddBDAB(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddQuadADToB(cell.i);
-                if (!cell.b.Filled)
+                _surface.AddQuadADToB(cell.I);
+                if (!cell.B.Filled)
                 {
-                    _wall.AddBDAB(cell.i);
+                    _wall.AddBDAB(cell.I);
                 }
             }
         }
@@ -423,18 +423,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddPentagonADToC(cell.i, f.Position);
-                if (!cell.c.Filled)
+                _surface.AddPentagonADToC(cell.I, f.Position);
+                if (!cell.C.Filled)
                 {
-                    _wall.AddACCD(cell.i, f.Position);
+                    _wall.AddACCD(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddQuadADToC(cell.i);
-                if (!cell.c.Filled)
+                _surface.AddQuadADToC(cell.I);
+                if (!cell.C.Filled)
                 {
-                    _wall.AddACCD(cell.i);
+                    _wall.AddACCD(cell.I);
                 }
             }
         }
@@ -443,18 +443,18 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddPentagonBCToA(cell.i, f.Position);
-                if (!cell.a.Filled)
+                _surface.AddPentagonBCToA(cell.I, f.Position);
+                if (!cell.A.Filled)
                 {
-                    _wall.AddABAC(cell.i, f.Position);
+                    _wall.AddABAC(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddQuadBCToA(cell.i);
-                if (!cell.a.Filled)
+                _surface.AddQuadBCToA(cell.I);
+                if (!cell.A.Filled)
                 {
-                    _wall.AddABAC(cell.i);
+                    _wall.AddABAC(cell.I);
                 }
             }
         }
@@ -463,25 +463,25 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             if (f.Exists)
             {
-                _surface.AddPentagonBCToD(cell.i, f.Position);
-                if (!cell.d.Filled)
+                _surface.AddPentagonBCToD(cell.I, f.Position);
+                if (!cell.D.Filled)
                 {
-                    _wall.AddCDBD(cell.i, f.Position);
+                    _wall.AddCDBD(cell.I, f.Position);
                 }
             }
             else
             {
-                _surface.AddQuadBCToD(cell.i);
-                if (!cell.d.Filled)
+                _surface.AddQuadBCToD(cell.I);
+                if (!cell.D.Filled)
                 {
-                    _wall.AddCDBD(cell.i);
+                    _wall.AddCDBD(cell.I);
                 }
             }
         }
 
         public readonly void FillABCD(VoxelCell cell)
         {
-            _surface.AddQuadABCD(cell.i);
+            _surface.AddQuadABCD(cell.I);
         }
 
         #endregion
