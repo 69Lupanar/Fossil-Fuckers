@@ -1,5 +1,5 @@
 ﻿using System;
-using UnityEngine;
+using Unity.Mathematics;
 
 namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
 {
@@ -25,22 +25,22 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <summary>
         /// Point d'intersection sur l'edge X
         /// </summary>
-        public Vector2 XEdgePoint
+        public float2 XEdgePoint
         {
             get
             {
-                return new Vector2(XEdge, Position.y);
+                return new float2(XEdge, Position.y);
             }
         }
 
         /// <summary>
         /// Point d'intersection sur l'edge Y
         /// </summary>
-        public Vector2 YEdgePoint
+        public float2 YEdgePoint
         {
             get
             {
-                return new Vector2(Position.x, YEdge);
+                return new float2(Position.x, YEdge);
             }
         }
 
@@ -52,7 +52,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <summary>
         /// Position
         /// </summary>
-        public Vector2 Position { get; set; }
+        public float2 Position { get; set; }
 
         /// <summary>
         /// Position du vertex de l'edge sur l'axe X
@@ -67,12 +67,12 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <summary>
         /// Normale du voxel
         /// </summary>
-        public Vector2 XNormal { get; set; }
+        public float2 XNormal { get; set; }
 
         /// <summary>
         /// Normale du voxel
         /// </summary>
-        public Vector2 YNormal { get; set; }
+        public float2 YNormal { get; set; }
 
         #endregion
 
@@ -91,7 +91,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <param name="size">Taille du voxel</param>
         public Voxel(int x, int y, float size)
         {
-            Position = new Vector2((x + 0.5f) * size, (y + 0.5f) * size);
+            Position = new float2((x + 0.5f) * size, (y + 0.5f) * size);
             XEdge = float.MinValue;
             YEdge = float.MinValue;
         }
@@ -109,7 +109,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         {
             State = voxel.State;
             Position = voxel.Position;
-            Position = new Vector2(Position.x + offset, Position.y);
+            Position = new float2(Position.x + offset, Position.y);
             XEdge = voxel.XEdge + offset;
             YEdge = voxel.YEdge;
             YNormal = voxel.YNormal;
@@ -124,7 +124,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         {
             State = voxel.State;
             Position = voxel.Position;
-            Position = new Vector2(Position.x, Position.y + offset);
+            Position = new float2(Position.x, Position.y + offset);
             XEdge = voxel.XEdge;
             YEdge = voxel.YEdge + offset;
             XNormal = voxel.XNormal;
@@ -139,7 +139,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         {
             State = voxel.State;
             Position = voxel.Position;
-            Position = new Vector2(Position.x + offset, Position.y + offset);
+            Position = new float2(Position.x + offset, Position.y + offset);
             XEdge = voxel.XEdge + offset;
             YEdge = voxel.YEdge + offset;
         }

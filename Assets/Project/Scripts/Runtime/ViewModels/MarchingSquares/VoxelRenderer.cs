@@ -1,5 +1,6 @@
 using System;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
+using Unity.Mathematics;
 
 namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 {
@@ -7,19 +8,19 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
     /// Renderers des surfaces et murs
     /// </summary>
     [Serializable]
-    public struct VoxelRenderer
+    public readonly struct VoxelRenderer
     {
         #region Variables d'instance
 
         /// <summary>
         /// Surface
         /// </summary>
-        private VoxelChunkSurface surface;
+        private readonly VoxelChunkSurface _surface;
 
         /// <summary>
         /// Mur
         /// </summary>
-        private VoxelChunkWall wall;
+        private readonly VoxelChunkWall _wall;
 
         #endregion
 
@@ -32,8 +33,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <param name="wall">Mur</param>
         public VoxelRenderer(VoxelChunkSurface surface, VoxelChunkWall wall)
         {
-            this.surface = surface;
-            this.wall = wall;
+            _surface = surface;
+            _wall = wall;
         }
 
         #endregion
@@ -43,444 +44,444 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Efface le mesh
         /// </summary>
-        public void Clear()
+        public readonly void Clear()
         {
-            surface.Clear();
-            wall.Clear();
+            _surface.Clear();
+            _wall.Clear();
         }
 
         /// <summary>
         /// Assigne au mesh ses nouveaux composants
         /// </summary>
-        public void Apply()
+        public readonly void Apply()
         {
-            surface.Apply();
-            wall.Apply();
+            _surface.Apply();
+            _wall.Apply();
         }
 
         /// <summary>
         /// Prépare le cache pour la cellule voisine
         /// </summary>
-        public void PrepareCacheForNextCell()
+        public readonly void PrepareCacheForNextCell()
         {
-            surface.PrepareCacheForNextCell();
-            wall.PrepareCacheForNextCell();
+            _surface.PrepareCacheForNextCell();
+            _wall.PrepareCacheForNextCell();
         }
 
         /// <summary>
         /// Prépare le cache pour la ligne voisine
         /// </summary>
-        public void PrepareCacheForNextRow()
+        public readonly void PrepareCacheForNextRow()
         {
-            surface.PrepareCacheForNextRow();
-            wall.PrepareCacheForNextRow();
+            _surface.PrepareCacheForNextRow();
+            _wall.PrepareCacheForNextRow();
         }
 
         /// <summary>
         /// Cache le 1er voxel (bas gauche)
         /// </summary>
-        public void CacheFirstCorner(Voxel voxel)
+        public readonly void CacheFirstCorner(float2 voxelPosition)
         {
-            surface.CacheFirstCorner(voxel);
+            _surface.CacheFirstCorner(voxelPosition);
         }
 
         /// <summary>
         /// Cache le voxel suivant
         /// </summary>
-        public void CacheNextCorner(int i, Voxel voxel)
+        public readonly void CacheNextCorner(int i, float2 voxelPosition)
         {
-            surface.CacheNextCorner(i, voxel);
+            _surface.CacheNextCorner(i, voxelPosition);
         }
 
         /// <summary>
         /// Met en cache le point sur l'edge X
         /// </summary>
-        public void CacheXEdge(int i, Voxel voxel)
+        public readonly void CacheXEdge(int i, float2 xEdgePoint)
         {
-            surface.CacheXEdge(i, voxel);
+            _surface.CacheXEdge(i, xEdgePoint);
         }
 
         /// <summary>
         /// Met en cache le point sur l'edge X
         /// </summary>
-        public void CacheXEdgeWithWall(int i, Voxel voxel)
+        public readonly void CacheXEdgeWithWall(int i, float2 xEdgePoint, float2 xNormal)
         {
-            surface.CacheXEdge(i, voxel);
-            wall.CacheXEdge(i, voxel);
+            _surface.CacheXEdge(i, xEdgePoint);
+            _wall.CacheXEdge(i, xEdgePoint, xNormal);
         }
 
         /// <summary>
         /// Met en cache le point sur l'edge Y
         /// </summary>
-        public void CacheYEdge(Voxel voxel)
+        public readonly void CacheYEdge(float2 yEdgePoint)
         {
-            surface.CacheYEdge(voxel);
+            _surface.CacheYEdge(yEdgePoint);
         }
 
         /// <summary>
         /// Met en cache le point sur l'edge Y
         /// </summary>
-        public void CacheYEdgeWithWall(Voxel voxel)
+        public readonly void CacheYEdgeWithWall(float2 yEdgePoint, float2 yNormal)
         {
-            surface.CacheYEdge(voxel);
-            wall.CacheYEdge(voxel);
+            _surface.CacheYEdge(yEdgePoint);
+            _wall.CacheYEdge(yEdgePoint, yNormal);
         }
 
-        public void FillA(VoxelCell cell, FeaturePoint f)
+        public readonly void FillA(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddQuadA(cell.i, f.Position);
+                _surface.AddQuadA(cell.i, f.Position);
                 if (!cell.c.Filled)
                 {
-                    wall.AddFromAC(cell.i, f.Position);
+                    _wall.AddFromAC(cell.i, f.Position);
                 }
                 if (!cell.b.Filled)
                 {
-                    wall.AddToAB(cell.i, f.Position);
+                    _wall.AddToAB(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddTriangleA(cell.i);
+                _surface.AddTriangleA(cell.i);
                 if (!cell.b.Filled)
                 {
-                    wall.AddACAB(cell.i);
+                    _wall.AddACAB(cell.i);
                 }
             }
         }
 
-        public void FillB(VoxelCell cell, FeaturePoint f)
+        public readonly void FillB(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddQuadB(cell.i, f.Position);
+                _surface.AddQuadB(cell.i, f.Position);
                 if (!cell.a.Filled)
                 {
-                    wall.AddFromAB(cell.i, f.Position);
+                    _wall.AddFromAB(cell.i, f.Position);
                 }
                 if (!cell.d.Filled)
                 {
-                    wall.AddToBD(cell.i, f.Position);
+                    _wall.AddToBD(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddTriangleB(cell.i);
+                _surface.AddTriangleB(cell.i);
                 if (!cell.a.Filled)
                 {
-                    wall.AddABBD(cell.i);
+                    _wall.AddABBD(cell.i);
                 }
             }
         }
 
-        public void FillC(VoxelCell cell, FeaturePoint f)
+        public readonly void FillC(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddQuadC(cell.i, f.Position);
+                _surface.AddQuadC(cell.i, f.Position);
                 if (!cell.d.Filled)
                 {
-                    wall.AddFromCD(cell.i, f.Position);
+                    _wall.AddFromCD(cell.i, f.Position);
                 }
                 if (!cell.a.Filled)
                 {
-                    wall.AddToAC(cell.i, f.Position);
+                    _wall.AddToAC(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddTriangleC(cell.i);
+                _surface.AddTriangleC(cell.i);
                 if (!cell.a.Filled)
                 {
-                    wall.AddCDAC(cell.i);
+                    _wall.AddCDAC(cell.i);
                 }
             }
         }
 
-        public void FillD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillD(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddQuadD(cell.i, f.Position);
+                _surface.AddQuadD(cell.i, f.Position);
                 if (!cell.b.Filled)
                 {
-                    wall.AddFromBD(cell.i, f.Position);
+                    _wall.AddFromBD(cell.i, f.Position);
                 }
                 if (!cell.c.Filled)
                 {
-                    wall.AddToCD(cell.i, f.Position);
+                    _wall.AddToCD(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddTriangleD(cell.i);
+                _surface.AddTriangleD(cell.i);
                 if (!cell.b.Filled)
                 {
-                    wall.AddBDCD(cell.i);
+                    _wall.AddBDCD(cell.i);
                 }
             }
         }
 
-        public void FillABC(VoxelCell cell, FeaturePoint f)
+        public readonly void FillABC(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddHexagonABC(cell.i, f.Position);
+                _surface.AddHexagonABC(cell.i, f.Position);
                 if (!cell.d.Filled)
                 {
-                    wall.AddCDBD(cell.i, f.Position);
+                    _wall.AddCDBD(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddPentagonABC(cell.i);
+                _surface.AddPentagonABC(cell.i);
                 if (!cell.d.Filled)
                 {
-                    wall.AddCDBD(cell.i);
+                    _wall.AddCDBD(cell.i);
                 }
             }
         }
 
-        public void FillABD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillABD(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddHexagonABD(cell.i, f.Position);
+                _surface.AddHexagonABD(cell.i, f.Position);
                 if (!cell.c.Filled)
                 {
-                    wall.AddACCD(cell.i, f.Position);
+                    _wall.AddACCD(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddPentagonABD(cell.i);
+                _surface.AddPentagonABD(cell.i);
                 if (!cell.c.Filled)
                 {
-                    wall.AddACCD(cell.i);
+                    _wall.AddACCD(cell.i);
                 }
             }
         }
 
-        public void FillACD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillACD(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddHexagonACD(cell.i, f.Position);
+                _surface.AddHexagonACD(cell.i, f.Position);
                 if (!cell.b.Filled)
                 {
-                    wall.AddBDAB(cell.i, f.Position);
+                    _wall.AddBDAB(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddPentagonACD(cell.i);
+                _surface.AddPentagonACD(cell.i);
                 if (!cell.b.Filled)
                 {
-                    wall.AddBDAB(cell.i);
+                    _wall.AddBDAB(cell.i);
                 }
             }
         }
 
-        public void FillBCD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillBCD(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddHexagonBCD(cell.i, f.Position);
+                _surface.AddHexagonBCD(cell.i, f.Position);
                 if (!cell.a.Filled)
                 {
-                    wall.AddABAC(cell.i, f.Position);
+                    _wall.AddABAC(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddPentagonBCD(cell.i);
+                _surface.AddPentagonBCD(cell.i);
                 if (!cell.a.Filled)
                 {
-                    wall.AddABAC(cell.i);
+                    _wall.AddABAC(cell.i);
                 }
             }
         }
 
-        public void FillAB(VoxelCell cell, FeaturePoint f)
+        public readonly void FillAB(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddPentagonAB(cell.i, f.Position);
+                _surface.AddPentagonAB(cell.i, f.Position);
                 if (!cell.c.Filled)
                 {
-                    wall.AddFromAC(cell.i, f.Position);
+                    _wall.AddFromAC(cell.i, f.Position);
                 }
                 if (!cell.d.Filled)
                 {
-                    wall.AddToBD(cell.i, f.Position);
+                    _wall.AddToBD(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddQuadAB(cell.i);
+                _surface.AddQuadAB(cell.i);
                 if (!cell.c.Filled)
                 {
-                    wall.AddACBD(cell.i);
+                    _wall.AddACBD(cell.i);
                 }
             }
         }
 
-        public void FillAC(VoxelCell cell, FeaturePoint f)
+        public readonly void FillAC(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddPentagonAC(cell.i, f.Position);
+                _surface.AddPentagonAC(cell.i, f.Position);
                 if (!cell.d.Filled)
                 {
-                    wall.AddFromCD(cell.i, f.Position);
+                    _wall.AddFromCD(cell.i, f.Position);
                 }
                 if (!cell.b.Filled)
                 {
-                    wall.AddToAB(cell.i, f.Position);
+                    _wall.AddToAB(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddQuadAC(cell.i);
+                _surface.AddQuadAC(cell.i);
                 if (!cell.b.Filled)
                 {
-                    wall.AddCDAB(cell.i);
+                    _wall.AddCDAB(cell.i);
                 }
             }
         }
 
-        public void FillBD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillBD(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddPentagonBD(cell.i, f.Position);
+                _surface.AddPentagonBD(cell.i, f.Position);
                 if (!cell.a.Filled)
                 {
-                    wall.AddFromAB(cell.i, f.Position);
+                    _wall.AddFromAB(cell.i, f.Position);
                 }
                 if (!cell.c.Filled)
                 {
-                    wall.AddToCD(cell.i, f.Position);
+                    _wall.AddToCD(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddQuadBD(cell.i);
+                _surface.AddQuadBD(cell.i);
                 if (!cell.a.Filled)
                 {
-                    wall.AddABCD(cell.i);
+                    _wall.AddABCD(cell.i);
                 }
             }
         }
 
-        public void FillCD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillCD(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddPentagonCD(cell.i, f.Position);
+                _surface.AddPentagonCD(cell.i, f.Position);
                 if (!cell.b.Filled)
                 {
-                    wall.AddFromBD(cell.i, f.Position);
+                    _wall.AddFromBD(cell.i, f.Position);
                 }
                 if (!cell.a.Filled)
                 {
-                    wall.AddToAC(cell.i, f.Position);
+                    _wall.AddToAC(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddQuadCD(cell.i);
+                _surface.AddQuadCD(cell.i);
                 if (!cell.a.Filled)
                 {
-                    wall.AddBDAC(cell.i);
+                    _wall.AddBDAC(cell.i);
                 }
             }
         }
 
-        public void FillADToB(VoxelCell cell, FeaturePoint f)
+        public readonly void FillADToB(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddPentagonADToB(cell.i, f.Position);
+                _surface.AddPentagonADToB(cell.i, f.Position);
                 if (!cell.b.Filled)
                 {
-                    wall.AddBDAB(cell.i, f.Position);
+                    _wall.AddBDAB(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddQuadADToB(cell.i);
+                _surface.AddQuadADToB(cell.i);
                 if (!cell.b.Filled)
                 {
-                    wall.AddBDAB(cell.i);
+                    _wall.AddBDAB(cell.i);
                 }
             }
         }
 
-        public void FillADToC(VoxelCell cell, FeaturePoint f)
+        public readonly void FillADToC(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddPentagonADToC(cell.i, f.Position);
+                _surface.AddPentagonADToC(cell.i, f.Position);
                 if (!cell.c.Filled)
                 {
-                    wall.AddACCD(cell.i, f.Position);
+                    _wall.AddACCD(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddQuadADToC(cell.i);
+                _surface.AddQuadADToC(cell.i);
                 if (!cell.c.Filled)
                 {
-                    wall.AddACCD(cell.i);
+                    _wall.AddACCD(cell.i);
                 }
             }
         }
 
-        public void FillBCToA(VoxelCell cell, FeaturePoint f)
+        public readonly void FillBCToA(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddPentagonBCToA(cell.i, f.Position);
+                _surface.AddPentagonBCToA(cell.i, f.Position);
                 if (!cell.a.Filled)
                 {
-                    wall.AddABAC(cell.i, f.Position);
+                    _wall.AddABAC(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddQuadBCToA(cell.i);
+                _surface.AddQuadBCToA(cell.i);
                 if (!cell.a.Filled)
                 {
-                    wall.AddABAC(cell.i);
+                    _wall.AddABAC(cell.i);
                 }
             }
         }
 
-        public void FillBCToD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillBCToD(VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
-                surface.AddPentagonBCToD(cell.i, f.Position);
+                _surface.AddPentagonBCToD(cell.i, f.Position);
                 if (!cell.d.Filled)
                 {
-                    wall.AddCDBD(cell.i, f.Position);
+                    _wall.AddCDBD(cell.i, f.Position);
                 }
             }
             else
             {
-                surface.AddQuadBCToD(cell.i);
+                _surface.AddQuadBCToD(cell.i);
                 if (!cell.d.Filled)
                 {
-                    wall.AddCDBD(cell.i);
+                    _wall.AddCDBD(cell.i);
                 }
             }
         }
 
-        public void FillABCD(VoxelCell cell)
+        public readonly void FillABCD(VoxelCell cell)
         {
-            surface.AddQuadABCD(cell.i);
+            _surface.AddQuadABCD(cell.i);
         }
 
         #endregion

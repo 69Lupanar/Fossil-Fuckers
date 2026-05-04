@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
@@ -331,38 +331,38 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Cache le 1er voxel (bas gauche)
         /// </summary>
-        public void CacheFirstCorner(Voxel voxel)
+        public void CacheFirstCorner(float2 voxelPosition)
         {
             cornersMax[0] = vertices.Count;
-            vertices.Add(voxel.Position);
+            vertices.Add(new Vector3(voxelPosition.x, voxelPosition.y, 0f));
         }
 
         /// <summary>
         /// Cache l'edge et le voxel suivant
         /// </summary>
         /// <param name="i">Position du voxel dans le cache</param>
-        public void CacheNextCorner(int i, Voxel voxel)
+        public void CacheNextCorner(int i, float2 voxelPosition)
         {
             cornersMax[i + 1] = vertices.Count;
-            vertices.Add(voxel.Position);
+            vertices.Add(new Vector3(voxelPosition.x, voxelPosition.y, 0f));
         }
 
         /// <summary>
         /// Met en cache le point sur l'edge X
         /// </summary>
-        public void CacheXEdge(int i, Voxel voxel)
+        public void CacheXEdge(int i, float2 xEdgePoint)
         {
             xEdgesMin[i] = vertices.Count;
-            vertices.Add(voxel.XEdgePoint);
+            vertices.Add(new Vector3(xEdgePoint.x, xEdgePoint.y, 0f));
         }
 
         /// <summary>
         /// Met en cache le point sur l'edge Y
         /// </summary>
-        public void CacheYEdge(Voxel voxel)
+        public void CacheYEdge(float2 yEdgePoint)
         {
             yEdgeMax = vertices.Count;
-            vertices.Add(voxel.YEdgePoint);
+            vertices.Add(new Vector3(yEdgePoint.x, yEdgePoint.y, 0f));
         }
 
         /// <summary>

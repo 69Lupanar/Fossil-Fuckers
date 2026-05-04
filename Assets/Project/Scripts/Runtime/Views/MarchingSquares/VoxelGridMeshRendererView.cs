@@ -414,7 +414,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (voxel.Filled)
             {
-                _renderers[chunkIndex][voxel.State].CacheFirstCorner(voxel);
+                _renderers[chunkIndex][voxel.State].CacheFirstCorner(voxel.Position);
             }
         }
 
@@ -433,22 +433,22 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 {
                     if (xMax.Filled)
                     {
-                        _renderers[chunkIndex][xMin.State].CacheXEdge(cacheIndex, xMin);
-                        _renderers[chunkIndex][xMax.State].CacheXEdge(cacheIndex, xMin);
+                        _renderers[chunkIndex][xMin.State].CacheXEdge(cacheIndex, xMin.XEdgePoint);
+                        _renderers[chunkIndex][xMax.State].CacheXEdge(cacheIndex, xMin.XEdgePoint);
                     }
                     else
                     {
-                        _renderers[chunkIndex][xMin.State].CacheXEdgeWithWall(cacheIndex, xMin);
+                        _renderers[chunkIndex][xMin.State].CacheXEdgeWithWall(cacheIndex, xMin.XEdgePoint, xMin.XNormal);
                     }
                 }
                 else
                 {
-                    _renderers[chunkIndex][xMax.State].CacheXEdgeWithWall(cacheIndex, xMin);
+                    _renderers[chunkIndex][xMax.State].CacheXEdgeWithWall(cacheIndex, xMin.XEdgePoint, xMin.XNormal);
                 }
             }
             if (xMax.Filled)
             {
-                _renderers[chunkIndex][xMax.State].CacheNextCorner(cacheIndex, xMax);
+                _renderers[chunkIndex][xMax.State].CacheNextCorner(cacheIndex, xMax.Position);
             }
         }
 
@@ -471,17 +471,17 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 {
                     if (yMax.Filled)
                     {
-                        _renderers[chunkIndex][yMin.State].CacheYEdge(yMin);
-                        _renderers[chunkIndex][yMax.State].CacheYEdge(yMin);
+                        _renderers[chunkIndex][yMin.State].CacheYEdge(yMin.YEdgePoint);
+                        _renderers[chunkIndex][yMax.State].CacheYEdge(yMin.YEdgePoint);
                     }
                     else
                     {
-                        _renderers[chunkIndex][yMin.State].CacheYEdgeWithWall(yMin);
+                        _renderers[chunkIndex][yMin.State].CacheYEdgeWithWall(yMin.YEdgePoint, yMin.YNormal);
                     }
                 }
                 else
                 {
-                    _renderers[chunkIndex][yMax.State].CacheYEdgeWithWall(yMin);
+                    _renderers[chunkIndex][yMax.State].CacheYEdgeWithWall(yMin.YEdgePoint, yMin.YNormal);
                 }
             }
         }

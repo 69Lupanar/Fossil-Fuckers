@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Mathematics;
+using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
 {
@@ -136,13 +137,13 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <summary>
         /// Obtient la normale aux coordonnées renseignées
         /// </summary>
-        private Vector3 ComputeNormal(float x, float y, Voxel other)
+        private float2 ComputeNormal(float x, float y, Voxel other)
         {
             if (fillType > other.State)
-                return new Vector2(x - centerX, y - centerY).normalized;
+                return math.normalize(new float2(x - centerX, y - centerY));
             else
             {
-                return new Vector2(centerX - x, centerY - y).normalized;
+                return math.normalize(new float2(centerX - x, centerY - y));
             }
         }
 

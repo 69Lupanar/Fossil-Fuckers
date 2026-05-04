@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
+using Unity.Mathematics;
 using UnityEngine;
 
 /// <summary>
@@ -94,15 +94,15 @@ public class VoxelChunkWall : MonoBehaviour
     /// <summary>
     /// Met en cache le point sur l'edge X
     /// </summary>
-    public void CacheXEdge(int i, Voxel voxel)
+    public void CacheXEdge(int i, float2 xEdgePoint, float2 xNormal)
     {
         xEdgesMax[i] = vertices.Count;
-        Vector3 v = voxel.XEdgePoint;
+        Vector3 v = new(xEdgePoint.x, xEdgePoint.y, 0f);
         v.z = bottom;
         vertices.Add(v);
         v.z = top;
         vertices.Add(v);
-        Vector3 n = voxel.XNormal;
+        Vector3 n = new(xNormal.x, xNormal.y, 0f);
         normals.Add(n);
         normals.Add(n);
     }
@@ -110,15 +110,15 @@ public class VoxelChunkWall : MonoBehaviour
     /// <summary>
     /// Met en cache le point sur l'edge Y
     /// </summary>
-    public void CacheYEdge(Voxel voxel)
+    public void CacheYEdge(float2 yEdgePoint, float2 yNormal)
     {
         yEdgeMax = vertices.Count;
-        Vector3 v = voxel.YEdgePoint;
+        Vector3 v = new(yEdgePoint.x, yEdgePoint.y, 0f);
         v.z = bottom;
         vertices.Add(v);
         v.z = top;
         vertices.Add(v);
-        Vector3 n = voxel.YNormal;
+        Vector3 n = new(yNormal.x, yNormal.y, 0f);
         normals.Add(n);
         normals.Add(n);
     }
