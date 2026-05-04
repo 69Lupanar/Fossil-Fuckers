@@ -75,6 +75,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         private void Awake()
         {
             _grid = FindAnyObjectByType<VoxelGrid>();
+            _grid.OnGridFilled += RefreshAllChunkMeshes;
             _grid.OnChunksCreated += Initialize;
             _grid.OnStencilApplied += Apply;
         }
@@ -84,6 +85,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private void OnDestroy()
         {
+            _grid.OnGridFilled -= RefreshAllChunkMeshes;
             _grid.OnChunksCreated -= Initialize;
             _grid.OnStencilApplied -= Apply;
         }
@@ -91,6 +93,18 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         #endregion
 
         #region Méthodes privées
+
+        /// <summary>
+        /// Màj les meshs de tous les chunks
+        /// </summary>
+        /// <param name="e">Données de l'événement</param>
+        private void RefreshAllChunkMeshes(object _, VoxelGridFilledEventArgs e)
+        {
+            for (int i = 0; i < _grid.Chunks.Length; ++i)
+            {
+                Refresh(_grid.Chunks[i], i);
+            }
+        }
 
         /// <summary>
         /// Crée les renderers pour les surfaces et murs
@@ -400,7 +414,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (voxel.Filled)
             {
-                _renderers[chunkIndex][voxel.state].CacheFirstCorner(voxel);
+                _renderers[chunkIndex][voxel.State].CacheFirstCorner(voxel);
             }
         }
 
@@ -413,28 +427,28 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="xMax">Voxel de droite</param>
         private void CacheNextEdgeAndCorner(int chunkIndex, int cacheIndex, Voxel xMin, Voxel xMax)
         {
-            if (xMin.state != xMax.state)
+            if (xMin.State != xMax.State)
             {
                 if (xMin.Filled)
                 {
                     if (xMax.Filled)
                     {
-                        _renderers[chunkIndex][xMin.state].CacheXEdge(cacheIndex, xMin);
-                        _renderers[chunkIndex][xMax.state].CacheXEdge(cacheIndex, xMin);
+                        _renderers[chunkIndex][xMin.State].CacheXEdge(cacheIndex, xMin);
+                        _renderers[chunkIndex][xMax.State].CacheXEdge(cacheIndex, xMin);
                     }
                     else
                     {
-                        _renderers[chunkIndex][xMin.state].CacheXEdgeWithWall(cacheIndex, xMin);
+                        _renderers[chunkIndex][xMin.State].CacheXEdgeWithWall(cacheIndex, xMin);
                     }
                 }
                 else
                 {
-                    _renderers[chunkIndex][xMax.state].CacheXEdgeWithWall(cacheIndex, xMin);
+                    _renderers[chunkIndex][xMax.State].CacheXEdgeWithWall(cacheIndex, xMin);
                 }
             }
             if (xMax.Filled)
             {
-                _renderers[chunkIndex][xMax.state].CacheNextCorner(cacheIndex, xMax);
+                _renderers[chunkIndex][xMax.State].CacheNextCorner(cacheIndex, xMax);
             }
         }
 
@@ -451,23 +465,23 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 _renderers[chunkIndex][i].PrepareCacheForNextCell();
             }
 
-            if (yMin.state != yMax.state)
+            if (yMin.State != yMax.State)
             {
                 if (yMin.Filled)
                 {
                     if (yMax.Filled)
                     {
-                        _renderers[chunkIndex][yMin.state].CacheYEdge(yMin);
-                        _renderers[chunkIndex][yMax.state].CacheYEdge(yMin);
+                        _renderers[chunkIndex][yMin.State].CacheYEdge(yMin);
+                        _renderers[chunkIndex][yMax.State].CacheYEdge(yMin);
                     }
                     else
                     {
-                        _renderers[chunkIndex][yMin.state].CacheYEdgeWithWall(yMin);
+                        _renderers[chunkIndex][yMin.State].CacheYEdgeWithWall(yMin);
                     }
                 }
                 else
                 {
-                    _renderers[chunkIndex][yMax.state].CacheYEdgeWithWall(yMin);
+                    _renderers[chunkIndex][yMax.State].CacheYEdgeWithWall(yMin);
                 }
             }
         }
@@ -492,11 +506,11 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             _cells[chunkIndex].c = c;
             _cells[chunkIndex].d = d;
 
-            if (a.state == b.state)
+            if (a.State == b.State)
             {
-                if (a.state == c.state)
+                if (a.State == c.State)
                 {
-                    if (a.state == d.state)
+                    if (a.State == d.State)
                     {
                         Triangulate0000(chunkIndex);
                     }
@@ -507,11 +521,11 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 }
                 else
                 {
-                    if (a.state == d.state)
+                    if (a.State == d.State)
                     {
                         Triangulate0010(chunkIndex);
                     }
-                    else if (c.state == d.state)
+                    else if (c.State == d.State)
                     {
                         Triangulate0011(chunkIndex);
                     }
@@ -523,13 +537,13 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             }
             else
             {
-                if (a.state == c.state)
+                if (a.State == c.State)
                 {
-                    if (a.state == d.state)
+                    if (a.State == d.State)
                     {
                         Triangulate0100(chunkIndex);
                     }
-                    else if (b.state == d.state)
+                    else if (b.State == d.State)
                     {
                         Triangulate0101(chunkIndex);
                     }
@@ -538,13 +552,13 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                         Triangulate0102(chunkIndex);
                     }
                 }
-                else if (b.state == c.state)
+                else if (b.State == c.State)
                 {
-                    if (a.state == d.state)
+                    if (a.State == d.State)
                     {
                         Triangulate0110(chunkIndex);
                     }
-                    else if (b.state == d.state)
+                    else if (b.State == d.State)
                     {
                         Triangulate0111(chunkIndex);
                     }
@@ -555,15 +569,15 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 }
                 else
                 {
-                    if (a.state == d.state)
+                    if (a.State == d.State)
                     {
                         Triangulate0120(chunkIndex);
                     }
-                    else if (b.state == d.state)
+                    else if (b.State == d.State)
                     {
                         Triangulate0121(chunkIndex);
                     }
-                    else if (c.state == d.state)
+                    else if (c.State == d.State)
                     {
                         Triangulate0122(chunkIndex);
                     }
@@ -662,8 +676,13 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
             if (_cells[chunkIndex].HasConnectionAD(fA, fD))
             {
-                fB.exists &= _cells[chunkIndex].IsInsideABD(fB.position);
-                fC.exists &= _cells[chunkIndex].IsInsideACD(fC.position);
+                bool fBExists = fB.Exists;
+                bool fCExists = fC.Exists;
+                fBExists &= _cells[chunkIndex].IsInsideABD(fB.Position);
+                fCExists &= _cells[chunkIndex].IsInsideACD(fC.Position);
+                fB = new FeaturePoint(fB.Position, fBExists);
+                fC = new FeaturePoint(fC.Position, fCExists);
+
                 FillADToB(chunkIndex, fB);
                 FillADToC(chunkIndex, fC);
                 FillB(chunkIndex, fB);
@@ -671,8 +690,13 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             }
             else if (_cells[chunkIndex].HasConnectionBC(fB, fC))
             {
-                fA.exists &= _cells[chunkIndex].IsInsideABC(fA.position);
-                fD.exists &= _cells[chunkIndex].IsInsideBCD(fD.position);
+                bool fAExists = fA.Exists;
+                bool fDExists = fD.Exists;
+                fAExists &= _cells[chunkIndex].IsInsideABC(fA.Position);
+                fDExists &= _cells[chunkIndex].IsInsideBCD(fD.Position);
+                fA = new FeaturePoint(fA.Position, fAExists);
+                fD = new FeaturePoint(fD.Position, fDExists);
+
                 FillA(chunkIndex, fA);
                 FillD(chunkIndex, fD);
                 FillBCToA(chunkIndex, fA);
@@ -699,8 +723,13 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
             if (_cells[chunkIndex].HasConnectionBC(fB, fC))
             {
-                fA.exists &= _cells[chunkIndex].IsInsideABC(fA.position);
-                fD.exists &= _cells[chunkIndex].IsInsideBCD(fD.position);
+                bool fAExists = fA.Exists;
+                bool fDExists = fD.Exists;
+                fAExists &= _cells[chunkIndex].IsInsideABC(fA.Position);
+                fDExists &= _cells[chunkIndex].IsInsideBCD(fD.Position);
+                fA = new FeaturePoint(fA.Position, fAExists);
+                fD = new FeaturePoint(fD.Position, fDExists);
+
                 FillA(chunkIndex, fA);
                 FillD(chunkIndex, fD);
                 FillBCToA(chunkIndex, fA);
@@ -725,8 +754,13 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
             if (_cells[chunkIndex].HasConnectionAD(fA, fD))
             {
-                fB.exists &= _cells[chunkIndex].IsInsideABD(fB.position);
-                fC.exists &= _cells[chunkIndex].IsInsideACD(fC.position);
+                bool fBExists = fB.Exists;
+                bool fCExists = fC.Exists;
+                fBExists &= _cells[chunkIndex].IsInsideABD(fB.Position);
+                fCExists &= _cells[chunkIndex].IsInsideACD(fC.Position);
+                fB = new FeaturePoint(fB.Position, fBExists);
+                fC = new FeaturePoint(fC.Position, fCExists);
+
                 FillADToB(chunkIndex, fB);
                 FillADToC(chunkIndex, fC);
                 FillB(chunkIndex, fB);
@@ -754,7 +788,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].a.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.state].FillA(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillA(_cells[chunkIndex], f);
             }
         }
 
@@ -762,7 +796,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].b.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].b.state].FillB(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].b.State].FillB(_cells[chunkIndex], f);
             }
         }
 
@@ -770,7 +804,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].c.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].c.state].FillC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].c.State].FillC(_cells[chunkIndex], f);
             }
         }
 
@@ -778,7 +812,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].d.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].d.state].FillD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].d.State].FillD(_cells[chunkIndex], f);
             }
         }
 
@@ -786,7 +820,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].a.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.state].FillABC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillABC(_cells[chunkIndex], f);
             }
         }
 
@@ -794,7 +828,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].a.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.state].FillABD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillABD(_cells[chunkIndex], f);
             }
         }
 
@@ -802,7 +836,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].a.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.state].FillACD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillACD(_cells[chunkIndex], f);
             }
         }
 
@@ -810,7 +844,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].b.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].b.state].FillBCD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].b.State].FillBCD(_cells[chunkIndex], f);
             }
         }
 
@@ -818,7 +852,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].a.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.state].FillAB(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillAB(_cells[chunkIndex], f);
             }
         }
 
@@ -826,7 +860,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].a.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.state].FillAC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillAC(_cells[chunkIndex], f);
             }
         }
 
@@ -834,7 +868,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].b.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].b.state].FillBD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].b.State].FillBD(_cells[chunkIndex], f);
             }
         }
 
@@ -842,7 +876,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].c.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].c.state].FillCD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].c.State].FillCD(_cells[chunkIndex], f);
             }
         }
 
@@ -850,7 +884,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].a.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.state].FillADToB(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillADToB(_cells[chunkIndex], f);
             }
         }
 
@@ -858,7 +892,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].a.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.state].FillADToC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillADToC(_cells[chunkIndex], f);
             }
         }
 
@@ -866,7 +900,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].b.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].b.state].FillBCToA(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].b.State].FillBCToA(_cells[chunkIndex], f);
             }
         }
 
@@ -874,7 +908,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].b.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].b.state].FillBCToD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].b.State].FillBCToD(_cells[chunkIndex], f);
             }
         }
 
@@ -882,7 +916,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].a.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].a.state].FillABCD(_cells[chunkIndex]);
+                _renderers[chunkIndex][_cells[chunkIndex].a.State].FillABCD(_cells[chunkIndex]);
             }
         }
 
@@ -890,10 +924,9 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             FeaturePoint point = FeaturePoint.Average(fA, fB, fC, fD);
 
-            if (!point.exists)
+            if (!point.Exists)
             {
-                point.position = _cells[chunkIndex].AverageNESW;
-                point.exists = true;
+                point = new FeaturePoint(_cells[chunkIndex].AverageNESW, true);
             }
 
             FillA(chunkIndex, point);

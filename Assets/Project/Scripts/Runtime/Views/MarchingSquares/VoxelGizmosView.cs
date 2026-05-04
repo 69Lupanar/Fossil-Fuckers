@@ -94,7 +94,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
                                 if (_useVoxelStateAsColors)
                                 {
-                                    Gizmos.color = _voxelStateColors[voxel.state];
+                                    Gizmos.color = _voxelStateColors[voxel.State];
                                 }
                                 else
                                 {

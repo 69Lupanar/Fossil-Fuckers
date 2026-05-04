@@ -334,7 +334,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         public void CacheFirstCorner(Voxel voxel)
         {
             cornersMax[0] = vertices.Count;
-            vertices.Add(voxel.position);
+            vertices.Add(voxel.Position);
         }
 
         /// <summary>
@@ -344,7 +344,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         public void CacheNextCorner(int i, Voxel voxel)
         {
             cornersMax[i + 1] = vertices.Count;
-            vertices.Add(voxel.position);
+            vertices.Add(voxel.Position);
         }
 
         /// <summary>

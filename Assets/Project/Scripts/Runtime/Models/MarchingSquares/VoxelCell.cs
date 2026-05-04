@@ -1,14 +1,13 @@
 using System;
-using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using UnityEngine;
 
-namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
+namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
 {
     /// <summary>
     /// Cellule de la grille
     /// </summary>
     [Serializable]
-    public class VoxelCell
+    public sealed class VoxelCell
     {
         #region Propriétés
 
@@ -26,7 +25,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             get
             {
                 return GetSharpFeature(
-                    a.XEdgePoint, a.xNormal, a.YEdgePoint, a.yNormal);
+                    a.XEdgePoint, a.XNormal, a.YEdgePoint, a.YNormal);
             }
         }
 
@@ -35,7 +34,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             get
             {
                 return GetSharpFeature(
-                    a.XEdgePoint, a.xNormal, b.YEdgePoint, b.yNormal);
+                    a.XEdgePoint, a.XNormal, b.YEdgePoint, b.YNormal);
             }
         }
 
@@ -44,7 +43,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             get
             {
                 return GetSharpFeature(
-                    a.YEdgePoint, a.yNormal, c.XEdgePoint, c.xNormal);
+                    a.YEdgePoint, a.YNormal, c.XEdgePoint, c.XNormal);
             }
         }
 
@@ -53,7 +52,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             get
             {
                 return GetSharpFeature(
-                    c.XEdgePoint, c.xNormal, b.YEdgePoint, b.yNormal);
+                    c.XEdgePoint, c.XNormal, b.YEdgePoint, b.YNormal);
             }
         }
 
@@ -62,7 +61,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             get
             {
                 return GetSharpFeature(
-                    a.XEdgePoint, a.xNormal, c.XEdgePoint, c.xNormal);
+                    a.XEdgePoint, a.XNormal, c.XEdgePoint, c.XNormal);
             }
         }
 
@@ -71,7 +70,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             get
             {
                 return GetSharpFeature(
-                    a.YEdgePoint, a.yNormal, b.YEdgePoint, b.yNormal);
+                    a.YEdgePoint, a.YNormal, b.YEdgePoint, b.YNormal);
             }
         }
 
@@ -79,13 +78,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         {
             get
             {
-                FeaturePoint f = FeaturePoint.Average(
-                    FeatureEW, FeatureNE, FeatureNW);
-                if (!f.exists)
-                {
-                    f.position = (a.YEdgePoint + b.YEdgePoint + c.XEdgePoint) / 3f;
-                    f.exists = true;
-                }
+                FeaturePoint f = FeaturePoint.Average(FeatureEW, FeatureNE, FeatureNW);
+
+                if (!f.Exists)
+                    f = new FeaturePoint((a.YEdgePoint + b.YEdgePoint + c.XEdgePoint) / 3f, true);
+
                 return f;
             }
         }
@@ -96,11 +93,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             {
                 FeaturePoint f = FeaturePoint.Average(
                     FeatureNS, FeatureSE, FeatureNE);
-                if (!f.exists)
-                {
-                    f.position = (a.XEdgePoint + b.YEdgePoint + c.XEdgePoint) / 3f;
-                    f.exists = true;
-                }
+                if (!f.Exists)
+                    f = new FeaturePoint((a.XEdgePoint + b.YEdgePoint + c.XEdgePoint) / 3f, true);
                 return f;
             }
         }
@@ -111,11 +105,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             {
                 FeaturePoint f = FeaturePoint.Average(
                     FeatureNS, FeatureNW, FeatureSW);
-                if (!f.exists)
-                {
-                    f.position = (a.XEdgePoint + a.YEdgePoint + c.XEdgePoint) / 3f;
-                    f.exists = true;
-                }
+                if (!f.Exists)
+                    f = new FeaturePoint((a.XEdgePoint + a.YEdgePoint + c.XEdgePoint) / 3f, true);
                 return f;
             }
         }
@@ -126,11 +117,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             {
                 FeaturePoint f = FeaturePoint.Average(
                     FeatureEW, FeatureSE, FeatureSW);
-                if (!f.exists)
-                {
-                    f.position = (a.XEdgePoint + a.YEdgePoint + b.YEdgePoint) / 3f;
-                    f.exists = true;
-                }
+                if (!f.Exists)
+                    f = new FeaturePoint((a.XEdgePoint + a.YEdgePoint + b.YEdgePoint) / 3f, true);
                 return f;
             }
         }
@@ -162,90 +150,90 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public bool HasConnectionAD(FeaturePoint fA, FeaturePoint fD)
         {
-            bool flip = (a.state < b.state) == (a.state < c.state);
+            bool flip = a.State < b.State == a.State < c.State;
             if (
-                IsParallel(a.xNormal, a.yNormal, flip) ||
-                IsParallel(c.xNormal, b.yNormal, flip))
+                IsParallel(a.XNormal, a.YNormal, flip) ||
+                IsParallel(c.XNormal, b.YNormal, flip))
             {
                 return true;
             }
-            if (fA.exists)
+            if (fA.Exists)
             {
-                if (fD.exists)
+                if (fD.Exists)
                 {
-                    if (IsBelowLine(fA.position, b.YEdgePoint, fD.position))
+                    if (IsBelowLine(fA.Position, b.YEdgePoint, fD.Position))
                     {
-                        if (IsBelowLine(fA.position, fD.position, c.XEdgePoint) ||
-                            IsBelowLine(fD.position, fA.position, a.XEdgePoint))
+                        if (IsBelowLine(fA.Position, fD.Position, c.XEdgePoint) ||
+                            IsBelowLine(fD.Position, fA.Position, a.XEdgePoint))
                         {
                             return true;
                         }
                     }
-                    else if (IsBelowLine(fA.position, fD.position, c.XEdgePoint) &&
-                             IsBelowLine(fD.position, a.YEdgePoint, fA.position))
+                    else if (IsBelowLine(fA.Position, fD.Position, c.XEdgePoint) &&
+                             IsBelowLine(fD.Position, a.YEdgePoint, fA.Position))
                     {
                         return true;
                     }
                     return false;
                 }
-                return IsBelowLine(fA.position, b.YEdgePoint, c.XEdgePoint);
+                return IsBelowLine(fA.Position, b.YEdgePoint, c.XEdgePoint);
             }
-            return fD.exists &&
-                IsBelowLine(fD.position, a.YEdgePoint, a.XEdgePoint);
+            return fD.Exists &&
+                IsBelowLine(fD.Position, a.YEdgePoint, a.XEdgePoint);
         }
 
         public bool HasConnectionBC(FeaturePoint fB, FeaturePoint fC)
         {
-            bool flip = (b.state < a.state) == (b.state < d.state);
+            bool flip = b.State < a.State == b.State < d.State;
             if (
-                IsParallel(a.xNormal, b.yNormal, flip) ||
-                IsParallel(c.xNormal, a.yNormal, flip))
+                IsParallel(a.XNormal, b.YNormal, flip) ||
+                IsParallel(c.XNormal, a.YNormal, flip))
             {
                 return true;
             }
-            if (fB.exists)
+            if (fB.Exists)
             {
-                if (fC.exists)
+                if (fC.Exists)
                 {
-                    if (IsBelowLine(fC.position, a.XEdgePoint, fB.position))
+                    if (IsBelowLine(fC.Position, a.XEdgePoint, fB.Position))
                     {
-                        if (IsBelowLine(fC.position, fB.position, b.YEdgePoint) ||
-                            IsBelowLine(fB.position, fC.position, a.YEdgePoint))
+                        if (IsBelowLine(fC.Position, fB.Position, b.YEdgePoint) ||
+                            IsBelowLine(fB.Position, fC.Position, a.YEdgePoint))
                         {
                             return true;
                         }
                     }
-                    else if (IsBelowLine(fC.position, fB.position, b.YEdgePoint) &&
-                             IsBelowLine(fB.position, c.XEdgePoint, fC.position))
+                    else if (IsBelowLine(fC.Position, fB.Position, b.YEdgePoint) &&
+                             IsBelowLine(fB.Position, c.XEdgePoint, fC.Position))
                     {
                         return true;
                     }
                     return false;
                 }
-                return IsBelowLine(fB.position, c.XEdgePoint, a.YEdgePoint);
+                return IsBelowLine(fB.Position, c.XEdgePoint, a.YEdgePoint);
             }
-            return fC.exists &&
-                IsBelowLine(fC.position, a.XEdgePoint, b.YEdgePoint);
+            return fC.Exists &&
+                IsBelowLine(fC.Position, a.XEdgePoint, b.YEdgePoint);
         }
 
         public bool IsInsideABD(Vector2 point)
         {
-            return IsBelowLine(point, a.position, d.position);
+            return IsBelowLine(point, a.Position, d.Position);
         }
 
         public bool IsInsideACD(Vector2 point)
         {
-            return IsBelowLine(point, d.position, a.position);
+            return IsBelowLine(point, d.Position, a.Position);
         }
 
         public bool IsInsideABC(Vector2 point)
         {
-            return IsBelowLine(point, c.position, b.position);
+            return IsBelowLine(point, c.Position, b.Position);
         }
 
         public bool IsInsideBCD(Vector2 point)
         {
-            return IsBelowLine(point, b.position, c.position);
+            return IsBelowLine(point, b.Position, c.Position);
         }
 
         #endregion
@@ -260,22 +248,17 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             return determinant < 0f;
         }
 
-        private FeaturePoint GetSharpFeature(
-            Vector2 p1, Vector2 n1, Vector2 p2, Vector2 n2)
+        private FeaturePoint GetSharpFeature(Vector2 p1, Vector2 n1, Vector2 p2, Vector2 n2)
         {
-
-            FeaturePoint point;
             if (IsSharpFeature(n1, n2))
             {
-                point.position = GetIntersection(p1, n1, p2, n2);
-                point.exists = IsInsideCell(point.position);
+                Vector2 pos = GetIntersection(p1, n1, p2, n2);
+                return new FeaturePoint(pos, IsInsideCell(pos));
             }
             else
             {
-                point.position = Vector2.zero;
-                point.exists = false;
+                return FeaturePoint.Empty;
             }
-            return point;
         }
 
         private bool IsSharpFeature(Vector2 n1, Vector2 n2)
@@ -289,20 +272,17 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             return Vector2.Dot(n1, flip ? -n2 : n2) > parallelLimit;
         }
 
-        private static Vector2 GetIntersection(
-            Vector2 p1, Vector2 n1, Vector2 p2, Vector2 n2)
+        private static Vector2 GetIntersection(Vector2 p1, Vector2 n1, Vector2 p2, Vector2 n2)
         {
-
-            Vector2 d2 = new Vector2(-n2.y, n2.x);
+            Vector2 d2 = new(-n2.y, n2.x);
             float u2 = -Vector2.Dot(n1, p2 - p1) / Vector2.Dot(n1, d2);
             return p2 + d2 * u2;
         }
 
         private bool IsInsideCell(Vector2 point)
         {
-            return
-                point.x > a.position.x && point.y > a.position.y &&
-                    point.x < d.position.x && point.y < d.position.y;
+            return point.x > a.Position.x && point.y > a.Position.y &&
+                   point.x < d.Position.x && point.y < d.Position.y;
         }
 
         #endregion

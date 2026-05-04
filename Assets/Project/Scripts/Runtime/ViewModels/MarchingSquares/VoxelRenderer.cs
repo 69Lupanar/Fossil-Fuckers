@@ -128,16 +128,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillA(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddQuadA(cell.i, f.position);
+                surface.AddQuadA(cell.i, f.Position);
                 if (!cell.c.Filled)
                 {
-                    wall.AddFromAC(cell.i, f.position);
+                    wall.AddFromAC(cell.i, f.Position);
                 }
                 if (!cell.b.Filled)
                 {
-                    wall.AddToAB(cell.i, f.position);
+                    wall.AddToAB(cell.i, f.Position);
                 }
             }
             else
@@ -152,16 +152,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillB(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddQuadB(cell.i, f.position);
+                surface.AddQuadB(cell.i, f.Position);
                 if (!cell.a.Filled)
                 {
-                    wall.AddFromAB(cell.i, f.position);
+                    wall.AddFromAB(cell.i, f.Position);
                 }
                 if (!cell.d.Filled)
                 {
-                    wall.AddToBD(cell.i, f.position);
+                    wall.AddToBD(cell.i, f.Position);
                 }
             }
             else
@@ -176,16 +176,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillC(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddQuadC(cell.i, f.position);
+                surface.AddQuadC(cell.i, f.Position);
                 if (!cell.d.Filled)
                 {
-                    wall.AddFromCD(cell.i, f.position);
+                    wall.AddFromCD(cell.i, f.Position);
                 }
                 if (!cell.a.Filled)
                 {
-                    wall.AddToAC(cell.i, f.position);
+                    wall.AddToAC(cell.i, f.Position);
                 }
             }
             else
@@ -200,16 +200,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillD(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddQuadD(cell.i, f.position);
+                surface.AddQuadD(cell.i, f.Position);
                 if (!cell.b.Filled)
                 {
-                    wall.AddFromBD(cell.i, f.position);
+                    wall.AddFromBD(cell.i, f.Position);
                 }
                 if (!cell.c.Filled)
                 {
-                    wall.AddToCD(cell.i, f.position);
+                    wall.AddToCD(cell.i, f.Position);
                 }
             }
             else
@@ -224,12 +224,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillABC(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddHexagonABC(cell.i, f.position);
+                surface.AddHexagonABC(cell.i, f.Position);
                 if (!cell.d.Filled)
                 {
-                    wall.AddCDBD(cell.i, f.position);
+                    wall.AddCDBD(cell.i, f.Position);
                 }
             }
             else
@@ -244,12 +244,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillABD(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddHexagonABD(cell.i, f.position);
+                surface.AddHexagonABD(cell.i, f.Position);
                 if (!cell.c.Filled)
                 {
-                    wall.AddACCD(cell.i, f.position);
+                    wall.AddACCD(cell.i, f.Position);
                 }
             }
             else
@@ -264,12 +264,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillACD(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddHexagonACD(cell.i, f.position);
+                surface.AddHexagonACD(cell.i, f.Position);
                 if (!cell.b.Filled)
                 {
-                    wall.AddBDAB(cell.i, f.position);
+                    wall.AddBDAB(cell.i, f.Position);
                 }
             }
             else
@@ -284,12 +284,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillBCD(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddHexagonBCD(cell.i, f.position);
+                surface.AddHexagonBCD(cell.i, f.Position);
                 if (!cell.a.Filled)
                 {
-                    wall.AddABAC(cell.i, f.position);
+                    wall.AddABAC(cell.i, f.Position);
                 }
             }
             else
@@ -304,16 +304,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillAB(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddPentagonAB(cell.i, f.position);
+                surface.AddPentagonAB(cell.i, f.Position);
                 if (!cell.c.Filled)
                 {
-                    wall.AddFromAC(cell.i, f.position);
+                    wall.AddFromAC(cell.i, f.Position);
                 }
                 if (!cell.d.Filled)
                 {
-                    wall.AddToBD(cell.i, f.position);
+                    wall.AddToBD(cell.i, f.Position);
                 }
             }
             else
@@ -328,16 +328,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillAC(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddPentagonAC(cell.i, f.position);
+                surface.AddPentagonAC(cell.i, f.Position);
                 if (!cell.d.Filled)
                 {
-                    wall.AddFromCD(cell.i, f.position);
+                    wall.AddFromCD(cell.i, f.Position);
                 }
                 if (!cell.b.Filled)
                 {
-                    wall.AddToAB(cell.i, f.position);
+                    wall.AddToAB(cell.i, f.Position);
                 }
             }
             else
@@ -352,16 +352,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillBD(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddPentagonBD(cell.i, f.position);
+                surface.AddPentagonBD(cell.i, f.Position);
                 if (!cell.a.Filled)
                 {
-                    wall.AddFromAB(cell.i, f.position);
+                    wall.AddFromAB(cell.i, f.Position);
                 }
                 if (!cell.c.Filled)
                 {
-                    wall.AddToCD(cell.i, f.position);
+                    wall.AddToCD(cell.i, f.Position);
                 }
             }
             else
@@ -376,16 +376,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillCD(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddPentagonCD(cell.i, f.position);
+                surface.AddPentagonCD(cell.i, f.Position);
                 if (!cell.b.Filled)
                 {
-                    wall.AddFromBD(cell.i, f.position);
+                    wall.AddFromBD(cell.i, f.Position);
                 }
                 if (!cell.a.Filled)
                 {
-                    wall.AddToAC(cell.i, f.position);
+                    wall.AddToAC(cell.i, f.Position);
                 }
             }
             else
@@ -400,12 +400,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillADToB(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddPentagonADToB(cell.i, f.position);
+                surface.AddPentagonADToB(cell.i, f.Position);
                 if (!cell.b.Filled)
                 {
-                    wall.AddBDAB(cell.i, f.position);
+                    wall.AddBDAB(cell.i, f.Position);
                 }
             }
             else
@@ -420,12 +420,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillADToC(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddPentagonADToC(cell.i, f.position);
+                surface.AddPentagonADToC(cell.i, f.Position);
                 if (!cell.c.Filled)
                 {
-                    wall.AddACCD(cell.i, f.position);
+                    wall.AddACCD(cell.i, f.Position);
                 }
             }
             else
@@ -440,12 +440,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillBCToA(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddPentagonBCToA(cell.i, f.position);
+                surface.AddPentagonBCToA(cell.i, f.Position);
                 if (!cell.a.Filled)
                 {
-                    wall.AddABAC(cell.i, f.position);
+                    wall.AddABAC(cell.i, f.Position);
                 }
             }
             else
@@ -460,12 +460,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         public void FillBCToD(VoxelCell cell, FeaturePoint f)
         {
-            if (f.exists)
+            if (f.Exists)
             {
-                surface.AddPentagonBCToD(cell.i, f.position);
+                surface.AddPentagonBCToD(cell.i, f.Position);
                 if (!cell.d.Filled)
                 {
-                    wall.AddCDBD(cell.i, f.position);
+                    wall.AddCDBD(cell.i, f.Position);
                 }
             }
             else

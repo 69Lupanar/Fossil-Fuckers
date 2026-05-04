@@ -102,7 +102,7 @@ public class VoxelChunkWall : MonoBehaviour
         vertices.Add(v);
         v.z = top;
         vertices.Add(v);
-        Vector3 n = voxel.xNormal;
+        Vector3 n = voxel.XNormal;
         normals.Add(n);
         normals.Add(n);
     }
@@ -118,7 +118,7 @@ public class VoxelChunkWall : MonoBehaviour
         vertices.Add(v);
         v.z = top;
         vertices.Add(v);
-        Vector3 n = voxel.yNormal;
+        Vector3 n = voxel.YNormal;
         normals.Add(n);
         normals.Add(n);
     }

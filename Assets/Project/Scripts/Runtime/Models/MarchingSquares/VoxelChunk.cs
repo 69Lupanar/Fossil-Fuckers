@@ -1,6 +1,4 @@
-using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
-
-namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
+namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
 {
     /// <summary>
     /// Chunk contenant une grille de voxels
@@ -17,17 +15,17 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Chunk voisin
         /// </summary>
-        public VoxelChunk XNeighbor { get; internal set; }
+        public VoxelChunk XNeighbor { get; set; }
 
         /// <summary>
         /// Chunk voisin
         /// </summary>
-        public VoxelChunk YNeighbor { get; internal set; }
+        public VoxelChunk YNeighbor { get; set; }
 
         /// <summary>
         /// Chunk voisin
         /// </summary>
-        public VoxelChunk XYNeighbor { get; internal set; }
+        public VoxelChunk XYNeighbor { get; set; }
 
         #endregion
 

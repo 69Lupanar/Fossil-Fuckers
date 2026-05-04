@@ -83,10 +83,10 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <param name="voxel">L'état précédent du voxel</param>
         public virtual void Apply(Voxel voxel)
         {
-            Vector2 p = voxel.position;
+            Vector2 p = voxel.Position;
 
             if (p.x >= XStart && p.x <= XEnd && p.y >= YStart && p.y <= YEnd)
-                voxel.state = fillType;
+                voxel.State = fillType;
         }
 
         /// <summary>
@@ -96,11 +96,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <param name="xMax">Voxel droit</param>
         public void SetHorizontalCrossing(Voxel xMin, Voxel xMax)
         {
-            if (xMin.state != xMax.state)
+            if (xMin.State != xMax.State)
                 FindHorizontalCrossing(xMin, xMax);
             else
             {
-                xMin.xEdge = float.MinValue;
+                xMin.XEdge = float.MinValue;
             }
         }
 
@@ -111,11 +111,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <param name="yMax">Voxel haut</param>
         public void SetVerticalCrossing(Voxel yMin, Voxel yMax)
         {
-            if (yMin.state != yMax.state)
+            if (yMin.State != yMax.State)
                 FindVerticalCrossing(yMin, yMax);
             else
             {
-                yMin.yEdge = float.MinValue;
+                yMin.YEdge = float.MinValue;
             }
         }
 
@@ -130,16 +130,16 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <param name="xMax">Voxel droit</param>
         protected virtual void FindHorizontalCrossing(Voxel xMin, Voxel xMax)
         {
-            if (xMin.position.y < YStart || xMin.position.y > YEnd)
+            if (xMin.Position.y < YStart || xMin.Position.y > YEnd)
                 return;
-            if (xMin.state == fillType)
+            if (xMin.State == fillType)
             {
-                if (xMin.position.x <= XEnd && xMax.position.x >= XEnd)
+                if (xMin.Position.x <= XEnd && xMax.Position.x >= XEnd)
                 {
-                    if (xMin.xEdge == float.MinValue || xMin.xEdge < XEnd)
+                    if (xMin.XEdge == float.MinValue || xMin.XEdge < XEnd)
                     {
-                        xMin.xEdge = XEnd;
-                        xMin.xNormal = new Vector2(fillType > xMax.state ? 1f : -1f, 0f);
+                        xMin.XEdge = XEnd;
+                        xMin.XNormal = new Vector2(fillType > xMax.State ? 1f : -1f, 0f);
                     }
                     else
                     {
@@ -147,14 +147,14 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                 }
             }
-            else if (xMax.state == fillType)
+            else if (xMax.State == fillType)
             {
-                if (xMin.position.x <= XStart && xMax.position.x >= XStart)
+                if (xMin.Position.x <= XStart && xMax.Position.x >= XStart)
                 {
-                    if (xMin.xEdge == float.MinValue || xMin.xEdge > XStart)
+                    if (xMin.XEdge == float.MinValue || xMin.XEdge > XStart)
                     {
-                        xMin.xEdge = XStart;
-                        xMin.xNormal = new Vector2(fillType > xMin.state ? -1f : 1f, 0f);
+                        xMin.XEdge = XStart;
+                        xMin.XNormal = new Vector2(fillType > xMin.State ? -1f : 1f, 0f);
                     }
                     else
                     {
@@ -169,14 +169,14 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         protected static void ValidateHorizontalNormal(Voxel xMin, Voxel xMax)
         {
-            if (xMin.state < xMax.state)
+            if (xMin.State < xMax.State)
             {
-                if (xMin.xNormal.x > 0f)
-                    xMin.xNormal = -xMin.xNormal;
+                if (xMin.XNormal.x > 0f)
+                    xMin.XNormal = -xMin.XNormal;
             }
-            else if (xMin.xNormal.x < 0f)
+            else if (xMin.XNormal.x < 0f)
             {
-                xMin.xNormal = -xMin.xNormal;
+                xMin.XNormal = -xMin.XNormal;
             }
         }
 
@@ -187,16 +187,16 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <param name="yMax">Voxel haut</param>
         protected virtual void FindVerticalCrossing(Voxel yMin, Voxel yMax)
         {
-            if (yMin.position.x < XStart || yMin.position.x > XEnd)
+            if (yMin.Position.x < XStart || yMin.Position.x > XEnd)
                 return;
-            if (yMin.state == fillType)
+            if (yMin.State == fillType)
             {
-                if (yMin.position.y <= YEnd && yMax.position.y >= YEnd)
+                if (yMin.Position.y <= YEnd && yMax.Position.y >= YEnd)
                 {
-                    if (yMin.yEdge == float.MinValue || yMin.yEdge < YEnd)
+                    if (yMin.YEdge == float.MinValue || yMin.YEdge < YEnd)
                     {
-                        yMin.yEdge = YEnd;
-                        yMin.yNormal = new Vector2(0f, fillType > yMax.state ? 1f : -1f);
+                        yMin.YEdge = YEnd;
+                        yMin.YNormal = new Vector2(0f, fillType > yMax.State ? 1f : -1f);
                     }
                     else
                     {
@@ -204,14 +204,14 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                 }
             }
-            else if (yMax.state == fillType)
+            else if (yMax.State == fillType)
             {
-                if (yMin.position.y <= YStart && yMax.position.y >= YStart)
+                if (yMin.Position.y <= YStart && yMax.Position.y >= YStart)
                 {
-                    if (yMin.yEdge == float.MinValue || yMin.yEdge > YStart)
+                    if (yMin.YEdge == float.MinValue || yMin.YEdge > YStart)
                     {
-                        yMin.yEdge = YStart;
-                        yMin.yNormal = new Vector2(0f, fillType > yMin.state ? -1f : 1f);
+                        yMin.YEdge = YStart;
+                        yMin.YNormal = new Vector2(0f, fillType > yMin.State ? -1f : 1f);
                     }
                     else
                     {
@@ -226,14 +226,14 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         protected static void ValidateVerticalNormal(Voxel yMin, Voxel yMax)
         {
-            if (yMin.state < yMax.state)
+            if (yMin.State < yMax.State)
             {
-                if (yMin.yNormal.y > 0f)
-                    yMin.yNormal = -yMin.yNormal;
+                if (yMin.YNormal.y > 0f)
+                    yMin.YNormal = -yMin.YNormal;
             }
-            else if (yMin.yNormal.y < 0f)
+            else if (yMin.YNormal.y < 0f)
             {
-                yMin.yNormal = -yMin.yNormal;
+                yMin.YNormal = -yMin.YNormal;
             }
         }
 

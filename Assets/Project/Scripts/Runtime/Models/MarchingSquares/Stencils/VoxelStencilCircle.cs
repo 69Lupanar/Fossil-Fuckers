@@ -28,11 +28,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <inheritdoc/>
         public override void Apply(Voxel voxel)
         {
-            float x = voxel.position.x - centerX;
-            float y = voxel.position.y - centerY;
+            float x = voxel.Position.x - centerX;
+            float y = voxel.Position.y - centerY;
 
             if (x * x + y * y <= sqrRadius)
-                voxel.state = fillType;
+                voxel.State = fillType;
         }
 
         #endregion
@@ -46,18 +46,18 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <param name="xMax">Voxel droit</param>
         protected override void FindHorizontalCrossing(Voxel xMin, Voxel xMax)
         {
-            float y2 = xMin.position.y - centerY;
+            float y2 = xMin.Position.y - centerY;
             y2 *= y2;
-            if (xMin.state == fillType)
+            if (xMin.State == fillType)
             {
-                float x = xMin.position.x - centerX;
+                float x = xMin.Position.x - centerX;
                 if (x * x + y2 <= sqrRadius)
                 {
                     x = centerX + Mathf.Sqrt(sqrRadius - y2);
-                    if (xMin.xEdge == float.MinValue || xMin.xEdge < x)
+                    if (xMin.XEdge == float.MinValue || xMin.XEdge < x)
                     {
-                        xMin.xEdge = x;
-                        xMin.xNormal = ComputeNormal(x, xMin.position.y, xMax);
+                        xMin.XEdge = x;
+                        xMin.XNormal = ComputeNormal(x, xMin.Position.y, xMax);
                     }
                     else
                     {
@@ -65,16 +65,16 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                 }
             }
-            else if (xMax.state == fillType)
+            else if (xMax.State == fillType)
             {
-                float x = xMax.position.x - centerX;
+                float x = xMax.Position.x - centerX;
                 if (x * x + y2 <= sqrRadius)
                 {
                     x = centerX - Mathf.Sqrt(sqrRadius - y2);
-                    if (xMin.xEdge == float.MinValue || xMin.xEdge > x)
+                    if (xMin.XEdge == float.MinValue || xMin.XEdge > x)
                     {
-                        xMin.xEdge = x;
-                        xMin.xNormal = ComputeNormal(x, xMin.position.y, xMin);
+                        xMin.XEdge = x;
+                        xMin.XNormal = ComputeNormal(x, xMin.Position.y, xMin);
                     }
                     else
                     {
@@ -91,18 +91,18 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <param name="yMax">Voxel haut</param>
         protected override void FindVerticalCrossing(Voxel yMin, Voxel yMax)
         {
-            float x2 = yMin.position.x - centerX;
+            float x2 = yMin.Position.x - centerX;
             x2 *= x2;
-            if (yMin.state == fillType)
+            if (yMin.State == fillType)
             {
-                float y = yMin.position.y - centerY;
+                float y = yMin.Position.y - centerY;
                 if (y * y + x2 <= sqrRadius)
                 {
                     y = centerY + Mathf.Sqrt(sqrRadius - x2);
-                    if (yMin.yEdge == float.MinValue || yMin.yEdge < y)
+                    if (yMin.YEdge == float.MinValue || yMin.YEdge < y)
                     {
-                        yMin.yEdge = y;
-                        yMin.yNormal = ComputeNormal(yMin.position.x, y, yMax);
+                        yMin.YEdge = y;
+                        yMin.YNormal = ComputeNormal(yMin.Position.x, y, yMax);
                     }
                     else
                     {
@@ -110,16 +110,16 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                 }
             }
-            else if (yMax.state == fillType)
+            else if (yMax.State == fillType)
             {
-                float y = yMax.position.y - centerY;
+                float y = yMax.Position.y - centerY;
                 if (y * y + x2 <= sqrRadius)
                 {
                     y = centerY - Mathf.Sqrt(sqrRadius - x2);
-                    if (yMin.yEdge == float.MinValue || yMin.yEdge > y)
+                    if (yMin.YEdge == float.MinValue || yMin.YEdge > y)
                     {
-                        yMin.yEdge = y;
-                        yMin.yNormal = ComputeNormal(yMin.position.x, y, yMin);
+                        yMin.YEdge = y;
+                        yMin.YNormal = ComputeNormal(yMin.Position.x, y, yMin);
                     }
                     else
                     {
@@ -138,7 +138,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         private Vector3 ComputeNormal(float x, float y, Voxel other)
         {
-            if (fillType > other.state)
+            if (fillType > other.State)
                 return new Vector2(x - centerX, y - centerY).normalized;
             else
             {

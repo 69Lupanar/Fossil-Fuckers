@@ -91,6 +91,12 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             RadiusIndex = GUILayout.SelectionGrid(RadiusIndex, RadiusNames, 6);
             GUILayout.Label("Stencil");
             StencilIndex = GUILayout.SelectionGrid(StencilIndex, StencilNames, 3);
+
+            if (GUILayout.Button("Fill Grid with current Material"))
+            {
+                Grid.Fill(MaterialTypeIndex);
+            }
+
             GUILayout.EndArea();
         }
 

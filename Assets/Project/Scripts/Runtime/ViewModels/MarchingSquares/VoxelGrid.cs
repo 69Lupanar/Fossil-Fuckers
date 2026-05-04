@@ -1,4 +1,5 @@
 ﻿using System;
+using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
 using UnityEngine;
@@ -12,6 +13,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
     public class VoxelGrid : MonoBehaviour
     {
         #region Evénements
+
+        /// <summary>
+        /// Appelé quand la grille est entièremen remplie d'un seul coup
+        /// </summary>
+        public EventHandler<VoxelGridFilledEventArgs> OnGridFilled { get; set; }
 
         /// <summary>
         /// Appelé une fois les chunks créés
@@ -104,6 +110,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             _chunkSize = GridSize / ChunkResolution;
             _voxelSize = _chunkSize / VoxelResolution;
             Chunks = new VoxelChunk[ChunkResolution * ChunkResolution];
+
             Vector3[] chunkPositions = new Vector3[ChunkResolution * ChunkResolution];
             BoxCollider box = gameObject.AddComponent<BoxCollider>();
             box.size = new Vector3(GridSize, GridSize);
@@ -124,6 +131,23 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         #endregion
 
         #region Méthodes publiques
+
+        /// <summary>
+        /// Remplit la grille entière avec le type de material renseigné
+        /// </summary>
+        /// <param name="voxelState">Le type de material</param>
+        public void Fill(int voxelState)
+        {
+            for (int i = 0; i < Chunks.Length; ++i)
+            {
+                for (int j = 0; j < Chunks[i].Voxels.Length; ++j)
+                {
+                    Chunks[i].Voxels[j].State = voxelState;
+                }
+            }
+
+            OnGridFilled?.Invoke(this, null);
+        }
 
         /// <summary>
         /// Màj l'état des voxels affectéspar la brosse active
@@ -162,7 +186,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         private VoxelChunk CreateChunk(int i, int x, int y)
         {
             VoxelChunk chunk = new(VoxelResolution, _chunkSize);
-            Chunks[i] = chunk;
 
             if (x > 0)
             {

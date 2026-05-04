@@ -18,7 +18,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         {
             get
             {
-                return state > 0f;
+                return State > 0f;
             }
         }
 
@@ -29,7 +29,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         {
             get
             {
-                return new Vector2(xEdge, position.y);
+                return new Vector2(XEdge, Position.y);
             }
         }
 
@@ -40,38 +40,39 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         {
             get
             {
-                return new Vector2(position.x, yEdge);
+                return new Vector2(Position.x, YEdge);
             }
         }
-
-        #endregion
-
-        #region Variables d'instance
 
         /// <summary>
         /// Etat du voxel
         /// </summary>
-        public int state;
+        public int State { get; set; }
 
         /// <summary>
         /// Position
         /// </summary>
-        public Vector2 position;
+        public Vector2 Position { get; set; }
 
         /// <summary>
         /// Position du vertex de l'edge sur l'axe X
         /// </summary>
-        public float xEdge;
+        public float XEdge { get; set; }
 
         /// <summary>
         /// Position du vertex de l'edge sur l'axe Y
         /// </summary>
-        public float yEdge;
+        public float YEdge { get; set; }
 
         /// <summary>
         /// Normale du voxel
         /// </summary>
-        public Vector2 xNormal, yNormal;
+        public Vector2 XNormal { get; set; }
+
+        /// <summary>
+        /// Normale du voxel
+        /// </summary>
+        public Vector2 YNormal { get; set; }
 
         #endregion
 
@@ -90,11 +91,9 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <param name="size">Taille du voxel</param>
         public Voxel(int x, int y, float size)
         {
-            position.x = (x + 0.5f) * size;
-            position.y = (y + 0.5f) * size;
-
-            xEdge = float.MinValue;
-            yEdge = float.MinValue;
+            Position = new Vector2((x + 0.5f) * size, (y + 0.5f) * size);
+            XEdge = float.MinValue;
+            YEdge = float.MinValue;
         }
 
         #endregion
@@ -108,12 +107,12 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <param name="offset">Taille du chunk</param>
         public void BecomeXDummyOf(Voxel voxel, float offset)
         {
-            state = voxel.state;
-            position = voxel.position;
-            position.x += offset;
-            xEdge = voxel.xEdge + offset;
-            yEdge = voxel.yEdge;
-            yNormal = voxel.yNormal;
+            State = voxel.State;
+            Position = voxel.Position;
+            Position = new Vector2(Position.x + offset, Position.y);
+            XEdge = voxel.XEdge + offset;
+            YEdge = voxel.YEdge;
+            YNormal = voxel.YNormal;
         }
 
         /// <summary>
@@ -123,12 +122,12 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <param name="offset">Taille du chunk</param>
         public void BecomeYDummyOf(Voxel voxel, float offset)
         {
-            state = voxel.state;
-            position = voxel.position;
-            position.y += offset;
-            xEdge = voxel.xEdge;
-            yEdge = voxel.yEdge + offset;
-            xNormal = voxel.xNormal;
+            State = voxel.State;
+            Position = voxel.Position;
+            Position = new Vector2(Position.x, Position.y + offset);
+            XEdge = voxel.XEdge;
+            YEdge = voxel.YEdge + offset;
+            XNormal = voxel.XNormal;
         }
 
         /// <summary>
@@ -138,12 +137,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <param name="offset">Taille du chunk</param>
         public void BecomeXYDummyOf(Voxel voxel, float offset)
         {
-            state = voxel.state;
-            position = voxel.position;
-            position.x += offset;
-            position.y += offset;
-            xEdge = voxel.xEdge + offset;
-            yEdge = voxel.yEdge + offset;
+            State = voxel.State;
+            Position = voxel.Position;
+            Position = new Vector2(Position.x + offset, Position.y + offset);
+            XEdge = voxel.XEdge + offset;
+            YEdge = voxel.YEdge + offset;
         }
 
         #endregion
