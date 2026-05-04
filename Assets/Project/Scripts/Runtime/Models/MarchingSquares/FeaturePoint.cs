@@ -5,7 +5,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
     /// <summary>
     /// Feature
     /// </summary>
-    public struct FeaturePoint
+    public readonly struct FeaturePoint
     {
         #region Propriétés
 
@@ -14,12 +14,12 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <summary>
         /// Position
         /// </summary>
-        public Vector2 Position { get; private set; }
+        public readonly Vector2 Position { get; }
 
         /// <summary>
         /// true si la feature existe
         /// </summary>
-        public bool Exists { get; private set; }
+        public readonly bool Exists { get; }
 
         #endregion
 

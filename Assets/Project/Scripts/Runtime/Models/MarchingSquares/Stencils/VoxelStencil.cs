@@ -81,7 +81,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// Applique le type de remplissage au voxel renseigné
         /// </summary>
         /// <param name="voxel">L'état précédent du voxel</param>
-        public virtual void Apply(Voxel voxel)
+        public virtual void Apply(ref Voxel voxel)
         {
             Vector2 p = voxel.Position;
 
@@ -94,10 +94,10 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         /// <param name="xMin">Voxel gauche</param>
         /// <param name="xMax">Voxel droit</param>
-        public void SetHorizontalCrossing(Voxel xMin, Voxel xMax)
+        public void SetHorizontalCrossing(ref Voxel xMin, in Voxel xMax)
         {
             if (xMin.State != xMax.State)
-                FindHorizontalCrossing(xMin, xMax);
+                FindHorizontalCrossing(ref xMin, in xMax);
             else
             {
                 xMin.XEdge = float.MinValue;
@@ -109,10 +109,10 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         /// <param name="yMin">Voxel bas</param>
         /// <param name="yMax">Voxel haut</param>
-        public void SetVerticalCrossing(Voxel yMin, Voxel yMax)
+        public void SetVerticalCrossing(ref Voxel yMin, in Voxel yMax)
         {
             if (yMin.State != yMax.State)
-                FindVerticalCrossing(yMin, yMax);
+                FindVerticalCrossing(ref yMin, in yMax);
             else
             {
                 yMin.YEdge = float.MinValue;
@@ -128,7 +128,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         /// <param name="xMin">Voxel gauche</param>
         /// <param name="xMax">Voxel droit</param>
-        protected virtual void FindHorizontalCrossing(Voxel xMin, Voxel xMax)
+        protected virtual void FindHorizontalCrossing(ref Voxel xMin, in Voxel xMax)
         {
             if (xMin.Position.y < YStart || xMin.Position.y > YEnd)
                 return;
@@ -143,7 +143,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                     else
                     {
-                        ValidateHorizontalNormal(xMin, xMax);
+                        ValidateHorizontalNormal(ref xMin, in xMax);
                     }
                 }
             }
@@ -158,7 +158,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                     else
                     {
-                        ValidateHorizontalNormal(xMin, xMax);
+                        ValidateHorizontalNormal(ref xMin, in xMax);
                     }
                 }
             }
@@ -167,7 +167,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <summary>
         /// Assure que la normale pointe dans la bonne direction
         /// </summary>
-        protected static void ValidateHorizontalNormal(Voxel xMin, Voxel xMax)
+        protected static void ValidateHorizontalNormal(ref Voxel xMin, in Voxel xMax)
         {
             if (xMin.State < xMax.State)
             {
@@ -185,7 +185,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         /// <param name="yMin">Voxel bas</param>
         /// <param name="yMax">Voxel haut</param>
-        protected virtual void FindVerticalCrossing(Voxel yMin, Voxel yMax)
+        protected virtual void FindVerticalCrossing(ref Voxel yMin, in Voxel yMax)
         {
             if (yMin.Position.x < XStart || yMin.Position.x > XEnd)
                 return;
@@ -200,7 +200,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                     else
                     {
-                        ValidateVerticalNormal(yMin, yMax);
+                        ValidateVerticalNormal(ref yMin, in yMax);
                     }
                 }
             }
@@ -215,7 +215,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                     else
                     {
-                        ValidateVerticalNormal(yMin, yMax);
+                        ValidateVerticalNormal(ref yMin, in yMax);
                     }
                 }
             }
@@ -224,7 +224,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <summary>
         /// Assure que la normale pointe dans la bonne direction
         /// </summary>
-        protected static void ValidateVerticalNormal(Voxel yMin, Voxel yMax)
+        protected static void ValidateVerticalNormal(ref Voxel yMin, in Voxel yMax)
         {
             if (yMin.State < yMax.State)
             {

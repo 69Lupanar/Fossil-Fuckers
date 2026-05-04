@@ -6,7 +6,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
     /// <summary>
     /// Brosse circulaire
     /// </summary>
-    public class VoxelStencilCircle : VoxelStencil
+    public sealed class VoxelStencilCircle : VoxelStencil
     {
         #region Variables d'instance
 
@@ -27,7 +27,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         }
 
         /// <inheritdoc/>
-        public override void Apply(Voxel voxel)
+        public override void Apply(ref Voxel voxel)
         {
             float x = voxel.Position.x - centerX;
             float y = voxel.Position.y - centerY;
@@ -45,7 +45,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         /// <param name="xMin">Voxel gauche</param>
         /// <param name="xMax">Voxel droit</param>
-        protected override void FindHorizontalCrossing(Voxel xMin, Voxel xMax)
+        protected override void FindHorizontalCrossing(ref Voxel xMin, in Voxel xMax)
         {
             float y2 = xMin.Position.y - centerY;
             y2 *= y2;
@@ -58,11 +58,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     if (xMin.XEdge == float.MinValue || xMin.XEdge < x)
                     {
                         xMin.XEdge = x;
-                        xMin.XNormal = ComputeNormal(x, xMin.Position.y, xMax);
+                        xMin.XNormal = ComputeNormal(x, xMin.Position.y, xMax.State);
                     }
                     else
                     {
-                        ValidateHorizontalNormal(xMin, xMax);
+                        ValidateHorizontalNormal(ref xMin, in xMax);
                     }
                 }
             }
@@ -75,11 +75,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     if (xMin.XEdge == float.MinValue || xMin.XEdge > x)
                     {
                         xMin.XEdge = x;
-                        xMin.XNormal = ComputeNormal(x, xMin.Position.y, xMin);
+                        xMin.XNormal = ComputeNormal(x, xMin.Position.y, xMin.State);
                     }
                     else
                     {
-                        ValidateHorizontalNormal(xMin, xMax);
+                        ValidateHorizontalNormal(ref xMin, in xMax);
                     }
                 }
             }
@@ -90,7 +90,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         /// <param name="yMin">Voxel bas</param>
         /// <param name="yMax">Voxel haut</param>
-        protected override void FindVerticalCrossing(Voxel yMin, Voxel yMax)
+        protected override void FindVerticalCrossing(ref Voxel yMin, in Voxel yMax)
         {
             float x2 = yMin.Position.x - centerX;
             x2 *= x2;
@@ -103,11 +103,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     if (yMin.YEdge == float.MinValue || yMin.YEdge < y)
                     {
                         yMin.YEdge = y;
-                        yMin.YNormal = ComputeNormal(yMin.Position.x, y, yMax);
+                        yMin.YNormal = ComputeNormal(yMin.Position.x, y, yMax.State);
                     }
                     else
                     {
-                        ValidateVerticalNormal(yMin, yMax);
+                        ValidateVerticalNormal(ref yMin, in yMax);
                     }
                 }
             }
@@ -120,11 +120,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     if (yMin.YEdge == float.MinValue || yMin.YEdge > y)
                     {
                         yMin.YEdge = y;
-                        yMin.YNormal = ComputeNormal(yMin.Position.x, y, yMin);
+                        yMin.YNormal = ComputeNormal(yMin.Position.x, y, yMin.State);
                     }
                     else
                     {
-                        ValidateVerticalNormal(yMin, yMax);
+                        ValidateVerticalNormal(ref yMin, in yMax);
                     }
                 }
             }
@@ -137,14 +137,9 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <summary>
         /// Obtient la normale aux coordonnées renseignées
         /// </summary>
-        private float2 ComputeNormal(float x, float y, Voxel other)
+        private float2 ComputeNormal(float x, float y, int otherState)
         {
-            if (fillType > other.State)
-                return math.normalize(new float2(x - centerX, y - centerY));
-            else
-            {
-                return math.normalize(new float2(centerX - x, centerY - y));
-            }
+            return (fillType > otherState) ? math.normalize(new float2(x - centerX, y - centerY)) : math.normalize(new float2(centerX - x, centerY - y));
         }
 
         #endregion

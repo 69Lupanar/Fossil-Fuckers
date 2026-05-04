@@ -7,24 +7,24 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
     /// Vartice d'une cellule du mesh généré par la triangulation
     /// </summary>
     [Serializable]
-    public class Voxel
+    public struct Voxel
     {
         #region Propriétés
 
         /// <summary>
         /// true si le voxel contient une valeur
         /// </summary>
-        public bool Filled => State > 0f;
+        public readonly bool Filled => State > 0f;
 
         /// <summary>
         /// Point d'intersection sur l'edge X
         /// </summary>
-        public float2 XEdgePoint => new(XEdge, Position.y);
+        public readonly float2 XEdgePoint => new(XEdge, Position.y);
 
         /// <summary>
         /// Point d'intersection sur l'edge Y
         /// </summary>
-        public float2 YEdgePoint => new(Position.x, YEdge);
+        public readonly float2 YEdgePoint => new(Position.x, YEdge);
 
         /// <summary>
         /// Etat du voxel
@@ -63,19 +63,17 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <summary>
         /// Constructeur
         /// </summary>
-        public Voxel() { }
-
-        /// <summary>
-        /// Constructeur
-        /// </summary>
         /// <param name="x">Coord X</param>
         /// <param name="y">Coord Y</param>
         /// <param name="size">Taille du voxel</param>
         public Voxel(int x, int y, float size)
         {
+            State = 0;
             Position = new float2((x + 0.5f) * size, (y + 0.5f) * size);
             XEdge = float.MinValue;
             YEdge = float.MinValue;
+            XNormal = float2.zero;
+            YNormal = float2.zero;
         }
 
         #endregion

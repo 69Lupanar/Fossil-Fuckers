@@ -226,7 +226,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
                 for (int x = xStart; x <= xEnd; ++x, ++i)
                 {
-                    stencil.Apply(chunk.Voxels[i]);
+                    stencil.Apply(ref chunk.Voxels[i]);
                 }
             }
 

@@ -207,57 +207,55 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 crossVerticalGap = chunk.YNeighbor != null;
             }
 
-            Voxel a, b;
-
             for (int y = yStart; y <= yEnd; y++)
             {
                 int i = y * _voxelResolution + xStart;
-                b = chunk.Voxels[i];
+                ref Voxel b = ref chunk.Voxels[i];
 
                 for (int x = xStart; x <= xEnd; x++, i++)
                 {
-                    a = b;
-                    b = chunk.Voxels[i + 1];
-                    stencil.SetHorizontalCrossing(a, b);
-                    stencil.SetVerticalCrossing(a, chunk.Voxels[i + _voxelResolution]);
+                    ref Voxel a = ref b;
+                    b = ref chunk.Voxels[i + 1];
+                    stencil.SetHorizontalCrossing(ref a, in b);
+                    stencil.SetVerticalCrossing(ref a, in chunk.Voxels[i + _voxelResolution]);
                 }
 
-                stencil.SetVerticalCrossing(b, chunk.Voxels[i + _voxelResolution]);
+                stencil.SetVerticalCrossing(ref b, in chunk.Voxels[i + _voxelResolution]);
 
                 if (crossHorizontalGap)
                 {
-                    BecomeXDummyOf(_dummyXs[chunkIndex], chunk.XNeighbor.Voxels[y * _voxelResolution], _chunkSize);
-                    stencil.SetHorizontalCrossing(b, _dummyXs[chunkIndex]);
+                    BecomeXDummyOf(ref _dummyXs[chunkIndex], in chunk.XNeighbor.Voxels[y * _voxelResolution], _chunkSize);
+                    stencil.SetHorizontalCrossing(ref b, in _dummyXs[chunkIndex]);
                 }
             }
 
             if (includeLastVerticalRow)
             {
                 int i = chunk.Voxels.Length - _voxelResolution + xStart;
-                b = chunk.Voxels[i];
+                ref Voxel b = ref chunk.Voxels[i];
 
                 for (int x = xStart; x <= xEnd; x++, i++)
                 {
-                    a = b;
-                    b = chunk.Voxels[i + 1];
-                    stencil.SetHorizontalCrossing(a, b);
+                    ref Voxel a = ref b;
+                    b = ref chunk.Voxels[i + 1];
+                    stencil.SetHorizontalCrossing(ref a, in b);
 
                     if (crossVerticalGap)
                     {
-                        BecomeYDummyOf(_dummyYs[chunkIndex], chunk.YNeighbor.Voxels[x], _chunkSize);
-                        stencil.SetVerticalCrossing(a, _dummyYs[chunkIndex]);
+                        BecomeYDummyOf(ref _dummyYs[chunkIndex], in chunk.YNeighbor.Voxels[x], _chunkSize);
+                        stencil.SetVerticalCrossing(ref a, in _dummyYs[chunkIndex]);
                     }
                 }
 
                 if (crossVerticalGap)
                 {
-                    BecomeYDummyOf(_dummyYs[chunkIndex], chunk.YNeighbor.Voxels[xEnd + 1], _chunkSize);
-                    stencil.SetVerticalCrossing(b, _dummyYs[chunkIndex]);
+                    BecomeYDummyOf(ref _dummyYs[chunkIndex], in chunk.YNeighbor.Voxels[xEnd + 1], _chunkSize);
+                    stencil.SetVerticalCrossing(ref b, in _dummyYs[chunkIndex]);
                 }
                 if (crossHorizontalGap)
                 {
-                    BecomeXDummyOf(_dummyXs[chunkIndex], chunk.XNeighbor.Voxels[chunk.Voxels.Length - _voxelResolution], _chunkSize);
-                    stencil.SetHorizontalCrossing(b, _dummyXs[chunkIndex]);
+                    BecomeXDummyOf(ref _dummyXs[chunkIndex], in chunk.XNeighbor.Voxels[chunk.Voxels.Length - _voxelResolution], _chunkSize);
+                    stencil.SetHorizontalCrossing(ref b, in _dummyXs[chunkIndex]);
                 }
             }
         }
@@ -307,18 +305,18 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
         private void FillFirstRowCache(VoxelChunk chunk, int chunkIndex)
         {
-            CacheFirstCorner(chunkIndex, chunk.Voxels[0]);
+            CacheFirstCorner(chunkIndex, in chunk.Voxels[0]);
             int voxelIndex;
 
             for (voxelIndex = 0; voxelIndex < _voxelResolution - 1; ++voxelIndex)
             {
-                CacheNextEdgeAndCorner(chunkIndex, voxelIndex, chunk.Voxels[voxelIndex], chunk.Voxels[voxelIndex + 1]);
+                CacheNextEdgeAndCorner(chunkIndex, voxelIndex, in chunk.Voxels[voxelIndex], in chunk.Voxels[voxelIndex + 1]);
             }
 
             if (chunk.XNeighbor != null)
             {
-                BecomeXDummyOf(_dummyXs[chunkIndex], chunk.XNeighbor.Voxels[0], _chunkSize);
-                CacheNextEdgeAndCorner(chunkIndex, voxelIndex, chunk.Voxels[voxelIndex], _dummyXs[chunkIndex]);
+                BecomeXDummyOf(ref _dummyXs[chunkIndex], in chunk.XNeighbor.Voxels[0], _chunkSize);
+                CacheNextEdgeAndCorner(chunkIndex, voxelIndex, in chunk.Voxels[voxelIndex], in _dummyXs[chunkIndex]);
             }
         }
 
@@ -334,8 +332,8 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             for (int i = 0, y = 0; y < cells; ++y, ++i)
             {
                 SwapRowCaches(chunkIndex);
-                CacheFirstCorner(chunkIndex, chunk.Voxels[i + _voxelResolution]);
-                CacheNextMiddleEdge(chunkIndex, chunk.Voxels[i], chunk.Voxels[i + _voxelResolution]);
+                CacheFirstCorner(chunkIndex, in chunk.Voxels[i + _voxelResolution]);
+                CacheNextMiddleEdge(chunkIndex, in chunk.Voxels[i], in chunk.Voxels[i + _voxelResolution]);
 
                 for (int x = 0; x < cells; ++x, ++i)
                 {
@@ -344,9 +342,9 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                      b = chunk.Voxels[i + 1],
                      c = chunk.Voxels[i + _voxelResolution],
                      d = chunk.Voxels[i + _voxelResolution + 1];
-                    CacheNextEdgeAndCorner(chunkIndex, x, c, d);
-                    CacheNextMiddleEdge(chunkIndex, b, d);
-                    TriangulateCell(chunkIndex, x, a, b, c, d);
+                    CacheNextEdgeAndCorner(chunkIndex, x, in c, in d);
+                    CacheNextMiddleEdge(chunkIndex, in b, in d);
+                    TriangulateCell(chunkIndex, x, in a, in b, in c, in d);
                 }
                 if (chunk.XNeighbor != null)
                 {
@@ -364,13 +362,13 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         private void TriangulateGapCell(VoxelChunk chunk, int chunkIndex, int i)
         {
             Voxel dummySwap = _dummyTs[chunkIndex];
-            BecomeXDummyOf(dummySwap, chunk.XNeighbor.Voxels[i + 1], _chunkSize);
+            BecomeXDummyOf(ref dummySwap, in chunk.XNeighbor.Voxels[i + 1], _chunkSize);
             _dummyTs[chunkIndex] = _dummyXs[chunkIndex];
             _dummyXs[chunkIndex] = dummySwap;
             int cacheIndex = _voxelResolution - 1;
-            CacheNextEdgeAndCorner(chunkIndex, cacheIndex, chunk.Voxels[i + _voxelResolution], _dummyXs[chunkIndex]);
-            CacheNextMiddleEdge(chunkIndex, _dummyTs[chunkIndex], _dummyXs[chunkIndex]);
-            TriangulateCell(chunkIndex, cacheIndex, chunk.Voxels[i], _dummyTs[chunkIndex], chunk.Voxels[i + _voxelResolution], _dummyXs[chunkIndex]);
+            CacheNextEdgeAndCorner(chunkIndex, cacheIndex, in chunk.Voxels[i + _voxelResolution], in _dummyXs[chunkIndex]);
+            CacheNextMiddleEdge(chunkIndex, in _dummyTs[chunkIndex], in _dummyXs[chunkIndex]);
+            TriangulateCell(chunkIndex, cacheIndex, in chunk.Voxels[i], in _dummyTs[chunkIndex], in chunk.Voxels[i + _voxelResolution], in _dummyXs[chunkIndex]);
         }
 
         /// <summary>
@@ -380,30 +378,30 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
         private void TriangulateGapRow(VoxelChunk chunk, int chunkIndex)
         {
-            BecomeYDummyOf(_dummyYs[chunkIndex], chunk.YNeighbor.Voxels[0], _chunkSize);
+            BecomeYDummyOf(ref _dummyYs[chunkIndex], in chunk.YNeighbor.Voxels[0], _chunkSize);
             int cells = _voxelResolution - 1;
             int offset = cells * _voxelResolution;
             SwapRowCaches(chunkIndex);
-            CacheFirstCorner(chunkIndex, _dummyYs[chunkIndex]);
-            CacheNextMiddleEdge(chunkIndex, chunk.Voxels[cells * _voxelResolution], _dummyYs[chunkIndex]);
+            CacheFirstCorner(chunkIndex, in _dummyYs[chunkIndex]);
+            CacheNextMiddleEdge(chunkIndex, in chunk.Voxels[cells * _voxelResolution], in _dummyYs[chunkIndex]);
 
             for (int cellIndex = 0; cellIndex < cells; ++cellIndex)
             {
                 Voxel dummySwap = _dummyTs[chunkIndex];
-                BecomeYDummyOf(dummySwap, chunk.YNeighbor.Voxels[cellIndex + 1], _chunkSize);
+                BecomeYDummyOf(ref dummySwap, in chunk.YNeighbor.Voxels[cellIndex + 1], _chunkSize);
                 _dummyTs[chunkIndex] = _dummyYs[chunkIndex];
                 _dummyYs[chunkIndex] = dummySwap;
-                CacheNextEdgeAndCorner(chunkIndex, cellIndex, _dummyTs[chunkIndex], _dummyYs[chunkIndex]);
-                CacheNextMiddleEdge(chunkIndex, chunk.Voxels[cellIndex + offset + 1], _dummyYs[chunkIndex]);
-                TriangulateCell(chunkIndex, cellIndex, chunk.Voxels[cellIndex + offset], chunk.Voxels[cellIndex + offset + 1], _dummyTs[chunkIndex], _dummyYs[chunkIndex]);
+                CacheNextEdgeAndCorner(chunkIndex, cellIndex, in _dummyTs[chunkIndex], in _dummyYs[chunkIndex]);
+                CacheNextMiddleEdge(chunkIndex, in chunk.Voxels[cellIndex + offset + 1], in _dummyYs[chunkIndex]);
+                TriangulateCell(chunkIndex, cellIndex, in chunk.Voxels[cellIndex + offset], in chunk.Voxels[cellIndex + offset + 1], in _dummyTs[chunkIndex], in _dummyYs[chunkIndex]);
             }
 
             if (chunk.XNeighbor != null)
             {
-                BecomeXYDummyOf(_dummyTs[chunkIndex], chunk.XYNeighbor.Voxels[0], _chunkSize);
-                CacheNextEdgeAndCorner(chunkIndex, cells, _dummyYs[chunkIndex], _dummyTs[chunkIndex]);
-                CacheNextMiddleEdge(chunkIndex, _dummyXs[chunkIndex], _dummyTs[chunkIndex]);
-                TriangulateCell(chunkIndex, cells, chunk.Voxels[^1], _dummyXs[chunkIndex], _dummyYs[chunkIndex], _dummyTs[chunkIndex]);
+                BecomeXYDummyOf(ref _dummyTs[chunkIndex], in chunk.XYNeighbor.Voxels[0], _chunkSize);
+                CacheNextEdgeAndCorner(chunkIndex, cells, in _dummyYs[chunkIndex], in _dummyTs[chunkIndex]);
+                CacheNextMiddleEdge(chunkIndex, in _dummyXs[chunkIndex], in _dummyTs[chunkIndex]);
+                TriangulateCell(chunkIndex, cells, in chunk.Voxels[^1], in _dummyXs[chunkIndex], in _dummyYs[chunkIndex], in _dummyTs[chunkIndex]);
             }
         }
 
@@ -411,7 +409,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// Cache le 1er voxel (bas gauche)
         /// </summary>
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
-        private void CacheFirstCorner(int chunkIndex, Voxel voxel)
+        private void CacheFirstCorner(int chunkIndex, in Voxel voxel)
         {
             if (voxel.Filled)
             {
@@ -426,7 +424,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="cacheIndex">Position du voxel dans le cache</param>
         /// <param name="xMin">Voxel de gauche</param>
         /// <param name="xMax">Voxel de droite</param>
-        private void CacheNextEdgeAndCorner(int chunkIndex, int cacheIndex, Voxel xMin, Voxel xMax)
+        private void CacheNextEdgeAndCorner(int chunkIndex, int cacheIndex, in Voxel xMin, in Voxel xMax)
         {
             if (xMin.State != xMax.State)
             {
@@ -459,7 +457,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
         /// <param name="yMin">Voxel du milieu gauche</param>
         /// <param name="yMax">Voxel du milieu droit</param>
-        private void CacheNextMiddleEdge(int chunkIndex, Voxel yMin, Voxel yMax)
+        private void CacheNextMiddleEdge(int chunkIndex, in Voxel yMin, in Voxel yMax)
         {
             for (int i = 1; i < _renderers[chunkIndex].Length; ++i)
             {
@@ -505,7 +503,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="dummy">Voxel à convertir</param>
         /// <param name="other">Voxel à cloner</param>
         /// <param name="offset">Taille du chunk</param>
-        private void BecomeXDummyOf(Voxel dummy, Voxel other, float offset)
+        private void BecomeXDummyOf(ref Voxel dummy, in Voxel other, float offset)
         {
             dummy.State = other.State;
             dummy.Position = new float2(other.Position.x + offset, other.Position.y);
@@ -520,7 +518,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="dummy">Voxel à convertir</param>
         /// <param name="other">Voxel à cloner</param>
         /// <param name="offset">Taille du chunk</param>
-        private void BecomeYDummyOf(Voxel dummy, Voxel other, float offset)
+        private void BecomeYDummyOf(ref Voxel dummy, in Voxel other, float offset)
         {
             dummy.State = other.State;
             dummy.Position = new float2(other.Position.x, other.Position.y + offset);
@@ -535,7 +533,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="dummy">Voxel à convertir</param>
         /// <param name="other">Voxel à cloner</param>
         /// <param name="offset">Taille du chunk</param>
-        private void BecomeXYDummyOf(Voxel dummy, Voxel other, float offset)
+        private void BecomeXYDummyOf(ref Voxel dummy, in Voxel other, float offset)
         {
             dummy.State = other.State;
             dummy.Position = new float2(other.Position.x + offset, other.Position.y + offset);
@@ -543,7 +541,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             dummy.YEdge = other.YEdge + offset;
         }
 
-        private void TriangulateCell(int chunkIndex, int cellIndex, Voxel a, Voxel b, Voxel c, Voxel d)
+        private void TriangulateCell(int chunkIndex, int cellIndex, in Voxel a, in Voxel b, in Voxel c, in Voxel d)
         {
             _cells[chunkIndex].i = cellIndex;
             _cells[chunkIndex].a = a;
