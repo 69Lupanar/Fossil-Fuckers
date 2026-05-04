@@ -498,6 +498,10 @@ PrefabInstance:
       propertyPath: 'stencilVisualizations.Array.data[1]'
       value: 
       objectReference: {fileID: 1354930912}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _showGizmos
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

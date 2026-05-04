@@ -127,7 +127,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             _wall.CacheYEdge(yEdgePoint, yNormal);
         }
 
-        public readonly void FillA(VoxelCell cell, FeaturePoint f)
+        public readonly void FillA(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -151,7 +151,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillB(VoxelCell cell, FeaturePoint f)
+        public readonly void FillB(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -175,7 +175,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillC(VoxelCell cell, FeaturePoint f)
+        public readonly void FillC(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -199,7 +199,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillD(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -223,7 +223,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillABC(VoxelCell cell, FeaturePoint f)
+        public readonly void FillABC(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -243,7 +243,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillABD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillABD(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -263,7 +263,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillACD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillACD(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -283,7 +283,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillBCD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillBCD(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -303,7 +303,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillAB(VoxelCell cell, FeaturePoint f)
+        public readonly void FillAB(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -327,7 +327,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillAC(VoxelCell cell, FeaturePoint f)
+        public readonly void FillAC(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -351,7 +351,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillBD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillBD(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -375,7 +375,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillCD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillCD(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -399,7 +399,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillADToB(VoxelCell cell, FeaturePoint f)
+        public readonly void FillADToB(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -419,7 +419,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillADToC(VoxelCell cell, FeaturePoint f)
+        public readonly void FillADToC(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -439,7 +439,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillBCToA(VoxelCell cell, FeaturePoint f)
+        public readonly void FillBCToA(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -459,7 +459,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillBCToD(VoxelCell cell, FeaturePoint f)
+        public readonly void FillBCToD(in VoxelCell cell, FeaturePoint f)
         {
             if (f.Exists)
             {

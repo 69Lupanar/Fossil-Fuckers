@@ -10,7 +10,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
     /// <summary>
     /// Charger de trianguler les voxels de la grille
     /// </summary>
-    public class VoxelGridMeshRendererView : MonoBehaviour
+    public sealed class VoxelGridMeshRendererView : MonoBehaviour
     {
         #region Variables Unity
 
@@ -825,7 +825,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillA(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillA(in _cells[chunkIndex], f);
             }
         }
 
@@ -833,7 +833,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillB(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillB(in _cells[chunkIndex], f);
             }
         }
 
@@ -841,7 +841,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].C.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].C.State].FillC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].C.State].FillC(in _cells[chunkIndex], f);
             }
         }
 
@@ -849,7 +849,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].D.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].D.State].FillD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].D.State].FillD(in _cells[chunkIndex], f);
             }
         }
 
@@ -857,7 +857,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillABC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillABC(in _cells[chunkIndex], f);
             }
         }
 
@@ -865,7 +865,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillABD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillABD(in _cells[chunkIndex], f);
             }
         }
 
@@ -873,7 +873,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillACD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillACD(in _cells[chunkIndex], f);
             }
         }
 
@@ -881,7 +881,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCD(in _cells[chunkIndex], f);
             }
         }
 
@@ -889,7 +889,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillAB(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillAB(in _cells[chunkIndex], f);
             }
         }
 
@@ -897,7 +897,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillAC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillAC(in _cells[chunkIndex], f);
             }
         }
 
@@ -905,7 +905,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBD(in _cells[chunkIndex], f);
             }
         }
 
@@ -913,7 +913,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].C.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].C.State].FillCD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].C.State].FillCD(in _cells[chunkIndex], f);
             }
         }
 
@@ -921,7 +921,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillADToB(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillADToB(in _cells[chunkIndex], f);
             }
         }
 
@@ -929,7 +929,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillADToC(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillADToC(in _cells[chunkIndex], f);
             }
         }
 
@@ -937,7 +937,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCToA(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCToA(in _cells[chunkIndex], f);
             }
         }
 
@@ -945,7 +945,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             if (_cells[chunkIndex].B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCToD(_cells[chunkIndex], f);
+                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCToD(in _cells[chunkIndex], f);
             }
         }
 

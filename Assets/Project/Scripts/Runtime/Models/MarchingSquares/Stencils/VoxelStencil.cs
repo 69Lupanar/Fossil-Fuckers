@@ -12,22 +12,22 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <summary>
         /// Limite de la zone rectangulaire affectée par la brosse
         /// </summary>
-        public float XStart => centerX - radius;
+        public float XStart => _centerX - _radius;
 
         /// <summary>
         /// Limite de la zone rectangulaire affectée par la brosse
         /// </summary>
-        public float XEnd => centerX + radius;
+        public float XEnd => _centerX + _radius;
 
         /// <summary>
         /// Limite de la zone rectangulaire affectée par la brosse
         /// </summary>
-        public float YStart => centerY - radius;
+        public float YStart => _centerY - _radius;
 
         /// <summary>
         /// Limite de la zone rectangulaire affectée par la brosse
         /// </summary>
-        public float YEnd => centerY + radius;
+        public float YEnd => _centerY + _radius;
 
         #endregion
 
@@ -36,22 +36,22 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <summary>
         /// Type de remplissage de la brosse
         /// </summary>
-        protected int fillType;
+        protected int _fillType;
 
         /// <summary>
         /// Coord X
         /// </summary>
-        protected float centerX;
+        protected float _centerX;
 
         /// <summary>
         /// Coord Y
         /// </summary>
-        protected float centerY;
+        protected float _centerY;
 
         /// <summary>
         /// Rayon de la brosse
         /// </summary>
-        protected float radius;
+        protected float _radius;
 
         #endregion
 
@@ -64,8 +64,8 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <param name="radius">Rayon de la brosse</param>
         public virtual void Initialize(int fillType, float radius)
         {
-            this.fillType = fillType;
-            this.radius = radius;
+            _fillType = fillType;
+            _radius = radius;
         }
 
         /// <summary>
@@ -73,8 +73,8 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         public virtual void SetCenter(float x, float y)
         {
-            centerX = x;
-            centerY = y;
+            _centerX = x;
+            _centerY = y;
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
             Vector2 p = voxel.Position;
 
             if (p.x >= XStart && p.x <= XEnd && p.y >= YStart && p.y <= YEnd)
-                voxel.State = fillType;
+                voxel.State = _fillType;
         }
 
         /// <summary>
@@ -132,14 +132,14 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         {
             if (xMin.Position.y < YStart || xMin.Position.y > YEnd)
                 return;
-            if (xMin.State == fillType)
+            if (xMin.State == _fillType)
             {
                 if (xMin.Position.x <= XEnd && xMax.Position.x >= XEnd)
                 {
                     if (xMin.XEdge == float.MinValue || xMin.XEdge < XEnd)
                     {
                         xMin.XEdge = XEnd;
-                        xMin.XNormal = new Vector2(fillType > xMax.State ? 1f : -1f, 0f);
+                        xMin.XNormal = new Vector2(_fillType > xMax.State ? 1f : -1f, 0f);
                     }
                     else
                     {
@@ -147,14 +147,14 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                 }
             }
-            else if (xMax.State == fillType)
+            else if (xMax.State == _fillType)
             {
                 if (xMin.Position.x <= XStart && xMax.Position.x >= XStart)
                 {
                     if (xMin.XEdge == float.MinValue || xMin.XEdge > XStart)
                     {
                         xMin.XEdge = XStart;
-                        xMin.XNormal = new Vector2(fillType > xMin.State ? -1f : 1f, 0f);
+                        xMin.XNormal = new Vector2(_fillType > xMin.State ? -1f : 1f, 0f);
                     }
                     else
                     {
@@ -189,14 +189,14 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         {
             if (yMin.Position.x < XStart || yMin.Position.x > XEnd)
                 return;
-            if (yMin.State == fillType)
+            if (yMin.State == _fillType)
             {
                 if (yMin.Position.y <= YEnd && yMax.Position.y >= YEnd)
                 {
                     if (yMin.YEdge == float.MinValue || yMin.YEdge < YEnd)
                     {
                         yMin.YEdge = YEnd;
-                        yMin.YNormal = new Vector2(0f, fillType > yMax.State ? 1f : -1f);
+                        yMin.YNormal = new Vector2(0f, _fillType > yMax.State ? 1f : -1f);
                     }
                     else
                     {
@@ -204,14 +204,14 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                 }
             }
-            else if (yMax.State == fillType)
+            else if (yMax.State == _fillType)
             {
                 if (yMin.Position.y <= YStart && yMax.Position.y >= YStart)
                 {
                     if (yMin.YEdge == float.MinValue || yMin.YEdge > YStart)
                     {
                         yMin.YEdge = YStart;
-                        yMin.YNormal = new Vector2(0f, fillType > yMin.State ? -1f : 1f);
+                        yMin.YNormal = new Vector2(0f, _fillType > yMin.State ? -1f : 1f);
                     }
                     else
                     {
