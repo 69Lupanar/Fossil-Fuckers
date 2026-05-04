@@ -2,6 +2,7 @@ using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
 using Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
@@ -225,7 +226,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
                 if (crossHorizontalGap)
                 {
-                    _dummyXs[chunkIndex].BecomeXDummyOf(chunk.XNeighbor.Voxels[y * _voxelResolution], _chunkSize);
+                    BecomeXDummyOf(_dummyXs[chunkIndex], chunk.XNeighbor.Voxels[y * _voxelResolution], _chunkSize);
                     stencil.SetHorizontalCrossing(b, _dummyXs[chunkIndex]);
                 }
             }
@@ -243,19 +244,19 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
                     if (crossVerticalGap)
                     {
-                        _dummyYs[chunkIndex].BecomeYDummyOf(chunk.YNeighbor.Voxels[x], _chunkSize);
+                        BecomeYDummyOf(_dummyYs[chunkIndex], chunk.YNeighbor.Voxels[x], _chunkSize);
                         stencil.SetVerticalCrossing(a, _dummyYs[chunkIndex]);
                     }
                 }
 
                 if (crossVerticalGap)
                 {
-                    _dummyYs[chunkIndex].BecomeYDummyOf(chunk.YNeighbor.Voxels[xEnd + 1], _chunkSize);
+                    BecomeYDummyOf(_dummyYs[chunkIndex], chunk.YNeighbor.Voxels[xEnd + 1], _chunkSize);
                     stencil.SetVerticalCrossing(b, _dummyYs[chunkIndex]);
                 }
                 if (crossHorizontalGap)
                 {
-                    _dummyXs[chunkIndex].BecomeXDummyOf(chunk.XNeighbor.Voxels[chunk.Voxels.Length - _voxelResolution], _chunkSize);
+                    BecomeXDummyOf(_dummyXs[chunkIndex], chunk.XNeighbor.Voxels[chunk.Voxels.Length - _voxelResolution], _chunkSize);
                     stencil.SetHorizontalCrossing(b, _dummyXs[chunkIndex]);
                 }
             }
@@ -316,7 +317,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
             if (chunk.XNeighbor != null)
             {
-                _dummyXs[chunkIndex].BecomeXDummyOf(chunk.XNeighbor.Voxels[0], _chunkSize);
+                BecomeXDummyOf(_dummyXs[chunkIndex], chunk.XNeighbor.Voxels[0], _chunkSize);
                 CacheNextEdgeAndCorner(chunkIndex, voxelIndex, chunk.Voxels[voxelIndex], _dummyXs[chunkIndex]);
             }
         }
@@ -363,7 +364,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         private void TriangulateGapCell(VoxelChunk chunk, int chunkIndex, int i)
         {
             Voxel dummySwap = _dummyTs[chunkIndex];
-            dummySwap.BecomeXDummyOf(chunk.XNeighbor.Voxels[i + 1], _chunkSize);
+            BecomeXDummyOf(dummySwap, chunk.XNeighbor.Voxels[i + 1], _chunkSize);
             _dummyTs[chunkIndex] = _dummyXs[chunkIndex];
             _dummyXs[chunkIndex] = dummySwap;
             int cacheIndex = _voxelResolution - 1;
@@ -379,7 +380,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
         private void TriangulateGapRow(VoxelChunk chunk, int chunkIndex)
         {
-            _dummyYs[chunkIndex].BecomeYDummyOf(chunk.YNeighbor.Voxels[0], _chunkSize);
+            BecomeYDummyOf(_dummyYs[chunkIndex], chunk.YNeighbor.Voxels[0], _chunkSize);
             int cells = _voxelResolution - 1;
             int offset = cells * _voxelResolution;
             SwapRowCaches(chunkIndex);
@@ -389,7 +390,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             for (int cellIndex = 0; cellIndex < cells; ++cellIndex)
             {
                 Voxel dummySwap = _dummyTs[chunkIndex];
-                dummySwap.BecomeYDummyOf(chunk.YNeighbor.Voxels[cellIndex + 1], _chunkSize);
+                BecomeYDummyOf(dummySwap, chunk.YNeighbor.Voxels[cellIndex + 1], _chunkSize);
                 _dummyTs[chunkIndex] = _dummyYs[chunkIndex];
                 _dummyYs[chunkIndex] = dummySwap;
                 CacheNextEdgeAndCorner(chunkIndex, cellIndex, _dummyTs[chunkIndex], _dummyYs[chunkIndex]);
@@ -399,7 +400,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
             if (chunk.XNeighbor != null)
             {
-                _dummyTs[chunkIndex].BecomeXYDummyOf(chunk.XYNeighbor.Voxels[0], _chunkSize);
+                BecomeXYDummyOf(_dummyTs[chunkIndex], chunk.XYNeighbor.Voxels[0], _chunkSize);
                 CacheNextEdgeAndCorner(chunkIndex, cells, _dummyYs[chunkIndex], _dummyTs[chunkIndex]);
                 CacheNextMiddleEdge(chunkIndex, _dummyXs[chunkIndex], _dummyTs[chunkIndex]);
                 TriangulateCell(chunkIndex, cells, chunk.Voxels[^1], _dummyXs[chunkIndex], _dummyYs[chunkIndex], _dummyTs[chunkIndex]);
@@ -496,6 +497,50 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             {
                 _renderers[chunkIndex][i].PrepareCacheForNextRow();
             }
+        }
+
+        /// <summary>
+        /// Convertit le voxel en voxel factice pour la triangulation
+        /// </summary>
+        /// <param name="dummy">Voxel à convertir</param>
+        /// <param name="other">Voxel à cloner</param>
+        /// <param name="offset">Taille du chunk</param>
+        private void BecomeXDummyOf(Voxel dummy, Voxel other, float offset)
+        {
+            dummy.State = other.State;
+            dummy.Position = new float2(other.Position.x + offset, other.Position.y);
+            dummy.XEdge = other.XEdge + offset;
+            dummy.YEdge = other.YEdge;
+            dummy.YNormal = other.YNormal;
+        }
+
+        /// <summary>
+        /// Convertit le voxel en voxel factice pour la triangulation
+        /// </summary>
+        /// <param name="dummy">Voxel à convertir</param>
+        /// <param name="other">Voxel à cloner</param>
+        /// <param name="offset">Taille du chunk</param>
+        private void BecomeYDummyOf(Voxel dummy, Voxel other, float offset)
+        {
+            dummy.State = other.State;
+            dummy.Position = new float2(other.Position.x, other.Position.y + offset);
+            dummy.XEdge = other.XEdge;
+            dummy.YEdge = other.YEdge + offset;
+            dummy.XNormal = other.XNormal;
+        }
+
+        /// <summary>
+        /// Convertit le voxel en voxel factice pour la triangulation
+        /// </summary>
+        /// <param name="dummy">Voxel à convertir</param>
+        /// <param name="other">Voxel à cloner</param>
+        /// <param name="offset">Taille du chunk</param>
+        private void BecomeXYDummyOf(Voxel dummy, Voxel other, float offset)
+        {
+            dummy.State = other.State;
+            dummy.Position = new float2(other.Position.x + offset, other.Position.y + offset);
+            dummy.XEdge = other.XEdge + offset;
+            dummy.YEdge = other.YEdge + offset;
         }
 
         private void TriangulateCell(int chunkIndex, int cellIndex, Voxel a, Voxel b, Voxel c, Voxel d)
