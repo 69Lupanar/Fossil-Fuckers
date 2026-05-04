@@ -73,7 +73,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <summary>
         /// Brosses
         /// </summary>
-        private readonly VoxelStencil[] _stencils = { new VoxelStencil(), new VoxelStencilCircle() };
+        private readonly VoxelStencil[] _stencils = { new VoxelStencilSquare(), new VoxelStencilCircle() };
 
         #endregion
 

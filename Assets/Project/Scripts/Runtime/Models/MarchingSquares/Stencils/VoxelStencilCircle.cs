@@ -20,41 +20,37 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         #region Méthodes publiques
 
         /// <inheritdoc/>
-        public override void Initialize(int fillType, float radius)
+        public sealed override void Initialize(int fillType, float radius)
         {
             base.Initialize(fillType, radius);
             _sqrRadius = radius * radius;
         }
 
         /// <inheritdoc/>
-        public override void Apply(ref Voxel voxel)
+        public sealed override void Apply(ref Voxel voxel)
         {
-            float x = voxel.Position.x - _centerX;
-            float y = voxel.Position.y - _centerY;
+            float x = voxel.Position.x - CenterX;
+            float y = voxel.Position.y - CenterY;
 
             if (x * x + y * y <= _sqrRadius)
-                voxel.State = _fillType;
+                voxel.State = FillType;
         }
 
         #endregion
 
         #region Méthodes protégées
 
-        /// <summary>
-        /// Calcule l'intersection entre deux voxels
-        /// </summary>
-        /// <param name="xMin">Voxel gauche</param>
-        /// <param name="xMax">Voxel droit</param>
+        /// <inheritdoc/>
         protected sealed override void FindHorizontalCrossing(ref Voxel xMin, in Voxel xMax)
         {
-            float y2 = xMin.Position.y - _centerY;
+            float y2 = xMin.Position.y - CenterY;
             y2 *= y2;
-            if (xMin.State == _fillType)
+            if (xMin.State == FillType)
             {
-                float x = xMin.Position.x - _centerX;
+                float x = xMin.Position.x - CenterX;
                 if (x * x + y2 <= _sqrRadius)
                 {
-                    x = _centerX + Mathf.Sqrt(_sqrRadius - y2);
+                    x = CenterX + Mathf.Sqrt(_sqrRadius - y2);
                     if (xMin.XEdge == float.MinValue || xMin.XEdge < x)
                     {
                         xMin.XEdge = x;
@@ -66,12 +62,12 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                 }
             }
-            else if (xMax.State == _fillType)
+            else if (xMax.State == FillType)
             {
-                float x = xMax.Position.x - _centerX;
+                float x = xMax.Position.x - CenterX;
                 if (x * x + y2 <= _sqrRadius)
                 {
-                    x = _centerX - Mathf.Sqrt(_sqrRadius - y2);
+                    x = CenterX - Mathf.Sqrt(_sqrRadius - y2);
                     if (xMin.XEdge == float.MinValue || xMin.XEdge > x)
                     {
                         xMin.XEdge = x;
@@ -85,21 +81,17 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
             }
         }
 
-        /// <summary>
-        /// Calcule l'intersection entre deux voxels
-        /// </summary>
-        /// <param name="yMin">Voxel bas</param>
-        /// <param name="yMax">Voxel haut</param>
+        /// <inheritdoc/>
         protected sealed override void FindVerticalCrossing(ref Voxel yMin, in Voxel yMax)
         {
-            float x2 = yMin.Position.x - _centerX;
+            float x2 = yMin.Position.x - CenterX;
             x2 *= x2;
-            if (yMin.State == _fillType)
+            if (yMin.State == FillType)
             {
-                float y = yMin.Position.y - _centerY;
+                float y = yMin.Position.y - CenterY;
                 if (y * y + x2 <= _sqrRadius)
                 {
-                    y = _centerY + Mathf.Sqrt(_sqrRadius - x2);
+                    y = CenterY + Mathf.Sqrt(_sqrRadius - x2);
                     if (yMin.YEdge == float.MinValue || yMin.YEdge < y)
                     {
                         yMin.YEdge = y;
@@ -111,12 +103,12 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
                     }
                 }
             }
-            else if (yMax.State == _fillType)
+            else if (yMax.State == FillType)
             {
-                float y = yMax.Position.y - _centerY;
+                float y = yMax.Position.y - CenterY;
                 if (y * y + x2 <= _sqrRadius)
                 {
-                    y = _centerY - Mathf.Sqrt(_sqrRadius - x2);
+                    y = CenterY - Mathf.Sqrt(_sqrRadius - x2);
                     if (yMin.YEdge == float.MinValue || yMin.YEdge > y)
                     {
                         yMin.YEdge = y;
@@ -139,7 +131,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         private float2 ComputeNormal(float x, float y, int otherState)
         {
-            return (_fillType > otherState) ? math.normalize(new float2(x - _centerX, y - _centerY)) : math.normalize(new float2(_centerX - x, _centerY - y));
+            return (FillType > otherState) ? math.normalize(new float2(x - CenterX, y - CenterY)) : math.normalize(new float2(CenterX - x, CenterY - y));
         }
 
         #endregion

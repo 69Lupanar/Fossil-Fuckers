@@ -1,57 +1,51 @@
-﻿using UnityEngine;
-
-namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
+﻿namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
 {
     /// <summary>
     /// Brosse permettant de modifier plusieurs voxels à la fois
     /// </summary>
-    public class VoxelStencil
+    public abstract class VoxelStencil
     {
         #region Propriétés
 
         /// <summary>
         /// Limite de la zone rectangulaire affectée par la brosse
         /// </summary>
-        public float XStart => _centerX - _radius;
+        public float XStart => CenterX - Radius;
 
         /// <summary>
         /// Limite de la zone rectangulaire affectée par la brosse
         /// </summary>
-        public float XEnd => _centerX + _radius;
+        public float XEnd => CenterX + Radius;
 
         /// <summary>
         /// Limite de la zone rectangulaire affectée par la brosse
         /// </summary>
-        public float YStart => _centerY - _radius;
+        public float YStart => CenterY - Radius;
 
         /// <summary>
         /// Limite de la zone rectangulaire affectée par la brosse
         /// </summary>
-        public float YEnd => _centerY + _radius;
-
-        #endregion
-
-        #region Variables d'instance
+        public float YEnd => CenterY + Radius;
 
         /// <summary>
         /// Type de remplissage de la brosse
         /// </summary>
-        protected int _fillType;
+        protected int FillType { get; private set; }
 
         /// <summary>
         /// Coord X
         /// </summary>
-        protected float _centerX;
+        protected float CenterX { get; private set; }
 
         /// <summary>
         /// Coord Y
         /// </summary>
-        protected float _centerY;
+        protected float CenterY { get; private set; }
 
         /// <summary>
         /// Rayon de la brosse
         /// </summary>
-        protected float _radius;
+        protected float Radius { get; private set; }
 
         #endregion
 
@@ -64,30 +58,24 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// <param name="radius">Rayon de la brosse</param>
         public virtual void Initialize(int fillType, float radius)
         {
-            _fillType = fillType;
-            _radius = radius;
+            FillType = fillType;
+            Radius = radius;
         }
 
         /// <summary>
         /// Assigne le centre de la brosse
         /// </summary>
-        public virtual void SetCenter(float x, float y)
+        public void SetCenter(float x, float y)
         {
-            _centerX = x;
-            _centerY = y;
+            CenterX = x;
+            CenterY = y;
         }
 
         /// <summary>
         /// Applique le type de remplissage au voxel renseigné
         /// </summary>
         /// <param name="voxel">L'état précédent du voxel</param>
-        public virtual void Apply(ref Voxel voxel)
-        {
-            Vector2 p = voxel.Position;
-
-            if (p.x >= XStart && p.x <= XEnd && p.y >= YStart && p.y <= YEnd)
-                voxel.State = _fillType;
-        }
+        public abstract void Apply(ref Voxel voxel);
 
         /// <summary>
         /// Calcule l'intersection entre deux voxels
@@ -128,41 +116,14 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
         /// </summary>
         /// <param name="xMin">Voxel gauche</param>
         /// <param name="xMax">Voxel droit</param>
-        protected virtual void FindHorizontalCrossing(ref Voxel xMin, in Voxel xMax)
-        {
-            if (xMin.Position.y < YStart || xMin.Position.y > YEnd)
-                return;
-            if (xMin.State == _fillType)
-            {
-                if (xMin.Position.x <= XEnd && xMax.Position.x >= XEnd)
-                {
-                    if (xMin.XEdge == float.MinValue || xMin.XEdge < XEnd)
-                    {
-                        xMin.XEdge = XEnd;
-                        xMin.XNormal = new Vector2(_fillType > xMax.State ? 1f : -1f, 0f);
-                    }
-                    else
-                    {
-                        ValidateHorizontalNormal(ref xMin, in xMax);
-                    }
-                }
-            }
-            else if (xMax.State == _fillType)
-            {
-                if (xMin.Position.x <= XStart && xMax.Position.x >= XStart)
-                {
-                    if (xMin.XEdge == float.MinValue || xMin.XEdge > XStart)
-                    {
-                        xMin.XEdge = XStart;
-                        xMin.XNormal = new Vector2(_fillType > xMin.State ? -1f : 1f, 0f);
-                    }
-                    else
-                    {
-                        ValidateHorizontalNormal(ref xMin, in xMax);
-                    }
-                }
-            }
-        }
+        protected abstract void FindHorizontalCrossing(ref Voxel xMin, in Voxel xMax);
+
+        /// <summary>
+        /// Calcule l'intersection entre deux voxels
+        /// </summary>
+        /// <param name="yMin">Voxel bas</param>
+        /// <param name="yMax">Voxel haut</param>
+        protected abstract void FindVerticalCrossing(ref Voxel yMin, in Voxel yMax);
 
         /// <summary>
         /// Assure que la normale pointe dans la bonne direction
@@ -177,47 +138,6 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils
             else if (xMin.XNormal.x < 0f)
             {
                 xMin.XNormal = -xMin.XNormal;
-            }
-        }
-
-        /// <summary>
-        /// Calcule l'intersection entre deux voxels
-        /// </summary>
-        /// <param name="yMin">Voxel bas</param>
-        /// <param name="yMax">Voxel haut</param>
-        protected virtual void FindVerticalCrossing(ref Voxel yMin, in Voxel yMax)
-        {
-            if (yMin.Position.x < XStart || yMin.Position.x > XEnd)
-                return;
-            if (yMin.State == _fillType)
-            {
-                if (yMin.Position.y <= YEnd && yMax.Position.y >= YEnd)
-                {
-                    if (yMin.YEdge == float.MinValue || yMin.YEdge < YEnd)
-                    {
-                        yMin.YEdge = YEnd;
-                        yMin.YNormal = new Vector2(0f, _fillType > yMax.State ? 1f : -1f);
-                    }
-                    else
-                    {
-                        ValidateVerticalNormal(ref yMin, in yMax);
-                    }
-                }
-            }
-            else if (yMax.State == _fillType)
-            {
-                if (yMin.Position.y <= YStart && yMax.Position.y >= YStart)
-                {
-                    if (yMin.YEdge == float.MinValue || yMin.YEdge > YStart)
-                    {
-                        yMin.YEdge = YStart;
-                        yMin.YNormal = new Vector2(0f, _fillType > yMin.State ? -1f : 1f);
-                    }
-                    else
-                    {
-                        ValidateVerticalNormal(ref yMin, in yMax);
-                    }
-                }
             }
         }
 
