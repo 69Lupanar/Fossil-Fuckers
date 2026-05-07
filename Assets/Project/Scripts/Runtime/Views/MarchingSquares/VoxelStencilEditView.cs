@@ -134,7 +134,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                     stencil.Initialize(MaterialTypeIndex, (RadiusIndex + 0.5f) * voxelSize);
                     stencil.SetCenter(center.x, center.y);
 
-                    Grid.EditVoxels(stencil, transform.InverseTransformPoint(center));
+                    Grid.ApplyStencil(stencil, transform.InverseTransformPoint(center));
                 }
 
                 //center.x -= halfSize;

@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Unity.Mathematics;
+
 namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
 {
     /// <summary>
@@ -11,6 +14,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// Voxels
         /// </summary>
         public Voxel[] Voxels { get; private set; }
+
+        /// <summary>
+        /// Positions des voxels morts
+        /// </summary>
+        public List<float2> DeadPositions { get; private set; }
 
         /// <summary>
         /// Chunk voisin
@@ -39,12 +47,20 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         public VoxelChunk(int voxelResolution, float chunkSize)
         {
             Voxels = new Voxel[voxelResolution * voxelResolution];
+            DeadPositions = new List<float2>();
 
             for (int i = 0, y = 0; y < voxelResolution; ++y)
             {
                 for (int x = 0; x < voxelResolution; ++x, ++i)
                 {
                     Voxels[i] = new Voxel(x, y, chunkSize / voxelResolution);
+
+                    bool dead = x > voxelResolution / 2 && y > voxelResolution / 2;
+
+                    if (dead)
+                    {
+                        DeadPositions.Add(Voxels[i].Position);
+                    }
                 }
             }
         }

@@ -45,6 +45,13 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         private Color _filledVoxelColor = Color.black;
 
         /// <summary>
+        /// Couleur d'un voxel mort
+        /// </summary>
+        [SerializeField]
+        [Tooltip("Couleur d'un voxel mort")]
+        private Color _deadVoxelColor = new(255f, 0f, 255f);
+
+        /// <summary>
         /// Couleurs associées à chaque état possible de voxel (sauf vide)
         /// </summary>
         [SerializeField]
@@ -90,15 +97,23 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                             }
                             else
                             {
-                                Voxel voxel = _grid.Chunks[chunkIndex].Voxels[voxelIndex];
+                                VoxelChunk chunk = _grid.Chunks[chunkIndex];
+                                Voxel voxel = chunk.Voxels[voxelIndex];
 
-                                if (_useVoxelStateAsColors)
+                                if (chunk.DeadPositions.Contains(voxel.Position))
                                 {
-                                    Gizmos.color = _voxelStateColors[voxel.State];
+                                    Gizmos.color = _deadVoxelColor;
                                 }
                                 else
                                 {
-                                    Gizmos.color = voxel.Filled ? _filledVoxelColor : _emptyVoxelColor;
+                                    if (_useVoxelStateAsColors)
+                                    {
+                                        Gizmos.color = _voxelStateColors[voxel.State];
+                                    }
+                                    else
+                                    {
+                                        Gizmos.color = voxel.Filled ? _filledVoxelColor : _emptyVoxelColor;
+                                    }
                                 }
                             }
 

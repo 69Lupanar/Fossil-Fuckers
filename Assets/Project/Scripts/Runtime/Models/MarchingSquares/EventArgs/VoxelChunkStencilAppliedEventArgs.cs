@@ -1,4 +1,5 @@
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
+using Unity.Mathematics;
 
 namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs
 {
@@ -48,18 +49,15 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs
         /// </summary>
         /// <param name="stencil">La brosse</param>
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
-        /// <param name="xStart">Limite de la zone rectangulaire affectée par la brosse</param>
-        /// <param name="xEnd">Limite de la zone rectangulaire affectée par la brosse</param>
-        /// <param name="yStart">Limite de la zone rectangulaire affectée par la brosse</param>
-        /// <param name="yEnd">Limite de la zone rectangulaire affectée par la brosse</param>
-        public VoxelChunkStencilAppliedEventArgs(VoxelStencil stencil, int chunkIndex, int xStart, int xEnd, int yStart, int yEnd)
+        /// <param name="bounds">Limite de la zone rectangulaire affectée par la brosse</param>
+        public VoxelChunkStencilAppliedEventArgs(VoxelStencil stencil, int chunkIndex, int4 bounds)
         {
             Stencil = stencil;
             ChunkIndex = chunkIndex;
-            XStart = xStart;
-            XEnd = xEnd;
-            YStart = yStart;
-            YEnd = yEnd;
+            XStart = bounds.x;
+            XEnd = bounds.y;
+            YStart = bounds.z;
+            YEnd = bounds.w;
         }
 
         #endregion

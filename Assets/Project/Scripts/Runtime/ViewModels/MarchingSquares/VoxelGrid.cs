@@ -2,6 +2,7 @@
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
@@ -154,7 +155,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         /// <param name="stencil">La brosse active</param>
         /// <param name="center">Position du curseur</param>
-        public void EditVoxels(VoxelStencil stencil, Vector3 center)
+        public void ApplyStencil(VoxelStencil stencil, Vector3 center)
         {
             int xStart = Mathf.Max(0, (int)((stencil.XStart - _voxelSize) / _chunkSize));
             int xEnd = Mathf.Min((int)((stencil.XEnd + _voxelSize) / _chunkSize), ChunkResolution - 1);
@@ -168,7 +169,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                 for (int x = xEnd; x >= xStart; --x, --chunkIndex)
                 {
                     stencil.SetCenter(center.x - x * _chunkSize, center.y - y * _chunkSize);
-                    Apply(stencil, Chunks[chunkIndex], chunkIndex);
+                    Apply(stencil, Chunks[chunkIndex], chunkIndex, out int4 bounds);
+
+                    OnStencilApplied?.Invoke(this, new VoxelChunkStencilAppliedEventArgs(stencil, chunkIndex, bounds));
                 }
             }
         }
@@ -210,12 +213,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <param name="stencil">Brosse utilisée</param>
         /// <param name="chunk">Le chunk</param>
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
-        private void Apply(VoxelStencil stencil, VoxelChunk chunk, int chunkIndex)
+        private void Apply(VoxelStencil stencil, VoxelChunk chunk, int chunkIndex, out int4 bounds)
         {
             int xStart = Mathf.Max(0, (int)(stencil.XStart / _voxelSize));
             int xEnd = Mathf.Min((int)(stencil.XEnd / _voxelSize), VoxelResolution - 1);
             int yStart = Mathf.Max(0, (int)(stencil.YStart / _voxelSize));
             int yEnd = Mathf.Min((int)(stencil.YEnd / _voxelSize), VoxelResolution - 1);
+            bounds = new int4(xStart, xEnd, yStart, yEnd);
 
             // On traverse toute la zone rectangulaire englobant la brosse
             // pour modifier les voxels concernés
@@ -229,8 +233,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     stencil.Apply(ref chunk.Voxels[i]);
                 }
             }
-
-            OnStencilApplied?.Invoke(this, new VoxelChunkStencilAppliedEventArgs(stencil, chunkIndex, xStart, xEnd, yStart, yEnd));
         }
 
         #endregion
