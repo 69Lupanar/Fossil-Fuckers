@@ -76,8 +76,6 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         private void Awake()
         {
             _grid = FindAnyObjectByType<VoxelGrid>();
-            _grid.OnGridFilled += RefreshAllChunkMeshes;
-            _grid.OnChunksCreated += Initialize;
             _grid.OnStencilApplied += Apply;
         }
 
@@ -86,20 +84,42 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private void OnDestroy()
         {
-            _grid.OnGridFilled -= RefreshAllChunkMeshes;
-            _grid.OnChunksCreated -= Initialize;
             _grid.OnStencilApplied -= Apply;
         }
 
         #endregion
 
-        #region Méthodes privées
+        #region Méthodes publiques
+
+        /// <summary>
+        /// Crée les renderers pour les surfaces et murs
+        /// </summary>
+        /// <param name="e">Données de l'événement</param>
+        public void Initialize(Vector3[] chunkPositions)
+        {
+            _voxelResolution = _grid.VoxelResolution;
+            _chunkSize = _grid.GridSize / _grid.ChunkResolution;
+            _cells = new VoxelCell[chunkPositions.Length];
+            _dummyXs = new Voxel[chunkPositions.Length];
+            _dummyYs = new Voxel[chunkPositions.Length];
+            _dummyTs = new Voxel[chunkPositions.Length];
+            _renderers = new VoxelRenderer[chunkPositions.Length][];
+
+            for (int i = 0; i < chunkPositions.Length; ++i)
+            {
+                _cells[i] = new VoxelCell(Mathf.Cos(_grid.MaxFeatureAngle * Mathf.Deg2Rad), Mathf.Cos(_grid.MaxParallelAngle * Mathf.Deg2Rad));
+                _dummyXs[i] = new Voxel();
+                _dummyYs[i] = new Voxel();
+                _dummyTs[i] = new Voxel();
+
+                CreateRenderers(chunkPositions[i], i);
+            }
+        }
 
         /// <summary>
         /// Màj les meshs de tous les chunks
         /// </summary>
-        /// <param name="e">Données de l'événement</param>
-        private void RefreshAllChunkMeshes(object _, VoxelGridFilledEventArgs e)
+        public void Fill()
         {
             for (int i = 0; i < _grid.Chunks.Length; ++i)
             {
@@ -107,30 +127,9 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             }
         }
 
-        /// <summary>
-        /// Crée les renderers pour les surfaces et murs
-        /// </summary>
-        /// <param name="e">Données de l'événement</param>
-        private void Initialize(object _, VoxelChunkInitializedEventArgs e)
-        {
-            _voxelResolution = e.VoxelResolution;
-            _chunkSize = e.ChunkSize;
-            _cells = new VoxelCell[e.ChunkPositions.Length];
-            _dummyXs = new Voxel[e.ChunkPositions.Length];
-            _dummyYs = new Voxel[e.ChunkPositions.Length];
-            _dummyTs = new Voxel[e.ChunkPositions.Length];
-            _renderers = new VoxelRenderer[e.ChunkPositions.Length][];
+        #endregion
 
-            for (int i = 0; i < e.ChunkPositions.Length; ++i)
-            {
-                _cells[i] = new VoxelCell(Mathf.Cos(e.MaxFeatureAngle * Mathf.Deg2Rad), Mathf.Cos(e.MaxParallelAngle * Mathf.Deg2Rad));
-                _dummyXs[i] = new Voxel();
-                _dummyYs[i] = new Voxel();
-                _dummyTs[i] = new Voxel();
-
-                CreateRenderers(e.ChunkPositions[i], i);
-            }
-        }
+        #region Méthodes privées
 
         /// <summary>
         /// Applique le stencil au mesh

@@ -13,12 +13,6 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         #region Variables Unity
 
         /// <summary>
-        /// Grille des voxels
-        /// </summary>
-        [field: SerializeField, Tooltip("Grille des voxels")]
-        private VoxelGrid Grid { get; set; }
-
-        /// <summary>
         /// La couleur/material de remplissage de la brosse active
         /// </summary>
         [field: SerializeField, Tooltip("La couleur/material de remplissage de la brosse active")]
@@ -71,6 +65,16 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         #region Variables d'instance
 
         /// <summary>
+        /// Grille des voxels
+        /// </summary>
+        private VoxelGrid _grid;
+
+        /// <summary>
+        /// Le renderer
+        /// </summary>
+        private VoxelGridMeshRendererView _renderer;
+
+        /// <summary>
         /// Brosses
         /// </summary>
         private readonly VoxelStencil[] _stencils = { new VoxelStencilSquare(), new VoxelStencilCircle() };
@@ -78,6 +82,24 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         #endregion
 
         #region Méthodes Unity
+
+        /// <summary>
+        /// init
+        /// </summary>
+        private void Awake()
+        {
+            _grid = GetComponent<VoxelGrid>();
+            _renderer = GetComponent<VoxelGridMeshRendererView>();
+        }
+
+        /// <summary>
+        /// init
+        /// </summary>
+        private void Start()
+        {
+            _grid.CreateGrid(out Vector3[] chunkPositions);
+            _renderer.Initialize(chunkPositions);
+        }
 
         /// <summary>
         /// UI
@@ -94,7 +116,8 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
             if (GUILayout.Button("Fill Grid with current Material"))
             {
-                Grid.Fill(MaterialTypeIndex);
+                _grid.Fill(MaterialTypeIndex);
+                _renderer.Fill();
             }
 
             GUILayout.EndArea();
@@ -111,8 +134,8 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 return;
 
             //float halfSize = _grid.MapSize * 0.5f;
-            float chunkSize = Grid.GridSize / Grid.ChunkResolution;
-            float voxelSize = chunkSize / Grid.VoxelResolution;
+            float chunkSize = _grid.GridSize / _grid.ChunkResolution;
+            float voxelSize = chunkSize / _grid.VoxelResolution;
             Transform visualization = StencilVisualizations[StencilIndex - 1];
 
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo) &&
@@ -134,7 +157,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                     stencil.Initialize(MaterialTypeIndex, (RadiusIndex + 0.5f) * voxelSize);
                     stencil.SetCenter(center.x, center.y);
 
-                    Grid.ApplyStencil(stencil, transform.InverseTransformPoint(center));
+                    _grid.ApplyStencil(stencil, transform.InverseTransformPoint(center));
                 }
 
                 //center.x -= halfSize;

@@ -16,16 +16,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         #region Evénements
 
         /// <summary>
-        /// Appelé quand la grille est entièremen remplie d'un seul coup
-        /// </summary>
-        public EventHandler<VoxelGridFilledEventArgs> OnGridFilled { get; set; }
-
-        /// <summary>
-        /// Appelé une fois les chunks créés
-        /// </summary>
-        public EventHandler<VoxelChunkInitializedEventArgs> OnChunksCreated { get; set; }
-
-        /// <summary>
         /// Appelé après l'application d'un stencil sur le chunk
         /// </summary>
         public EventHandler<VoxelChunkStencilAppliedEventArgs> OnStencilApplied { get; set; }
@@ -100,19 +90,20 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         #endregion
 
-        #region Méthodes Unity
+        #region Méthodes publiques
 
         /// <summary>
-        /// init
+        /// Crée les chunks de la grille
         /// </summary>
-        private void Start()
+        /// <param name="chunkPositions">Positions de chaque chunk</param>
+        public void CreateGrid(out Vector3[] chunkPositions)
         {
             _halfSize = GridSize * 0.5f;
             _chunkSize = GridSize / ChunkResolution;
             _voxelSize = _chunkSize / VoxelResolution;
             Chunks = new VoxelChunk[ChunkResolution * ChunkResolution];
 
-            Vector3[] chunkPositions = new Vector3[ChunkResolution * ChunkResolution];
+            chunkPositions = new Vector3[ChunkResolution * ChunkResolution];
             BoxCollider box = gameObject.AddComponent<BoxCollider>();
             box.size = new Vector3(GridSize, GridSize);
             box.center = new Vector3(_halfSize, _halfSize);
@@ -121,17 +112,27 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             {
                 for (int x = 0; x < ChunkResolution; ++x, ++i)
                 {
-                    Chunks[i] = CreateChunk(i, x, y);
+                    VoxelChunk chunk = new(VoxelResolution, _chunkSize);
+
+                    if (x > 0)
+                    {
+                        Chunks[i - 1].XNeighbor = chunk;
+                    }
+                    if (y > 0)
+                    {
+                        Chunks[i - ChunkResolution].YNeighbor = chunk;
+
+                        if (x > 0)
+                        {
+                            Chunks[i - ChunkResolution - 1].XYNeighbor = chunk;
+                        }
+                    }
+
+                    Chunks[i] = chunk;
                     chunkPositions[i] = new Vector3(x * _chunkSize/* - halfSize*/, y * _chunkSize/* - halfSize*/);
                 }
             }
-
-            OnChunksCreated?.Invoke(this, new VoxelChunkInitializedEventArgs(chunkPositions, VoxelResolution, _chunkSize, MaxFeatureAngle, MaxParallelAngle));
         }
-
-        #endregion
-
-        #region Méthodes publiques
 
         /// <summary>
         /// Remplit la grille entière avec le type de material renseigné
@@ -146,8 +147,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     Chunks[i].Voxels[j].State = voxelState;
                 }
             }
-
-            OnGridFilled?.Invoke(this, null);
         }
 
         /// <summary>
@@ -176,36 +175,37 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
+        /// <summary>
+        /// Màj l'état des voxels affectéspar la brosse active
+        /// </summary>
+        /// <param name="stencil">Brosse utilisée</param>
+        /// <param name="chunk">Le chunk</param>
+        /// <param name="bounds">Limite de la zone rectangulaire affectée par la brosse</param>
+        public void ApplyStencil(VoxelStencil stencil, VoxelChunk chunk, out int4 bounds)
+        {
+            int xStart = Mathf.Max(0, (int)(stencil.XStart / _voxelSize));
+            int xEnd = Mathf.Min((int)(stencil.XEnd / _voxelSize), VoxelResolution - 1);
+            int yStart = Mathf.Max(0, (int)(stencil.YStart / _voxelSize));
+            int yEnd = Mathf.Min((int)(stencil.YEnd / _voxelSize), VoxelResolution - 1);
+            bounds = new int4(xStart, xEnd, yStart, yEnd);
+
+            // On traverse toute la zone rectangulaire englobant la brosse
+            // pour modifier les voxels concernés
+
+            for (int y = yStart; y <= yEnd; ++y)
+            {
+                int i = y * VoxelResolution + xStart;
+
+                for (int x = xStart; x <= xEnd; ++x, ++i)
+                {
+                    stencil.Apply(ref chunk.Voxels[i]);
+                }
+            }
+        }
+
         #endregion
 
         #region Méthodes privées
-
-        /// <summary>
-        /// Crée un chunk à partir des coordonnées renseignées
-        /// </summary>
-        /// <param name="i">Index du chunk dans la grille</param>
-        /// <param name="x">Position X</param>
-        /// <param name="y">Position Y</param>
-        private VoxelChunk CreateChunk(int i, int x, int y)
-        {
-            VoxelChunk chunk = new(VoxelResolution, _chunkSize);
-
-            if (x > 0)
-            {
-                Chunks[i - 1].XNeighbor = chunk;
-            }
-            if (y > 0)
-            {
-                Chunks[i - ChunkResolution].YNeighbor = chunk;
-
-                if (x > 0)
-                {
-                    Chunks[i - ChunkResolution - 1].XYNeighbor = chunk;
-                }
-            }
-
-            return chunk;
-        }
 
         /// <summary>
         /// Màj l'état des voxels affectéspar la brosse active
