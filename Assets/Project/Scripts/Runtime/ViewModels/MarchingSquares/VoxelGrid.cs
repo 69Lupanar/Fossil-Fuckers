@@ -71,13 +71,13 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// Angle max d'une section du mesh qui peut apparaître
         /// </summary>
         [field: SerializeField, Tooltip("Angle max d'une section du mesh qui peut apparaître")]
-        private float MaxFeatureAngle { get; set; } = 135f;
+        public float MaxFeatureAngle { get; private set; } = 135f;
 
         /// <summary>
         /// Angle max d'une section du mesh qui peut apparaître
         /// </summary>
         [field: SerializeField, Tooltip("Angle max d'une section du mesh qui peut apparaître")]
-        private float MaxParallelAngle { get; set; } = 5f;
+        public float MaxParallelAngle { get; private set; } = 5f;
 
         #endregion
 

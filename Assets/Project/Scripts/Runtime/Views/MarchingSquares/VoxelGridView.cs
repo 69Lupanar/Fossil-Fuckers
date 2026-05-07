@@ -8,7 +8,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
     /// Interface permettant d'éditer les propriétés
     /// de la brosse utilisée par le VoxelMap
     /// </summary>
-    public class VoxelStencilEditView : MonoBehaviour
+    public class VoxelGridView : MonoBehaviour
     {
         #region Variables Unity
 
