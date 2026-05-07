@@ -1,6 +1,5 @@
 ﻿using System;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
-using Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
 using Unity.Mathematics;
 using UnityEngine;
@@ -13,15 +12,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
     [SelectionBase]
     public class VoxelGrid : MonoBehaviour
     {
-        #region Evénements
-
-        /// <summary>
-        /// Appelé après l'application d'un stencil sur le chunk
-        /// </summary>
-        public EventHandler<VoxelChunkStencilAppliedEventArgs> OnStencilApplied { get; set; }
-
-        #endregion
-
         #region Propriétés
 
         /// <summary>
@@ -150,70 +140,12 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         }
 
         /// <summary>
-        /// Màj l'état des voxels affectéspar la brosse active
-        /// </summary>
-        /// <param name="stencil">La brosse active</param>
-        /// <param name="center">Position du curseur</param>
-        public void ApplyStencil(VoxelStencil stencil, Vector3 center)
-        {
-            int xStart = Mathf.Max(0, (int)((stencil.XStart - _voxelSize) / _chunkSize));
-            int xEnd = Mathf.Min((int)((stencil.XEnd + _voxelSize) / _chunkSize), ChunkResolution - 1);
-            int yStart = Mathf.Max(0, (int)((stencil.YStart - _voxelSize) / _chunkSize));
-            int yEnd = Mathf.Min((int)((stencil.YEnd + _voxelSize) / _chunkSize), ChunkResolution - 1);
-
-            for (int y = yEnd; y >= yStart; --y)
-            {
-                int chunkIndex = y * ChunkResolution + xEnd;
-
-                for (int x = xEnd; x >= xStart; --x, --chunkIndex)
-                {
-                    stencil.SetCenter(center.x - x * _chunkSize, center.y - y * _chunkSize);
-                    Apply(stencil, Chunks[chunkIndex], chunkIndex, out int4 bounds);
-
-                    OnStencilApplied?.Invoke(this, new VoxelChunkStencilAppliedEventArgs(stencil, chunkIndex, bounds));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Màj l'état des voxels affectéspar la brosse active
+        /// Màj l'état des voxels affectés par la brosse active
         /// </summary>
         /// <param name="stencil">Brosse utilisée</param>
         /// <param name="chunk">Le chunk</param>
         /// <param name="bounds">Limite de la zone rectangulaire affectée par la brosse</param>
         public void ApplyStencil(VoxelStencil stencil, VoxelChunk chunk, out int4 bounds)
-        {
-            int xStart = Mathf.Max(0, (int)(stencil.XStart / _voxelSize));
-            int xEnd = Mathf.Min((int)(stencil.XEnd / _voxelSize), VoxelResolution - 1);
-            int yStart = Mathf.Max(0, (int)(stencil.YStart / _voxelSize));
-            int yEnd = Mathf.Min((int)(stencil.YEnd / _voxelSize), VoxelResolution - 1);
-            bounds = new int4(xStart, xEnd, yStart, yEnd);
-
-            // On traverse toute la zone rectangulaire englobant la brosse
-            // pour modifier les voxels concernés
-
-            for (int y = yStart; y <= yEnd; ++y)
-            {
-                int i = y * VoxelResolution + xStart;
-
-                for (int x = xStart; x <= xEnd; ++x, ++i)
-                {
-                    stencil.Apply(ref chunk.Voxels[i]);
-                }
-            }
-        }
-
-        #endregion
-
-        #region Méthodes privées
-
-        /// <summary>
-        /// Màj l'état des voxels affectéspar la brosse active
-        /// </summary>
-        /// <param name="stencil">Brosse utilisée</param>
-        /// <param name="chunk">Le chunk</param>
-        /// <param name="chunkIndex">Index du chunk dans la grille</param>
-        private void Apply(VoxelStencil stencil, VoxelChunk chunk, int chunkIndex, out int4 bounds)
         {
             int xStart = Mathf.Max(0, (int)(stencil.XStart / _voxelSize));
             int xEnd = Mathf.Min((int)(stencil.XEnd / _voxelSize), VoxelResolution - 1);

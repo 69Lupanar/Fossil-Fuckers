@@ -1,5 +1,4 @@
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
-using Assets.Project.Scripts.Runtime.Models.MarchingSquares.EventArgs;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
 using Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares;
 using Unity.Mathematics;
@@ -76,15 +75,6 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         private void Awake()
         {
             _grid = FindAnyObjectByType<VoxelGrid>();
-            _grid.OnStencilApplied += Apply;
-        }
-
-        /// <summary>
-        /// nettoyage
-        /// </summary>
-        private void OnDestroy()
-        {
-            _grid.OnStencilApplied -= Apply;
         }
 
         #endregion
@@ -112,7 +102,22 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 _dummyYs[i] = new Voxel();
                 _dummyTs[i] = new Voxel();
 
-                CreateRenderers(chunkPositions[i], i);
+                // On crée un Renderer de plus que nécessaire
+                // pour pouvoir utiliser directement l'état de voxel comme index.
+                // Ca nous éviter de soustraire 1 à chaque fois.
+
+                _renderers[i] = new VoxelRenderer[Materials.Length + 1];
+
+                for (int j = 0; j < Materials.Length; ++j)
+                {
+                    VoxelChunkSurface surface = Instantiate(SurfacePrefab, chunkPositions[i], Quaternion.identity, transform);
+                    surface.Initialize(_voxelResolution, Materials[j].surfaceMaterial);
+
+                    VoxelChunkWall wall = Instantiate(WallPrefab, chunkPositions[i], Quaternion.identity, transform);
+                    wall.Initialize(_voxelResolution, Materials[j].wallMaterial);
+
+                    _renderers[i][j + 1] = new VoxelRenderer(surface, wall);
+                }
             }
         }
 
@@ -127,58 +132,19 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             }
         }
 
-        #endregion
-
-        #region Méthodes privées
-
-        /// <summary>
-        /// Applique le stencil au mesh
-        /// </summary>
-        /// <param name="e">Données de l'événement</param>
-        private void Apply(object _, VoxelChunkStencilAppliedEventArgs e)
-        {
-            VoxelChunk chunk = _grid.Chunks[e.ChunkIndex];
-            SetCrossings(chunk, e.Stencil, e.ChunkIndex, e.XStart, e.XEnd, e.YStart, e.YEnd);
-            Refresh(chunk, e.ChunkIndex);
-        }
-
-        /// <summary>
-        /// Crée les renderers pour les surfaces et murs
-        /// </summary>
-        /// <param name="chunkPos">Position du chunk</param>
-        /// <param name="chunkIndex">Index du chunk dans la grille</param>
-        private void CreateRenderers(Vector3 chunkPos, int chunkIndex)
-        {
-            // On crée un Renderer de plus que nécessaire
-            // pour pouvoir utiliser directement l'état de voxel comme index.
-            // Ca nous éviter de soustraire 1 à chaque fois.
-
-            _renderers[chunkIndex] = new VoxelRenderer[Materials.Length + 1];
-
-            for (int i = 0; i < Materials.Length; ++i)
-            {
-                VoxelChunkSurface surface = Instantiate(SurfacePrefab, chunkPos, Quaternion.identity, transform);
-                surface.Initialize(_voxelResolution, Materials[i].surfaceMaterial);
-
-                VoxelChunkWall wall = Instantiate(WallPrefab, chunkPos, Quaternion.identity, transform);
-                wall.Initialize(_voxelResolution, Materials[i].wallMaterial);
-
-                _renderers[chunkIndex][i + 1] = new VoxelRenderer(surface, wall);
-            }
-        }
-
         /// <summary>
         /// Calcule les intersections
         /// </summary>
-        /// <param name="chunk">Le chunk affecté</param>
         /// <param name="stencil">La brosse</param>
+        /// <param name="chunk">Le chunk affecté</param>
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
-        /// <param name="xStart">Limite de la zone rectangulaire affectée par la brosse</param>
-        /// <param name="xEnd">Limite de la zone rectangulaire affectée par la brosse</param>
-        /// <param name="yStart">Limite de la zone rectangulaire affectée par la brosse</param>
-        /// <param name="yEnd">Limite de la zone rectangulaire affectée par la brosse</param>
-        private void SetCrossings(VoxelChunk chunk, VoxelStencil stencil, int chunkIndex, int xStart, int xEnd, int yStart, int yEnd)
+        /// <param name="bounds">Limite de la zone rectangulaire affectée par la brosse</param>
+        public void SetCrossings(VoxelStencil stencil, VoxelChunk chunk, int chunkIndex, int4 bounds)
         {
+            int xStart = bounds.x;
+            int xEnd = bounds.y;
+            int yStart = bounds.z;
+            int yEnd = bounds.w;
             bool crossHorizontalGap = false;
             bool includeLastVerticalRow = false;
             bool crossVerticalGap = false;
@@ -261,10 +227,14 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         /// <param name="chunk">Le chunk</param>
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
-        private void Refresh(VoxelChunk chunk, int chunkIndex)
+        public void Refresh(VoxelChunk chunk, int chunkIndex)
         {
             Triangulate(chunk, chunkIndex);
         }
+
+        #endregion
+
+        #region Méthodes privées
 
         #region Triangulation
 

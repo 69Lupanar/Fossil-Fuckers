@@ -1,5 +1,8 @@
+using System.Collections.Generic;
+using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
 using Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
@@ -79,6 +82,31 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private readonly VoxelStencil[] _stencils = { new VoxelStencilSquare(), new VoxelStencilCircle() };
 
+        /// <summary>
+        /// Taille d'un chunk
+        /// </summary>
+        private float _chunkSize;
+
+        /// <summary>
+        /// Taille d'un voxel
+        /// </summary>
+        private float _voxelSize;
+
+        /// <summary>
+        /// Moitié de la taille de la grille
+        /// </summary>
+        private float _halfSize;
+
+        /// <summary>
+        /// Chunks à màj après l'application d'un stencil
+        /// </summary>
+        private List<VoxelChunk> _chunksToRefresh = new();
+
+        /// <summary>
+        /// Chunks à màj après l'application d'un stencil
+        /// </summary>
+        private List<int> _chunksIDsToRefresh = new();
+
         #endregion
 
         #region Méthodes Unity
@@ -97,6 +125,9 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private void Start()
         {
+            _halfSize = _grid.GridSize * 0.5f;
+            _chunkSize = _grid.GridSize / _grid.ChunkResolution;
+            _voxelSize = _chunkSize / _grid.VoxelResolution;
             _grid.CreateGrid(out Vector3[] chunkPositions);
             _renderer.Initialize(chunkPositions);
         }
@@ -133,42 +164,82 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             if (StencilIndex == 0)
                 return;
 
-            //float halfSize = _grid.MapSize * 0.5f;
-            float chunkSize = _grid.GridSize / _grid.ChunkResolution;
-            float voxelSize = chunkSize / _grid.VoxelResolution;
             Transform visualization = StencilVisualizations[StencilIndex - 1];
 
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo) &&
                 hitInfo.collider.gameObject == gameObject)
             {
                 Vector2 center = transform.InverseTransformPoint(hitInfo.point);
-                //center.x += halfSize;
-                //center.y += halfSize;
+                //center.x += _halfSize;
+                //center.y += _halfSize;
 
                 if (SnapToGrid)
                 {
-                    center.x = ((int)(center.x / voxelSize) + 0.5f) * voxelSize;
-                    center.y = ((int)(center.y / voxelSize) + 0.5f) * voxelSize;
+                    center.x = ((int)(center.x / _voxelSize) + 0.5f) * _voxelSize;
+                    center.y = ((int)(center.y / _voxelSize) + 0.5f) * _voxelSize;
                 }
 
                 if (Input.GetMouseButton(0))
                 {
                     VoxelStencil stencil = _stencils[StencilIndex - 1];
-                    stencil.Initialize(MaterialTypeIndex, (RadiusIndex + 0.5f) * voxelSize);
+                    stencil.Initialize(MaterialTypeIndex, (RadiusIndex + 0.5f) * _voxelSize);
                     stencil.SetCenter(center.x, center.y);
 
-                    _grid.ApplyStencil(stencil, transform.InverseTransformPoint(center));
+                    ApplyStencil(stencil, transform.InverseTransformPoint(center));
                 }
 
-                //center.x -= halfSize;
-                //center.y -= halfSize;
+                //center.x -= _halfSize;
+                //center.y -= _halfSize;
                 visualization.localPosition = center;
-                visualization.localScale = Vector3.one * ((RadiusIndex + 0.5f) * voxelSize * 2f);
+                visualization.localScale = Vector3.one * ((RadiusIndex + 0.5f) * _voxelSize * 2f);
                 visualization.gameObject.SetActive(true);
             }
             else
             {
                 visualization.gameObject.SetActive(false);
+            }
+        }
+
+        #endregion
+
+        #region Méthodes privées
+
+        /// <summary>
+        /// Màj l'état des voxels affectés par la brosse active
+        /// </summary>
+        /// <param name="stencil">La brosse active</param>
+        /// <param name="center">Position du curseur</param>
+        public void ApplyStencil(VoxelStencil stencil, Vector3 center)
+        {
+            int xStart = Mathf.Max(0, (int)((stencil.XStart - _voxelSize) / _chunkSize));
+            int xEnd = Mathf.Min((int)((stencil.XEnd + _voxelSize) / _chunkSize), _grid.ChunkResolution - 1);
+            int yStart = Mathf.Max(0, (int)((stencil.YStart - _voxelSize) / _chunkSize));
+            int yEnd = Mathf.Min((int)((stencil.YEnd + _voxelSize) / _chunkSize), _grid.ChunkResolution - 1);
+            _chunksToRefresh.Clear();
+            _chunksIDsToRefresh.Clear();
+
+            for (int y = yEnd; y >= yStart; --y)
+            {
+                int chunkIndex = y * _grid.ChunkResolution + xEnd;
+
+                for (int x = xEnd; x >= xStart; --x, --chunkIndex)
+                {
+                    VoxelChunk chunk = _grid.Chunks[chunkIndex];
+                    stencil.SetCenter(center.x - x * _chunkSize, center.y - y * _chunkSize);
+                    _grid.ApplyStencil(stencil, chunk, out int4 bounds);
+                    _renderer.SetCrossings(stencil, chunk, chunkIndex, bounds);
+
+                    if (!_chunksIDsToRefresh.Contains(chunkIndex))
+                    {
+                        _chunksToRefresh.Add(chunk);
+                        _chunksIDsToRefresh.Add(chunkIndex);
+                    }
+                }
+            }
+
+            for (int i = 0; i < _chunksIDsToRefresh.Count; ++i)
+            {
+                _renderer.Refresh(_chunksToRefresh[i], _chunksIDsToRefresh[i]);
             }
         }
 
