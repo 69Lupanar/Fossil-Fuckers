@@ -54,13 +54,6 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
                 for (int x = 0; x < voxelResolution; ++x, ++i)
                 {
                     Voxels[i] = new Voxel(x, y, chunkSize / voxelResolution);
-
-                    bool dead = x > voxelResolution / 2 && y > voxelResolution / 2;
-
-                    if (dead)
-                    {
-                        DeadPositions.Add(Voxels[i].Position);
-                    }
                 }
             }
         }

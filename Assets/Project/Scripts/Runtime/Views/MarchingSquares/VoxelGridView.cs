@@ -148,6 +148,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             if (GUILayout.Button("Fill Grid with current Material"))
             {
                 _grid.Fill(MaterialTypeIndex);
+                EmptyAllDeadCells();
                 _renderer.Fill();
             }
 
@@ -237,9 +238,45 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 }
             }
 
+            VoxelStencil deadStencil = new VoxelStencilSquare();
+            deadStencil.Initialize(0, 0.5f * _voxelSize);
+
             for (int i = 0; i < _chunksIDsToRefresh.Count; ++i)
             {
+                EmptyDeadCellsInChunk(deadStencil, _chunksToRefresh[i], _chunksIDsToRefresh[i]);
                 _renderer.Refresh(_chunksToRefresh[i], _chunksIDsToRefresh[i]);
+            }
+        }
+
+        /// <summary>
+        /// Vide les voxels morts
+        /// </summary>
+        private void EmptyAllDeadCells()
+        {
+            VoxelStencil stencil = new VoxelStencilSquare();
+            stencil.Initialize(0, 0.5f * _voxelSize);
+
+            for (int chunkIndex = 0, y = 0; y < _grid.ChunkResolution; ++y)
+            {
+                for (int x = 0; x < _grid.ChunkResolution; ++x, ++chunkIndex)
+                {
+                    VoxelChunk chunk = _grid.Chunks[chunkIndex];
+                    EmptyDeadCellsInChunk(stencil, chunk, chunkIndex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Vide les voxels morts
+        /// </summary>
+        private void EmptyDeadCellsInChunk(VoxelStencil deadStencil, VoxelChunk chunk, int chunkIndex)
+        {
+            foreach (float2 pos in chunk.DeadPositions)
+            {
+                Vector3 center = new(pos.x, pos.y);
+                deadStencil.SetCenter(center.x, center.y);
+                _grid.ApplyStencil(deadStencil, chunk, out int4 bounds);
+                _renderer.SetCrossings(deadStencil, chunk, chunkIndex, bounds);
             }
         }
 

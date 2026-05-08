@@ -119,7 +119,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     }
 
                     Chunks[i] = chunk;
-                    chunkPositions[i] = new Vector3(x * _chunkSize/* - halfSize*/, y * _chunkSize/* - halfSize*/);
+                    chunkPositions[i] = new Vector3(x * _chunkSize/* - _halfSize*/, y * _chunkSize/* - _halfSize*/);
                 }
             }
         }
