@@ -1,4 +1,7 @@
 using System;
+using System.Runtime.CompilerServices;
+using Unity.Burst;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
@@ -13,23 +16,65 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
 
         public readonly Vector2 AverageNESW => (A.XEdgePoint + A.YEdgePoint + B.YEdgePoint + C.XEdgePoint) * 0.25f;
 
-        public readonly FeaturePoint FeatureSW => GetSharpFeature(A.XEdgePoint, A.XNormal, A.YEdgePoint, A.YNormal);
-
-        public readonly FeaturePoint FeatureSE => GetSharpFeature(A.XEdgePoint, A.XNormal, B.YEdgePoint, B.YNormal);
-
-        public readonly FeaturePoint FeatureNW => GetSharpFeature(A.YEdgePoint, A.YNormal, C.XEdgePoint, C.XNormal);
-
-        public readonly FeaturePoint FeatureNE => GetSharpFeature(C.XEdgePoint, C.XNormal, B.YEdgePoint, B.YNormal);
-
-        public readonly FeaturePoint FeatureNS => GetSharpFeature(A.XEdgePoint, A.XNormal, C.XEdgePoint, C.XNormal);
-
-        public readonly FeaturePoint FeatureEW => GetSharpFeature(A.YEdgePoint, A.YNormal, B.YEdgePoint, B.YNormal);
-
-        public FeaturePoint FeatureNEW
+        public readonly FeaturePoint FeatureSW
         {
             get
             {
-                FeaturePoint f = FeaturePoint.Average(FeatureEW, FeatureNE, FeatureNW);
+                GetSharpFeature(A.XEdgePoint, A.XNormal, A.YEdgePoint, A.YNormal, out FeaturePoint f);
+                return f;
+            }
+        }
+
+        public readonly FeaturePoint FeatureSE
+        {
+            get
+            {
+                GetSharpFeature(A.XEdgePoint, A.XNormal, B.YEdgePoint, B.YNormal, out FeaturePoint f);
+                return f;
+            }
+        }
+
+        public readonly FeaturePoint FeatureNW
+        {
+            get
+            {
+                GetSharpFeature(A.YEdgePoint, A.YNormal, C.XEdgePoint, C.XNormal, out FeaturePoint f);
+                return f;
+            }
+        }
+
+        public readonly FeaturePoint FeatureNE
+        {
+            get
+            {
+                GetSharpFeature(C.XEdgePoint, C.XNormal, B.YEdgePoint, B.YNormal, out FeaturePoint f);
+                return f;
+            }
+        }
+
+        public readonly FeaturePoint FeatureNS
+        {
+            get
+            {
+                GetSharpFeature(A.XEdgePoint, A.XNormal, C.XEdgePoint, C.XNormal, out FeaturePoint f);
+                return f;
+            }
+        }
+
+        public readonly FeaturePoint FeatureEW
+        {
+            get
+            {
+                GetSharpFeature(A.YEdgePoint, A.YNormal, B.YEdgePoint, B.YNormal, out FeaturePoint f);
+                return f;
+            }
+        }
+
+        public readonly FeaturePoint FeatureNEW
+        {
+            get
+            {
+                FeaturePoint.Average(FeatureEW, FeatureNE, FeatureNW, out FeaturePoint f);
 
                 if (!f.Exists)
                     f = new FeaturePoint((A.YEdgePoint + B.YEdgePoint + C.XEdgePoint) / 3f, true);
@@ -38,11 +83,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
             }
         }
 
-        public FeaturePoint FeatureNSE
+        public readonly FeaturePoint FeatureNSE
         {
             get
             {
-                FeaturePoint f = FeaturePoint.Average(FeatureNS, FeatureSE, FeatureNE);
+                FeaturePoint.Average(FeatureNS, FeatureSE, FeatureNE, out FeaturePoint f);
 
                 if (!f.Exists)
                     f = new FeaturePoint((A.XEdgePoint + B.YEdgePoint + C.XEdgePoint) / 3f, true);
@@ -51,11 +96,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
             }
         }
 
-        public FeaturePoint FeatureNSW
+        public readonly FeaturePoint FeatureNSW
         {
             get
             {
-                FeaturePoint f = FeaturePoint.Average(FeatureNS, FeatureNW, FeatureSW);
+                FeaturePoint.Average(FeatureNS, FeatureNW, FeatureSW, out FeaturePoint f);
 
                 if (!f.Exists)
                     f = new FeaturePoint((A.XEdgePoint + A.YEdgePoint + C.XEdgePoint) / 3f, true);
@@ -64,11 +109,11 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
             }
         }
 
-        public FeaturePoint FeatureSEW
+        public readonly FeaturePoint FeatureSEW
         {
             get
             {
-                FeaturePoint f = FeaturePoint.Average(FeatureEW, FeatureSE, FeatureSW);
+                FeaturePoint.Average(FeatureEW, FeatureSE, FeatureSW, out FeaturePoint f);
 
                 if (!f.Exists)
                     f = new FeaturePoint((A.XEdgePoint + A.YEdgePoint + B.YEdgePoint) / 3f, true);
@@ -80,12 +125,12 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <summary>
         /// Cosinus de la limite autorisée pour un angle d'une section du mesh
         /// </summary>
-        public float SharpFeatureLimit { get; set; }
+        public readonly float SharpFeatureLimit { get; }
 
         /// <summary>
         /// Cosinus de la limite autorisée pour un angle d'une section du mesh
         /// </summary>
-        public float ParallelLimit { get; set; }
+        public readonly float ParallelLimit { get; }
 
         /// <summary>
         /// Index
@@ -144,7 +189,8 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// <param name="b">Voxel d'un des 4 coins de la cellule</param>
         /// <param name="c">Voxel d'un des 4 coins de la cellule</param>
         /// <param name="d">Voxel d'un des 4 coins de la cellule</param>
-        public void SetData(int i, Voxel a, Voxel b, Voxel c, Voxel d)
+        [BurstCompile]
+        public void SetData(int i, in Voxel a, in Voxel b, in Voxel c, in Voxel d)
         {
             I = i;
             A = a;
@@ -153,7 +199,8 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
             D = d;
         }
 
-        public readonly bool HasConnectionAD(FeaturePoint fA, FeaturePoint fD)
+        [BurstCompile]
+        public readonly bool HasConnectionAD(in FeaturePoint fA, in FeaturePoint fD)
         {
             bool flip = A.State < B.State == A.State < C.State;
             if (
@@ -187,7 +234,8 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
                 IsBelowLine(fD.Position, A.YEdgePoint, A.XEdgePoint);
         }
 
-        public readonly bool HasConnectionBC(FeaturePoint fB, FeaturePoint fC)
+        [BurstCompile]
+        public readonly bool HasConnectionBC(in FeaturePoint fB, in FeaturePoint fC)
         {
             bool flip = B.State < A.State == B.State < D.State;
             if (
@@ -221,22 +269,30 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
                 IsBelowLine(fC.Position, A.XEdgePoint, B.YEdgePoint);
         }
 
-        public readonly bool IsInsideABD(Vector2 point)
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool IsInsideABD(float2 point)
         {
             return IsBelowLine(point, A.Position, D.Position);
         }
 
-        public readonly bool IsInsideACD(Vector2 point)
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool IsInsideACD(float2 point)
         {
             return IsBelowLine(point, D.Position, A.Position);
         }
 
-        public readonly bool IsInsideABC(Vector2 point)
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool IsInsideABC(float2 point)
         {
             return IsBelowLine(point, C.Position, B.Position);
         }
 
-        public readonly bool IsInsideBCD(Vector2 point)
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool IsInsideBCD(float2 point)
         {
             return IsBelowLine(point, B.Position, C.Position);
         }
@@ -245,43 +301,54 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
 
         #region Méthodes privées
 
-        private readonly bool IsBelowLine(Vector2 p, Vector2 start, Vector2 end)
+        [BurstCompile]
+        private readonly void GetSharpFeature(float2 p1, float2 n1, float2 p2, float2 n2, out FeaturePoint sharpFeature)
+        {
+            if (IsSharpFeature(n1, n2))
+            {
+                float2 pos = GetIntersection(p1, n1, p2, n2);
+                sharpFeature = new FeaturePoint(pos, IsInsideCell(pos));
+            }
+            else
+            {
+                sharpFeature = FeaturePoint.Empty;
+            }
+        }
+
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private readonly bool IsBelowLine(float2 p, float2 start, float2 end)
         {
             return (end.x - start.x) * (p.y - start.y) - (end.y - start.y) * (p.x - start.x) < 0f;
         }
 
-        private readonly FeaturePoint GetSharpFeature(Vector2 p1, Vector2 n1, Vector2 p2, Vector2 n2)
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private readonly bool IsSharpFeature(float2 n1, float2 n2)
         {
-            if (IsSharpFeature(n1, n2))
-            {
-                Vector2 pos = GetIntersection(p1, n1, p2, n2);
-                return new FeaturePoint(pos, IsInsideCell(pos));
-            }
-            else
-            {
-                return FeaturePoint.Empty;
-            }
-        }
-
-        private readonly bool IsSharpFeature(Vector2 n1, Vector2 n2)
-        {
-            float dot = Vector2.Dot(n1, -n2);
+            float dot = math.dot(n1, -n2);
             return dot >= SharpFeatureLimit && dot < 0.9999f;
         }
 
-        private readonly bool IsParallel(Vector2 n1, Vector2 n2, bool flip)
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private readonly bool IsParallel(float2 n1, float2 n2, bool flip)
         {
-            return Vector2.Dot(n1, flip ? -n2 : n2) > ParallelLimit;
+            return math.dot(n1, flip ? -n2 : n2) > ParallelLimit;
         }
 
-        private readonly Vector2 GetIntersection(Vector2 p1, Vector2 n1, Vector2 p2, Vector2 n2)
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private readonly float2 GetIntersection(float2 p1, float2 n1, float2 p2, float2 n2)
         {
-            Vector2 d2 = new(-n2.y, n2.x);
-            float u2 = -Vector2.Dot(n1, p2 - p1) / Vector2.Dot(n1, d2);
+            float2 d2 = new(-n2.y, n2.x);
+            float u2 = -math.dot(n1, p2 - p1) / math.dot(n1, d2);
             return p2 + d2 * u2;
         }
 
-        private readonly bool IsInsideCell(Vector2 point)
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private readonly bool IsInsideCell(float2 point)
         {
             return point.x > A.Position.x && point.y > A.Position.y &&
                    point.x < D.Position.x && point.y < D.Position.y;

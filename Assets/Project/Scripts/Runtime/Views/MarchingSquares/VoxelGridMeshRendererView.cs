@@ -510,7 +510,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         private void TriangulateCell(int chunkIndex, int cellIndex, in Voxel a, in Voxel b, in Voxel c, in Voxel d)
         {
             ref VoxelCell cell = ref _cells[chunkIndex];
-            cell.SetData(cellIndex, a, b, c, d);
+            cell.SetData(cellIndex, in a, in b, in c, in d);
 
             if (a.State == b.State)
             {
@@ -680,7 +680,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 fA = _cells[chunkIndex].FeatureSW, fB = _cells[chunkIndex].FeatureSE,
                 fC = _cells[chunkIndex].FeatureNW, fD = _cells[chunkIndex].FeatureNE;
 
-            if (_cells[chunkIndex].HasConnectionAD(fA, fD))
+            if (_cells[chunkIndex].HasConnectionAD(in fA, in fD))
             {
                 bool fBExists = fB.Exists;
                 bool fCExists = fC.Exists;
@@ -694,7 +694,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 FillB(chunkIndex, fB);
                 FillC(chunkIndex, fC);
             }
-            else if (_cells[chunkIndex].HasConnectionBC(fB, fC))
+            else if (_cells[chunkIndex].HasConnectionBC(in fB, in fC))
             {
                 bool fAExists = fA.Exists;
                 bool fDExists = fD.Exists;
@@ -727,7 +727,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 fA = _cells[chunkIndex].FeatureSW, fB = _cells[chunkIndex].FeatureSE,
                 fC = _cells[chunkIndex].FeatureNW, fD = _cells[chunkIndex].FeatureNE;
 
-            if (_cells[chunkIndex].HasConnectionBC(fB, fC))
+            if (_cells[chunkIndex].HasConnectionBC(in fB, in fC))
             {
                 bool fAExists = fA.Exists;
                 bool fDExists = fD.Exists;
@@ -741,7 +741,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 FillBCToA(chunkIndex, fA);
                 FillBCToD(chunkIndex, fD);
             }
-            else if (_cells[chunkIndex].B.Filled || _cells[chunkIndex].HasConnectionAD(fA, fD))
+            else if (_cells[chunkIndex].B.Filled || _cells[chunkIndex].HasConnectionAD(in fA, in fD))
             {
                 FillJoinedCorners(chunkIndex, fA, fB, fC, fD);
             }
@@ -758,7 +758,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 fA = _cells[chunkIndex].FeatureSW, fB = _cells[chunkIndex].FeatureSE,
                 fC = _cells[chunkIndex].FeatureNW, fD = _cells[chunkIndex].FeatureNE;
 
-            if (_cells[chunkIndex].HasConnectionAD(fA, fD))
+            if (_cells[chunkIndex].HasConnectionAD(in fA, in fD))
             {
                 bool fBExists = fB.Exists;
                 bool fCExists = fC.Exists;
@@ -772,7 +772,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 FillB(chunkIndex, fB);
                 FillC(chunkIndex, fC);
             }
-            else if (_cells[chunkIndex].A.Filled || _cells[chunkIndex].HasConnectionBC(fB, fC))
+            else if (_cells[chunkIndex].A.Filled || _cells[chunkIndex].HasConnectionBC(in fB, in fC))
             {
                 FillJoinedCorners(chunkIndex, fA, fB, fC, fD);
             }
@@ -926,9 +926,10 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             }
         }
 
+        //[BurstCompile]
         private void FillJoinedCorners(int chunkIndex, FeaturePoint fA, FeaturePoint fB, FeaturePoint fC, FeaturePoint fD)
         {
-            FeaturePoint point = FeaturePoint.Average(fA, fB, fC, fD);
+            FeaturePoint.Average(in fA, in fB, in fC, in fD, out FeaturePoint point);
 
             if (!point.Exists)
             {
