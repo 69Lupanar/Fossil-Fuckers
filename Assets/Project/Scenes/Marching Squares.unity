@@ -265,16 +265,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!4 &1354930912 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1608451359196424891, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-  m_PrefabInstance: {fileID: 6945605081276770205}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &1562860503 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4179844321039818934, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-  m_PrefabInstance: {fileID: 6945605081276770205}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2059198572
 GameObject:
   m_ObjectHideFlags: 0
@@ -453,54 +443,6 @@ PrefabInstance:
     - target: {fileID: 3913852497459597252, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: size
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: mapSize
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: voxelSpacing
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: chunkResolution
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: voxelResolution
-      value: 16
-      objectReference: {fileID: 0}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: <GridSize>k__BackingField
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: <ChunkResolution>k__BackingField
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: <VoxelResolution>k__BackingField
-      value: 16
-      objectReference: {fileID: 0}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: stencilVisualizations.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: 'stencilVisualizations.Array.data[0]'
-      value: 
-      objectReference: {fileID: 1562860503}
-    - target: {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: 'stencilVisualizations.Array.data[1]'
-      value: 
-      objectReference: {fileID: 1354930912}
-    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: _showGizmos
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

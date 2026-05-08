@@ -31,6 +31,12 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         private bool _useVoxelStateAsColors;
 
         /// <summary>
+        /// Espacement entre les voxels
+        /// </summary>
+        [SerializeField, Tooltip("Espacement entre les voxels"), Range(0f, 1f)]
+        private float _voxelSpacing = .1f;
+
+        /// <summary>
         /// Couleur d'un voxel vide
         /// </summary>
         [SerializeField]
@@ -89,7 +95,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                             // Pour chaque voxel...
 
                             Vector3 localPosition = new((x2 + 0.5f) * voxelSize, (y2 + 0.5f) * voxelSize);
-                            Vector3 localScale = _grid.VoxelSpacing * voxelSize * Vector3.one;
+                            Vector3 localScale = _voxelSpacing * voxelSize * Vector3.one;
 
                             if (!Application.isPlaying)
                             {

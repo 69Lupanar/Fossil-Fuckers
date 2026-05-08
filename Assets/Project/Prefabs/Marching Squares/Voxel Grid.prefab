@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1662046016798231970}
   - component: {fileID: 8803021385803124385}
   - component: {fileID: 4728409264632557542}
+  - component: {fileID: 1162015319623537944}
   m_Layer: 0
   m_Name: Voxel Grid
   m_TagString: Untagged
@@ -49,10 +50,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6eb9418d0cc024695928b083ccdb9813, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.ViewModels::VoxelMap
-  <MapSize>k__BackingField: 2
-  <VoxelResolution>k__BackingField: 8
+  <GridSize>k__BackingField: 8
+  <VoxelResolution>k__BackingField: 16
   <VoxelSpacing>k__BackingField: 0.1
-  <ChunkResolution>k__BackingField: 2
+  <ChunkResolution>k__BackingField: 8
   <MaxFeatureAngle>k__BackingField: 135
   <MaxParallelAngle>k__BackingField: 5
 --- !u!114 &1662046016798231970
@@ -67,31 +68,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ca1c7d89b9cf604da90e200736ec700, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::Assets.Project.Scripts.Runtime.Views.MarchingSquares.VoxelStencilEditView
-  <Grid>k__BackingField: {fileID: 6237090199471055437}
-  <MaterialTypeIndex>k__BackingField: 1
-  <RadiusIndex>k__BackingField: 0
-  <StencilIndex>k__BackingField: 1
-  <SnapToGrid>k__BackingField: 0
-  <FillTypeNames>k__BackingField:
-  - X
-  - A
-  - B
-  - C
-  - D
-  <RadiusNames>k__BackingField:
-  - 0
-  - 1
-  - 2
-  - 3
-  - 4
-  - 5
-  <StencilNames>k__BackingField:
-  - None
-  - Square
-  - Circle
-  <StencilVisualizations>k__BackingField:
-  - {fileID: 4179844321039818934}
-  - {fileID: 1608451359196424891}
 --- !u!114 &8803021385803124385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109,6 +85,7 @@ MonoBehaviour:
   _useVoxelStateAsColors: 0
   _emptyVoxelColor: {r: 1, g: 1, b: 1, a: 1}
   _filledVoxelColor: {r: 0, g: 0, b: 0, a: 1}
+  _deadVoxelColor: {r: 255, g: 0, b: 255, a: 1}
   _voxelStateColors:
   - {r: 1, g: 1, b: 1, a: 1}
   - {r: 1, g: 0, b: 0, a: 1}
@@ -138,6 +115,42 @@ MonoBehaviour:
     wallMaterial: {fileID: 2100000, guid: 1b58a44c7d3dd47ddba26c140b07a27f, type: 2}
   - surfaceMaterial: {fileID: 2100000, guid: 606e24c30ff644223a123cd42eac5aa5, type: 2}
     wallMaterial: {fileID: 2100000, guid: 20e8a06403f06433195638a6d797d2f1, type: 2}
+--- !u!114 &1162015319623537944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359065666056280568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c54ab3a038db6394584d973986080a45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::DigWithCursorView
+  <MaterialTypeIndex>k__BackingField: 1
+  <RadiusIndex>k__BackingField: 0
+  <StencilIndex>k__BackingField: 1
+  <SnapToGrid>k__BackingField: 0
+  <MaterialTypeNames>k__BackingField:
+  - X
+  - A
+  - B
+  - C
+  - D
+  <RadiusNames>k__BackingField:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  <StencilNames>k__BackingField:
+  - None
+  - Square
+  - Circle
+  <StencilVisualizations>k__BackingField:
+  - {fileID: 4179844321039818934}
+  - {fileID: 1608451359196424891}
 --- !u!1001 &1984657024383595350
 PrefabInstance:
   m_ObjectHideFlags: 0

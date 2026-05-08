@@ -1,5 +1,4 @@
-﻿using System;
-using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
+﻿using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
 using Unity.Burst;
 using Unity.Burst.CompilerServices;
@@ -36,12 +35,6 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         [field: SerializeField, Tooltip("Nombre de voxels par dimension de la carte")]
         public int VoxelResolution { get; private set; } = 8;
-
-        /// <summary>
-        /// Espacement entre les voxels
-        /// </summary>
-        [field: SerializeField, Tooltip("Espacement entre les voxels"), Range(0f, 1f)]
-        public float VoxelSpacing { get; private set; } = .1f;
 
         /// <summary>
         /// Taille d'un chunk
