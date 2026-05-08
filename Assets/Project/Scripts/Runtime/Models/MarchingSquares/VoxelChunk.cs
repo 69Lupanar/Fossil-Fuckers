@@ -43,7 +43,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// Constructeur
         /// </summary>
         /// <param name="voxelResolution">Résolution des voxels pour ce chunk</param>
-        /// <param name="chunkSize">Taille du chunk</param>
+        /// <param name="voxelSize">Taille du voxel</param>
         public VoxelChunk(int voxelResolution, float voxelSize)
         {
             Voxels = new Voxel[voxelResolution * voxelResolution];
@@ -56,6 +56,19 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
                     Voxels[i] = new Voxel(x, y, voxelSize);
                 }
             }
+        }
+
+        #endregion
+
+        #region Méthodes publiques
+
+        /// <summary>
+        /// Marque les voxels aux positions renseignées comme morts
+        /// </summary>
+        /// <param name="deadVoxelsPositions">Les positions des voxels morts</param>
+        public void SetDeadVoxels(IEnumerable<float2> deadVoxelsPositions)
+        {
+            DeadPositions.AddRange(deadVoxelsPositions);
         }
 
         #endregion

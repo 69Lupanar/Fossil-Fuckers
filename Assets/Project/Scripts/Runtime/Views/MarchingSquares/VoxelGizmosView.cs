@@ -1,5 +1,4 @@
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
-using Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares;
 using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
@@ -7,7 +6,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
     /// <summary>
     /// Affiche les voxels à l'écran
     /// </summary>
-    public class VoxelGizmosView : MonoBehaviour
+    public sealed class VoxelGizmosView : MonoBehaviour
     {
         #region Variables Unity
 
@@ -15,7 +14,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// La grille de voxels
         /// </summary>
         [SerializeField]
-        private VoxelGrid _grid;
+        private VoxelGridView _gridView;
 
         /// <summary>
         /// true pour afficher les gizmos
@@ -73,24 +72,24 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private void OnDrawGizmos()
         {
-            if (!_showGizmos)
+            if (!_showGizmos || _gridView == null)
                 return;
 
-            //float halfSize = _map.mapSize * 0.5f;
-            float chunkSize = _grid.GridSize / _grid.ChunkResolution;
-            float voxelSize = chunkSize / _grid.VoxelResolution;
+            //float halfSize = _gridView.GridSize * 0.5f;
+            float chunkSize = _gridView.GridSize / _gridView.ChunkResolution;
+            float voxelSize = chunkSize / _gridView.VoxelResolution;
 
-            for (int chunkIndex = 0, y = 0; y < _grid.ChunkResolution; ++y)
+            for (int chunkIndex = 0, y = 0; y < _gridView.ChunkResolution; ++y)
             {
-                for (int x = 0; x < _grid.ChunkResolution; ++x, ++chunkIndex)
+                for (int x = 0; x < _gridView.ChunkResolution; ++x, ++chunkIndex)
                 {
                     // Pour chaque chunk...
 
                     Vector3 chunkPos = new(x * chunkSize/* - halfSize*/, y * chunkSize/* - halfSize*/);
 
-                    for (int voxelIndex = 0, y2 = 0; y2 < _grid.VoxelResolution; ++y2)
+                    for (int voxelIndex = 0, y2 = 0; y2 < _gridView.VoxelResolution; ++y2)
                     {
-                        for (int x2 = 0; x2 < _grid.VoxelResolution; ++x2, ++voxelIndex)
+                        for (int x2 = 0; x2 < _gridView.VoxelResolution; ++x2, ++voxelIndex)
                         {
                             // Pour chaque voxel...
 
@@ -103,7 +102,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                             }
                             else
                             {
-                                VoxelChunk chunk = _grid.Chunks[chunkIndex];
+                                VoxelChunk chunk = _gridView.Grid.Chunks[chunkIndex];
                                 Voxel voxel = chunk.Voxels[voxelIndex];
 
                                 if (chunk.DeadPositions.Contains(voxel.Position))

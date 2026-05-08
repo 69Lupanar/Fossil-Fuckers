@@ -17,6 +17,18 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         #region Variables Unity
 
         /// <summary>
+        /// Angle max d'une section du mesh qui peut apparaître
+        /// </summary>
+        [field: SerializeField, Tooltip("Angle max d'une section du mesh qui peut apparaître")]
+        public float MaxFeatureAngle { get; private set; } = 135f;
+
+        /// <summary>
+        /// Angle max d'une section du mesh qui peut apparaître
+        /// </summary>
+        [field: SerializeField, Tooltip("Angle max d'une section du mesh qui peut apparaître")]
+        public float MaxParallelAngle { get; private set; } = 5f;
+
+        /// <summary>
         /// Prefab du mesh du chunk
         /// </summary>
         [field: SerializeField, Tooltip("Prefab du mesh du chunk")]
@@ -70,26 +82,16 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
         #endregion
 
-        #region Méthodes Unity
-
-        /// <summary>
-        /// init
-        /// </summary>
-        private void Awake()
-        {
-            _grid = FindAnyObjectByType<VoxelGrid>();
-        }
-
-        #endregion
-
         #region Méthodes publiques
 
         /// <summary>
         /// Crée les renderers pour les surfaces et murs
         /// </summary>
-        /// <param name="e">Données de l'événement</param>
-        public void Initialize(Vector3[] chunkPositions)
+        /// <param name="grid">Grille de voxels</param>
+        /// <param name="chunkPositions">Positions de chaque chunk</param>
+        public void Initialize(VoxelGrid grid, Vector3[] chunkPositions)
         {
+            _grid = grid;
             _voxelResolution = _grid.VoxelResolution;
             _chunkSize = _grid.GridSize / _grid.ChunkResolution;
             _cells = new VoxelCell[chunkPositions.Length];
@@ -100,7 +102,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
             for (int i = 0; i < chunkPositions.Length; ++i)
             {
-                _cells[i] = new VoxelCell(Mathf.Cos(_grid.MaxFeatureAngle * Mathf.Deg2Rad), Mathf.Cos(_grid.MaxParallelAngle * Mathf.Deg2Rad));
+                _cells[i] = new VoxelCell(Mathf.Cos(MaxFeatureAngle * Mathf.Deg2Rad), Mathf.Cos(MaxParallelAngle * Mathf.Deg2Rad));
                 _dummyXs[i] = new Voxel();
                 _dummyYs[i] = new Voxel();
                 _dummyTs[i] = new Voxel();

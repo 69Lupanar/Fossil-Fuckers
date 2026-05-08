@@ -11,8 +11,40 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
     /// <summary>
     /// Interface de la grille de voxels
     /// </summary>
-    public class VoxelGridView : MonoBehaviour
+    [SelectionBase]
+    public sealed class VoxelGridView : MonoBehaviour
     {
+        #region Propriétés
+
+        /// <summary>
+        /// Grille de voxels
+        /// </summary>
+        public VoxelGrid Grid => _grid;
+
+        #endregion
+
+        #region Variables Unity
+
+        /// <summary>
+        /// Nombre de chunks par dimension de la carte
+        /// </summary>
+        [field: SerializeField, Tooltip("Nombres de chunks par dimensions de la carte")]
+        public int GridSize { get; private set; } = 2;
+
+        /// <summary>
+        /// Taille d'un chunk
+        /// </summary>
+        [field: SerializeField, Tooltip("Taille d'un chunk")]
+        public int ChunkResolution { get; private set; } = 2;
+
+        /// <summary>
+        /// Nombre de voxels par dimension de la carte
+        /// </summary>
+        [field: SerializeField, Tooltip("Nombre de voxels par dimension de la carte")]
+        public int VoxelResolution { get; private set; } = 8;
+
+        #endregion
+
         #region Variables d'instance
 
         /// <summary>
@@ -54,8 +86,11 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private void Awake()
         {
-            _grid = GetComponent<VoxelGrid>();
             _renderer = GetComponent<VoxelGridMeshRendererView>();
+            BoxCollider box = gameObject.AddComponent<BoxCollider>();
+            float halfSize = GridSize * 0.5f;
+            box.size = new Vector3(GridSize, GridSize);
+            box.center = new Vector3(halfSize, halfSize);
         }
 
         #endregion
@@ -68,10 +103,11 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         [BurstCompile]
         public void CreateGrid()
         {
-            _chunkSize = _grid.GridSize / _grid.ChunkResolution;
-            _voxelSize = _chunkSize / _grid.VoxelResolution;
+            _chunkSize = GridSize / ChunkResolution;
+            _voxelSize = _chunkSize / VoxelResolution;
+            _grid = new VoxelGrid(GridSize, ChunkResolution, VoxelResolution);
             _grid.CreateGrid(out Vector3[] chunkPositions);
-            _renderer.Initialize(chunkPositions);
+            _renderer.Initialize(_grid, chunkPositions);
         }
 
         /// <summary>

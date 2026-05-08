@@ -265,6 +265,17 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &1560164764 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1662046016798231970, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+  m_PrefabInstance: {fileID: 6945605081276770205}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ca1c7d89b9cf604da90e200736ec700, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::Assets.Project.Scripts.Runtime.Views.MarchingSquares.VoxelStencilEditView
 --- !u!1 &2059198572
 GameObject:
   m_ObjectHideFlags: 0
@@ -404,6 +415,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Voxel Grid
       objectReference: {fileID: 0}
+    - target: {fileID: 1662046016798231970, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: <GridSize>k__BackingField
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1662046016798231970, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: <ChunkResolution>k__BackingField
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1662046016798231970, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: <VoxelResolution>k__BackingField
+      value: 16
+      objectReference: {fileID: 0}
     - target: {fileID: 3913852497459597252, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -444,7 +467,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _grid
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8803021385803124385, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
+      propertyPath: _gridView
+      value: 
+      objectReference: {fileID: 1560164764}
+    m_RemovedComponents:
+    - {fileID: 6237090199471055437, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

@@ -10,8 +10,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
     /// <summary>
     /// Grille de voxels divisée en chunks
     /// </summary>
-    [SelectionBase]
-    public class VoxelGrid : MonoBehaviour
+    public sealed class VoxelGrid
     {
         #region Propriétés
 
@@ -20,39 +19,20 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// </summary>
         public VoxelChunk[] Chunks { get; private set; }
 
-        #endregion
-
-        #region Variables Unity
-
         /// <summary>
         /// Nombre de chunks par dimension de la carte
         /// </summary>
-        [field: SerializeField, Tooltip("Nombres de chunks par dimensions de la carte")]
-        public float GridSize { get; private set; } = 2f;
-
-        /// <summary>
-        /// Nombre de voxels par dimension de la carte
-        /// </summary>
-        [field: SerializeField, Tooltip("Nombre de voxels par dimension de la carte")]
-        public int VoxelResolution { get; private set; } = 8;
+        public int GridSize { get; }
 
         /// <summary>
         /// Taille d'un chunk
         /// </summary>
-        [field: SerializeField, Tooltip("Taille d'un chunk")]
-        public int ChunkResolution { get; private set; } = 2;
+        public int ChunkResolution { get; }
 
         /// <summary>
-        /// Angle max d'une section du mesh qui peut apparaître
+        /// Nombre de voxels par dimension de la carte
         /// </summary>
-        [field: SerializeField, Tooltip("Angle max d'une section du mesh qui peut apparaître")]
-        public float MaxFeatureAngle { get; private set; } = 135f;
-
-        /// <summary>
-        /// Angle max d'une section du mesh qui peut apparaître
-        /// </summary>
-        [field: SerializeField, Tooltip("Angle max d'une section du mesh qui peut apparaître")]
-        public float MaxParallelAngle { get; private set; } = 5f;
+        public int VoxelResolution { get; }
 
         #endregion
 
@@ -61,21 +41,31 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Taille d'un chunk
         /// </summary>
-        private float _chunkSize;
+        private readonly float _chunkSize;
 
         /// <summary>
         /// Taille d'un voxel
         /// </summary>
-        private float _voxelSize;
-
-        /// <summary>
-        /// Moitié de la taille de la grille
-        /// </summary>
-        private float _halfSize;
+        private readonly float _voxelSize;
 
         #endregion
 
         #region Méthodes publiques
+
+        /// <summary>
+        /// Assigne de nouvelles dimensions à la grille
+        /// </summary>
+        /// <param name="gridSize">Taille de la grille</param>
+        /// <param name="chunkResolution"> Nombre de voxels par dimension de la carte</param>
+        /// <param name="voxelResolution">Taille d'un chunk</param>
+        public VoxelGrid(int gridSize, int chunkResolution, int voxelResolution)
+        {
+            GridSize = gridSize;
+            ChunkResolution = chunkResolution;
+            VoxelResolution = voxelResolution;
+            _chunkSize = GridSize / ChunkResolution;
+            _voxelSize = _chunkSize / VoxelResolution;
+        }
 
         /// <summary>
         /// Crée les chunks de la grille
@@ -84,16 +74,9 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         [BurstCompile, SkipLocalsInit]
         public void CreateGrid(out Vector3[] chunkPositions)
         {
-            _halfSize = GridSize * 0.5f;
-            _chunkSize = GridSize / ChunkResolution;
-            _voxelSize = _chunkSize / VoxelResolution;
-
-            BoxCollider box = gameObject.AddComponent<BoxCollider>();
-            box.size = new Vector3(GridSize, GridSize);
-            box.center = new Vector3(_halfSize, _halfSize);
-
             Chunks = new VoxelChunk[ChunkResolution * ChunkResolution];
             chunkPositions = new Vector3[ChunkResolution * ChunkResolution];
+            //float halfSize = GridSize * 0.5f;
 
             for (int i = 0, y = 0; y < ChunkResolution; ++y)
             {
@@ -116,7 +99,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
                     }
 
                     Chunks[i] = chunk;
-                    chunkPositions[i] = new Vector3(x * _chunkSize/* - _halfSize*/, y * _chunkSize/* - _halfSize*/);
+                    chunkPositions[i] = new Vector3(x * _chunkSize/* - halfSize*/, y * _chunkSize/* - halfSize*/);
                 }
             }
         }

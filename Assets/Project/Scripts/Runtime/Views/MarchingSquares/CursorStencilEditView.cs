@@ -8,57 +8,57 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
     /// Interface permettant d'éditer les propriétés
     /// de la brosse utilisée par le curseur
     /// </summary>
-    public class DigWithCursorView : MonoBehaviour
+    public sealed class CursorStencilEditView : MonoBehaviour
     {
         #region Variables Unity
 
         /// <summary>
         /// La couleur/material de remplissage de la brosse active
         /// </summary>
-        [field: SerializeField, Tooltip("La couleur/material de remplissage de la brosse active")]
-        private int MaterialTypeIndex { get; set; } = 1;
+        [SerializeField, Tooltip("La couleur/material de remplissage de la brosse active")]
+        private int _materialTypeIndex = 1;
 
         /// <summary>
         /// Le rayon de la brosse active
         /// </summary>
-        [field: SerializeField, Tooltip("Le rayon de la brosse active")]
-        private int RadiusIndex { get; set; } = 0;
+        [SerializeField, Tooltip("Le rayon de la brosse active")]
+        private int _radiusIndex = 0;
 
         /// <summary>
         /// La forme de la brosse active
         /// </summary>
-        [field: SerializeField, Tooltip("La forme de la brosse active")]
-        private int StencilIndex { get; set; } = 1;
+        [SerializeField, Tooltip("La forme de la brosse active")]
+        private int _stencilIndex = 1;
 
         /// <summary>
         /// true si la visualisation des brosses doit s'aligner avec la grille
         /// </summary>
-        [field: SerializeField, Tooltip("true si la visualisation des brosses doit s'aligner avec la grille")]
-        private bool SnapToGrid { get; set; } = false;
+        [SerializeField, Tooltip("true si la visualisation des brosses doit s'aligner avec la grille")]
+        private bool _snapToGrid = false;
 
         /// <summary>
         /// Noms des types de remplissage des brosses
         /// </summary>
-        [field: SerializeField, Tooltip("Noms des types de remplissage des brosses")]
-        private string[] MaterialTypeNames { get; set; } = { "X", "A", "B", "C", "D" };
+        [SerializeField, Tooltip("Noms des types de remplissage des brosses")]
+        private string[] _materialTypeNames = { "X", "A", "B", "C", "D" };
 
         /// <summary>
         /// Tailles des brosses
         /// </summary>
-        [field: SerializeField, Tooltip("Tailles des brosses")]
-        private string[] RadiusNames { get; set; } = { "0", "1", "2", "3", "4", "5" };
+        [SerializeField, Tooltip("Tailles des brosses")]
+        private string[] _radiusNames = { "0", "1", "2", "3", "4", "5" };
 
         /// <summary>
         /// Types des brosses
         /// </summary>
-        [field: SerializeField, Tooltip("Tailles des brosses")]
-        private string[] StencilNames { get; set; } = { "None", "Square", "Circle" };
+        [SerializeField, Tooltip("Tailles des brosses")]
+        private string[] _stencilNames = { "None", "Square", "Circle" };
 
         /// <summary>
         /// Les objets 3D représentant les brosses
         /// </summary>
-        [field: SerializeField, Tooltip("Les objets 3D représentant les brosses")]
-        private Transform[] StencilVisualizations { get; set; }
+        [SerializeField, Tooltip("Les objets 3D représentant les brosses")]
+        private Transform[] _stencilVisualizations;
 
         #endregion
 
@@ -103,7 +103,6 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private void Awake()
         {
-            _grid = GetComponent<VoxelGrid>();
             _gridView = GetComponent<VoxelGridView>();
         }
 
@@ -112,9 +111,9 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private void Start()
         {
-            _halfSize = _grid.GridSize * 0.5f;
-            _chunkSize = _grid.GridSize / _grid.ChunkResolution;
-            _voxelSize = _chunkSize / _grid.VoxelResolution;
+            _halfSize = _gridView.GridSize * 0.5f;
+            _chunkSize = _gridView.GridSize / _gridView.ChunkResolution;
+            _voxelSize = _chunkSize / _gridView.VoxelResolution;
             _gridView.CreateGrid();
         }
 
@@ -123,17 +122,17 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private void OnGUI()
         {
-            GUILayout.BeginArea(new Rect(4f, 4f, 150f, 500f));
+            GUILayout.BeginArea(new Rect(4f, 4f, 200f, 500f));
             GUILayout.Label("Fill Type");
-            MaterialTypeIndex = GUILayout.SelectionGrid(MaterialTypeIndex, MaterialTypeNames, 5);
+            _materialTypeIndex = GUILayout.SelectionGrid(_materialTypeIndex, _materialTypeNames, 5);
             GUILayout.Label("Radius");
-            RadiusIndex = GUILayout.SelectionGrid(RadiusIndex, RadiusNames, 6);
+            _radiusIndex = GUILayout.SelectionGrid(_radiusIndex, _radiusNames, 6);
             GUILayout.Label("Stencil");
-            StencilIndex = GUILayout.SelectionGrid(StencilIndex, StencilNames, 3);
+            _stencilIndex = GUILayout.SelectionGrid(_stencilIndex, _stencilNames, 3);
 
             if (GUILayout.Button("Fill Grid with current Material"))
             {
-                _gridView.Fill(MaterialTypeIndex);
+                _gridView.Fill(_materialTypeIndex);
             }
 
             GUILayout.EndArea();
@@ -146,10 +145,10 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             // Si l'index = 0, aucune brosse n'est active
 
-            if (StencilIndex == 0)
+            if (_stencilIndex == 0)
                 return;
 
-            Transform visualization = StencilVisualizations[StencilIndex - 1];
+            Transform visualization = _stencilVisualizations[_stencilIndex - 1];
 
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo) &&
                 hitInfo.collider.gameObject == gameObject)
@@ -158,7 +157,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 //center.x += _halfSize;
                 //center.y += _halfSize;
 
-                if (SnapToGrid)
+                if (_snapToGrid)
                 {
                     center.x = ((int)(center.x / _voxelSize) + 0.5f) * _voxelSize;
                     center.y = ((int)(center.y / _voxelSize) + 0.5f) * _voxelSize;
@@ -166,8 +165,8 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
                 if (Input.GetMouseButton(0))
                 {
-                    VoxelStencil stencil = _stencils[StencilIndex - 1];
-                    stencil.Initialize(MaterialTypeIndex, (RadiusIndex + 0.5f) * _voxelSize);
+                    VoxelStencil stencil = _stencils[_stencilIndex - 1];
+                    stencil.Initialize(_materialTypeIndex, (_radiusIndex + 0.5f) * _voxelSize);
                     stencil.SetCenter(center.x, center.y);
 
                     _gridView.ApplyStencil(stencil, transform.InverseTransformPoint(center));
@@ -176,7 +175,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 //center.x -= _halfSize;
                 //center.y -= _halfSize;
                 visualization.localPosition = center;
-                visualization.localScale = Vector3.one * ((RadiusIndex + 0.5f) * _voxelSize * 2f);
+                visualization.localScale = Vector3.one * ((_radiusIndex + 0.5f) * _voxelSize * 2f);
                 visualization.gameObject.SetActive(true);
             }
             else
