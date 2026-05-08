@@ -1,5 +1,7 @@
 using System;
+using System.Runtime.CompilerServices;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
+using Unity.Burst;
 using Unity.Mathematics;
 
 namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
@@ -8,6 +10,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
     /// Renderers des surfaces et murs
     /// </summary>
     [Serializable]
+    [BurstCompile]
     public readonly struct VoxelRenderer
     {
         #region Variables d'instance
@@ -62,6 +65,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Prépare le cache pour la cellule voisine
         /// </summary>
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void PrepareCacheForNextCell()
         {
             _surface.PrepareCacheForNextCell();
@@ -71,6 +76,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Prépare le cache pour la ligne voisine
         /// </summary>
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void PrepareCacheForNextRow()
         {
             _surface.PrepareCacheForNextRow();
@@ -80,6 +87,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Cache le 1er voxel (bas gauche)
         /// </summary>
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CacheFirstCorner(float2 voxelPosition)
         {
             _surface.CacheFirstCorner(voxelPosition);
@@ -96,6 +105,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Met en cache le point sur l'edge X
         /// </summary>
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CacheXEdge(int i, float2 xEdgePoint)
         {
             _surface.CacheXEdge(i, xEdgePoint);
@@ -104,6 +115,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Met en cache le point sur l'edge X
         /// </summary>
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CacheXEdgeWithWall(int i, float2 xEdgePoint, float2 xNormal)
         {
             _surface.CacheXEdge(i, xEdgePoint);
@@ -113,6 +126,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Met en cache le point sur l'edge Y
         /// </summary>
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CacheYEdge(float2 yEdgePoint)
         {
             _surface.CacheYEdge(yEdgePoint);
@@ -121,13 +136,16 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <summary>
         /// Met en cache le point sur l'edge Y
         /// </summary>
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CacheYEdgeWithWall(float2 yEdgePoint, float2 yNormal)
         {
             _surface.CacheYEdge(yEdgePoint);
             _wall.CacheYEdge(yEdgePoint, yNormal);
         }
 
-        public readonly void FillA(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillA(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -151,7 +169,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillB(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillB(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -175,7 +194,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillC(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillC(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -199,7 +219,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillD(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillD(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -223,7 +244,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillABC(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillABC(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -243,7 +265,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillABD(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillABD(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -263,7 +286,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillACD(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillACD(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -283,7 +307,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillBCD(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillBCD(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -303,7 +328,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillAB(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillAB(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -327,7 +353,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillAC(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillAC(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -351,7 +378,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillBD(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillBD(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -375,7 +403,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillCD(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillCD(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -399,7 +428,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillADToB(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillADToB(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -419,7 +449,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillADToC(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillADToC(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -439,7 +470,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillBCToA(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillBCToA(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -459,7 +491,8 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillBCToD(in VoxelCell cell, FeaturePoint f)
+        [BurstCompile]
+        public readonly void FillBCToD(in VoxelCell cell, in FeaturePoint f)
         {
             if (f.Exists)
             {
@@ -479,9 +512,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             }
         }
 
-        public readonly void FillABCD(VoxelCell cell)
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void FillABCD(int cellIndex)
         {
-            _surface.AddQuadABCD(cell.I);
+            _surface.AddQuadABCD(cellIndex);
         }
 
         #endregion

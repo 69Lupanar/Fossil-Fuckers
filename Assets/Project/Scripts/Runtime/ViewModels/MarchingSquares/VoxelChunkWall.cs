@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Unity.Burst;
 using Unity.Mathematics;
 using UnityEngine;
 
 /// <summary>
 /// Chargé de l'affichage du mesh des murs d'un chunk
 /// </summary>
+[BurstCompile]
 public class VoxelChunkWall : MonoBehaviour
 {
     #region Variables Unity
@@ -94,6 +97,7 @@ public class VoxelChunkWall : MonoBehaviour
     /// <summary>
     /// Met en cache le point sur l'edge X
     /// </summary>
+    [BurstCompile]
     public void CacheXEdge(int i, float2 xEdgePoint, float2 xNormal)
     {
         xEdgesMax[i] = vertices.Count;
@@ -110,6 +114,7 @@ public class VoxelChunkWall : MonoBehaviour
     /// <summary>
     /// Met en cache le point sur l'edge Y
     /// </summary>
+    [BurstCompile]
     public void CacheYEdge(float2 yEdgePoint, float2 yNormal)
     {
         yEdgeMax = vertices.Count;
@@ -126,6 +131,8 @@ public class VoxelChunkWall : MonoBehaviour
     /// <summary>
     /// Prépare le cache pour la cellule voisine
     /// </summary>
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void PrepareCacheForNextCell()
     {
         yEdgeMin = yEdgeMax;
@@ -134,166 +141,232 @@ public class VoxelChunkWall : MonoBehaviour
     /// <summary>
     /// Echange les lignes de cache
     /// </summary>
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void PrepareCacheForNextRow()
     {
         (xEdgesMax, xEdgesMin) = (xEdgesMin, xEdgesMax);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddACAB(int i)
     {
         AddSection(yEdgeMin, xEdgesMin[i]);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddACAB(int i, Vector2 extraVertex)
     {
         AddSection(yEdgeMin, xEdgesMin[i], extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddABAC(int i)
     {
         AddSection(xEdgesMin[i], yEdgeMin);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddABAC(int i, Vector2 extraVertex)
     {
         AddSection(xEdgesMin[i], yEdgeMin, extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddABBD(int i)
     {
         AddSection(xEdgesMin[i], yEdgeMax);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddABBD(int i, Vector2 extraVertex)
     {
         AddSection(xEdgesMin[i], yEdgeMax, extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddABCD(int i)
     {
         AddSection(xEdgesMin[i], xEdgesMax[i]);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddABCD(int i, Vector2 extraVertex)
     {
         AddSection(xEdgesMin[i], xEdgesMax[i], extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddACBD(int i)
     {
         AddSection(yEdgeMin, yEdgeMax);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddACBD(int i, Vector2 extraVertex)
     {
         AddSection(yEdgeMin, yEdgeMax, extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddACCD(int i)
     {
         AddSection(yEdgeMin, xEdgesMax[i]);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddACCD(int i, Vector2 extraVertex)
     {
         AddSection(yEdgeMin, xEdgesMax[i], extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddBDAB(int i)
     {
         AddSection(yEdgeMax, xEdgesMin[i]);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddBDAB(int i, Vector2 extraVertex)
     {
         AddSection(yEdgeMax, xEdgesMin[i], extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddBDAC(int i)
     {
         AddSection(yEdgeMax, yEdgeMin);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddBDAC(int i, Vector2 extraVertex)
     {
         AddSection(yEdgeMax, yEdgeMin, extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddBDCD(int i)
     {
         AddSection(yEdgeMax, xEdgesMax[i]);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddBDCD(int i, Vector2 extraVertex)
     {
         AddSection(yEdgeMax, xEdgesMax[i], extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddCDAB(int i)
     {
         AddSection(xEdgesMax[i], xEdgesMin[i]);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddCDAB(int i, Vector2 extraVertex)
     {
         AddSection(xEdgesMax[i], xEdgesMin[i], extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddCDAC(int i)
     {
         AddSection(xEdgesMax[i], yEdgeMin);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddCDAC(int i, Vector2 extraVertex)
     {
         AddSection(xEdgesMax[i], yEdgeMin, extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddCDBD(int i)
     {
         AddSection(xEdgesMax[i], yEdgeMax);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddCDBD(int i, Vector2 extraVertex)
     {
         AddSection(xEdgesMax[i], yEdgeMax, extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddFromAB(int i, Vector2 extraVertex)
     {
         AddHalfSection(xEdgesMin[i], extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddToAB(int i, Vector2 extraVertex)
     {
         AddHalfSection(extraVertex, xEdgesMin[i]);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddFromAC(int i, Vector2 extraVertex)
     {
         AddHalfSection(yEdgeMin, extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddToAC(int i, Vector2 extraVertex)
     {
         AddHalfSection(extraVertex, yEdgeMin);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddFromBD(int i, Vector2 extraVertex)
     {
         AddHalfSection(yEdgeMax, extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddToBD(int i, Vector2 extraVertex)
     {
         AddHalfSection(extraVertex, yEdgeMax);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddFromCD(int i, Vector2 extraVertex)
     {
         AddHalfSection(xEdgesMax[i], extraVertex);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddToCD(int i, Vector2 extraVertex)
     {
         AddHalfSection(extraVertex, xEdgesMax[i]);
@@ -306,6 +379,7 @@ public class VoxelChunkWall : MonoBehaviour
     /// <summary>
     /// Ajoute une section du mur
     /// </summary>
+    [BurstCompile]
     private void AddSection(int a, int b)
     {
         triangles.Add(a);
@@ -319,22 +393,29 @@ public class VoxelChunkWall : MonoBehaviour
     /// <summary>
     /// Ajoute une section du mur
     /// </summary>
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void AddSection(int a, int b, Vector3 extraPoint)
     {
         AddSection(a, AddPoint(extraPoint, a));
         AddSection(AddPoint(extraPoint, b), b);
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void AddHalfSection(int a, Vector3 extraPoint)
     {
         AddSection(a, AddPoint(extraPoint, a));
     }
 
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void AddHalfSection(Vector3 extraPoint, int a)
     {
         AddSection(AddPoint(extraPoint, a), a);
     }
 
+    [BurstCompile]
     private int AddPoint(Vector3 extraPoint, int normalIndex)
     {
         int p = vertices.Count;

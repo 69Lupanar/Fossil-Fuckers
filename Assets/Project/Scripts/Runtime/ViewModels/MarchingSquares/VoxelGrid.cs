@@ -1,6 +1,8 @@
 ﻿using System;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
+using Unity.Burst;
+using Unity.Burst.CompilerServices;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -86,23 +88,25 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// Crée les chunks de la grille
         /// </summary>
         /// <param name="chunkPositions">Positions de chaque chunk</param>
+        [BurstCompile, SkipLocalsInit]
         public void CreateGrid(out Vector3[] chunkPositions)
         {
             _halfSize = GridSize * 0.5f;
             _chunkSize = GridSize / ChunkResolution;
             _voxelSize = _chunkSize / VoxelResolution;
-            Chunks = new VoxelChunk[ChunkResolution * ChunkResolution];
 
-            chunkPositions = new Vector3[ChunkResolution * ChunkResolution];
             BoxCollider box = gameObject.AddComponent<BoxCollider>();
             box.size = new Vector3(GridSize, GridSize);
             box.center = new Vector3(_halfSize, _halfSize);
+
+            Chunks = new VoxelChunk[ChunkResolution * ChunkResolution];
+            chunkPositions = new Vector3[ChunkResolution * ChunkResolution];
 
             for (int i = 0, y = 0; y < ChunkResolution; ++y)
             {
                 for (int x = 0; x < ChunkResolution; ++x, ++i)
                 {
-                    VoxelChunk chunk = new(VoxelResolution, _chunkSize);
+                    VoxelChunk chunk = new(VoxelResolution, _voxelSize);
 
                     if (x > 0)
                     {
@@ -128,6 +132,7 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// Remplit la grille entière avec le type de material renseigné
         /// </summary>
         /// <param name="voxelState">Le type de material</param>
+        [BurstCompile]
         public void Fill(int voxelState)
         {
             for (int i = 0; i < Chunks.Length; ++i)

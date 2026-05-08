@@ -65,15 +65,28 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// </summary>
         /// <param name="x">Coord X</param>
         /// <param name="y">Coord Y</param>
-        /// <param name="size">Taille du voxel</param>
-        public Voxel(int x, int y, float size)
+        /// <param name="voxelSize">Taille du voxel</param>
+        public Voxel(int x, int y, float voxelSize)
         {
             State = 0;
-            Position = new float2((x + 0.5f) * size, (y + 0.5f) * size);
+            Position = new float2((x + 0.5f) * voxelSize, (y + 0.5f) * voxelSize);
             XEdge = float.MinValue;
             YEdge = float.MinValue;
             XNormal = float2.zero;
             YNormal = float2.zero;
+        }
+
+        /// <summary>
+        /// Constructeur
+        /// </summary>
+        public Voxel(int state, float2 position, float xEdge, float yEdge, float2 xNormal, float2 yNormal)
+        {
+            State = state;
+            Position = position;
+            XEdge = xEdge;
+            YEdge = yEdge;
+            XNormal = xNormal;
+            YNormal = yNormal;
         }
 
         #endregion

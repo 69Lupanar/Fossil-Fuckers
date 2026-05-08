@@ -44,7 +44,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
         /// </summary>
         /// <param name="voxelResolution">Résolution des voxels pour ce chunk</param>
         /// <param name="chunkSize">Taille du chunk</param>
-        public VoxelChunk(int voxelResolution, float chunkSize)
+        public VoxelChunk(int voxelResolution, float voxelSize)
         {
             Voxels = new Voxel[voxelResolution * voxelResolution];
             DeadPositions = new List<float2>();
@@ -53,7 +53,7 @@ namespace Assets.Project.Scripts.Runtime.Models.MarchingSquares
             {
                 for (int x = 0; x < voxelResolution; ++x, ++i)
                 {
-                    Voxels[i] = new Voxel(x, y, chunkSize / voxelResolution);
+                    Voxels[i] = new Voxel(x, y, voxelSize);
                 }
             }
         }

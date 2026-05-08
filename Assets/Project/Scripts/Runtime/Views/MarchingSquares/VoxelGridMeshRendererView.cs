@@ -1,6 +1,8 @@
+using System.Runtime.CompilerServices;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
 using Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares;
+using Unity.Burst;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -9,6 +11,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
     /// <summary>
     /// Charger de trianguler les voxels de la grille
     /// </summary>
+    [BurstCompile]
     public sealed class VoxelGridMeshRendererView : MonoBehaviour
     {
         #region Variables Unity
@@ -375,6 +378,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// Cache le 1er voxel (bas gauche)
         /// </summary>
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
+        [BurstCompile]
         private void CacheFirstCorner(int chunkIndex, in Voxel voxel)
         {
             if (voxel.Filled)
@@ -390,30 +394,33 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="cacheIndex">Position du voxel dans le cache</param>
         /// <param name="xMin">Voxel de gauche</param>
         /// <param name="xMax">Voxel de droite</param>
+        [BurstCompile]
         private void CacheNextEdgeAndCorner(int chunkIndex, int cacheIndex, in Voxel xMin, in Voxel xMax)
         {
+            VoxelRenderer[] chunkRenderers = _renderers[chunkIndex];
+
             if (xMin.State != xMax.State)
             {
                 if (xMin.Filled)
                 {
                     if (xMax.Filled)
                     {
-                        _renderers[chunkIndex][xMin.State].CacheXEdge(cacheIndex, xMin.XEdgePoint);
-                        _renderers[chunkIndex][xMax.State].CacheXEdge(cacheIndex, xMin.XEdgePoint);
+                        chunkRenderers[xMin.State].CacheXEdge(cacheIndex, xMin.XEdgePoint);
+                        chunkRenderers[xMax.State].CacheXEdge(cacheIndex, xMin.XEdgePoint);
                     }
                     else
                     {
-                        _renderers[chunkIndex][xMin.State].CacheXEdgeWithWall(cacheIndex, xMin.XEdgePoint, xMin.XNormal);
+                        chunkRenderers[xMin.State].CacheXEdgeWithWall(cacheIndex, xMin.XEdgePoint, xMin.XNormal);
                     }
                 }
                 else
                 {
-                    _renderers[chunkIndex][xMax.State].CacheXEdgeWithWall(cacheIndex, xMin.XEdgePoint, xMin.XNormal);
+                    chunkRenderers[xMax.State].CacheXEdgeWithWall(cacheIndex, xMin.XEdgePoint, xMin.XNormal);
                 }
             }
             if (xMax.Filled)
             {
-                _renderers[chunkIndex][xMax.State].CacheNextCorner(cacheIndex, xMax.Position);
+                chunkRenderers[xMax.State].CacheNextCorner(cacheIndex, xMax.Position);
             }
         }
 
@@ -423,11 +430,14 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
         /// <param name="yMin">Voxel du milieu gauche</param>
         /// <param name="yMax">Voxel du milieu droit</param>
+        [BurstCompile]
         private void CacheNextMiddleEdge(int chunkIndex, in Voxel yMin, in Voxel yMax)
         {
-            for (int i = 1; i < _renderers[chunkIndex].Length; ++i)
+            VoxelRenderer[] chunkRenderers = _renderers[chunkIndex];
+
+            for (int i = 1; i < chunkRenderers.Length; ++i)
             {
-                _renderers[chunkIndex][i].PrepareCacheForNextCell();
+                chunkRenderers[i].PrepareCacheForNextCell();
             }
 
             if (yMin.State != yMax.State)
@@ -436,17 +446,17 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                 {
                     if (yMax.Filled)
                     {
-                        _renderers[chunkIndex][yMin.State].CacheYEdge(yMin.YEdgePoint);
-                        _renderers[chunkIndex][yMax.State].CacheYEdge(yMin.YEdgePoint);
+                        chunkRenderers[yMin.State].CacheYEdge(yMin.YEdgePoint);
+                        chunkRenderers[yMax.State].CacheYEdge(yMin.YEdgePoint);
                     }
                     else
                     {
-                        _renderers[chunkIndex][yMin.State].CacheYEdgeWithWall(yMin.YEdgePoint, yMin.YNormal);
+                        chunkRenderers[yMin.State].CacheYEdgeWithWall(yMin.YEdgePoint, yMin.YNormal);
                     }
                 }
                 else
                 {
-                    _renderers[chunkIndex][yMax.State].CacheYEdgeWithWall(yMin.YEdgePoint, yMin.YNormal);
+                    chunkRenderers[yMax.State].CacheYEdgeWithWall(yMin.YEdgePoint, yMin.YNormal);
                 }
             }
         }
@@ -455,6 +465,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// Echange les lignes de cache
         /// </summary>
         /// <param name="chunkIndex">Index du chunk dans la grille</param>
+        [BurstCompile]
         private void SwapRowCaches(int chunkIndex)
         {
             for (int i = 1; i < _renderers[chunkIndex].Length; ++i)
@@ -469,13 +480,16 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="dummy">Voxel à convertir</param>
         /// <param name="other">Voxel à cloner</param>
         /// <param name="offset">Taille du chunk</param>
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void BecomeXDummyOf(ref Voxel dummy, in Voxel other, float offset)
         {
-            dummy.State = other.State;
-            dummy.Position = new float2(other.Position.x + offset, other.Position.y);
-            dummy.XEdge = other.XEdge + offset;
-            dummy.YEdge = other.YEdge;
-            dummy.YNormal = other.YNormal;
+            dummy = new Voxel(other.State,
+                              new float2(other.Position.x + offset, other.Position.y),
+                              other.XEdge + offset,
+                              other.YEdge,
+                              dummy.XNormal,
+                              other.YNormal);
         }
 
         /// <summary>
@@ -484,13 +498,16 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="dummy">Voxel à convertir</param>
         /// <param name="other">Voxel à cloner</param>
         /// <param name="offset">Taille du chunk</param>
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void BecomeYDummyOf(ref Voxel dummy, in Voxel other, float offset)
         {
-            dummy.State = other.State;
-            dummy.Position = new float2(other.Position.x, other.Position.y + offset);
-            dummy.XEdge = other.XEdge;
-            dummy.YEdge = other.YEdge + offset;
-            dummy.XNormal = other.XNormal;
+            dummy = new Voxel(other.State,
+                              new float2(other.Position.x, other.Position.y + offset),
+                              other.XEdge,
+                              other.YEdge + offset,
+                              other.XNormal,
+                              dummy.YNormal);
         }
 
         /// <summary>
@@ -499,14 +516,19 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="dummy">Voxel à convertir</param>
         /// <param name="other">Voxel à cloner</param>
         /// <param name="offset">Taille du chunk</param>
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void BecomeXYDummyOf(ref Voxel dummy, in Voxel other, float offset)
         {
-            dummy.State = other.State;
-            dummy.Position = new float2(other.Position.x + offset, other.Position.y + offset);
-            dummy.XEdge = other.XEdge + offset;
-            dummy.YEdge = other.YEdge + offset;
+            dummy = new Voxel(other.State,
+                              new float2(other.Position.x + offset, other.Position.y + offset),
+                              other.XEdge + offset,
+                              other.YEdge + offset,
+                              dummy.XNormal,
+                              dummy.YNormal);
         }
 
+        [BurstCompile]
         private void TriangulateCell(int chunkIndex, int cellIndex, in Voxel a, in Voxel b, in Voxel c, in Voxel d)
         {
             ref VoxelCell cell = ref _cells[chunkIndex];
@@ -595,339 +617,392 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             }
         }
 
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Triangulate0000(int chunkIndex)
         {
             FillABCD(chunkIndex);
         }
 
+        [BurstCompile]
         private void Triangulate0001(int chunkIndex)
         {
-            FeaturePoint f = _cells[chunkIndex].FeatureNE;
-            FillABC(chunkIndex, f);
-            FillD(chunkIndex, f);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillABC(chunkIndex, cell.FeatureNE);
+            FillD(chunkIndex, cell.FeatureNE);
         }
 
+        [BurstCompile]
         private void Triangulate0010(int chunkIndex)
         {
-            FeaturePoint f = _cells[chunkIndex].FeatureNW;
-            FillABD(chunkIndex, f);
-            FillC(chunkIndex, f);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillABD(chunkIndex, cell.FeatureNW);
+            FillC(chunkIndex, cell.FeatureNW);
         }
 
+        [BurstCompile]
         private void Triangulate0100(int chunkIndex)
         {
-            FeaturePoint f = _cells[chunkIndex].FeatureSE;
-            FillACD(chunkIndex, f);
-            FillB(chunkIndex, f);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillACD(chunkIndex, cell.FeatureSE);
+            FillB(chunkIndex, cell.FeatureSE);
         }
 
+        [BurstCompile]
         private void Triangulate0111(int chunkIndex)
         {
-            FeaturePoint f = _cells[chunkIndex].FeatureSW;
-            FillA(chunkIndex, f);
-            FillBCD(chunkIndex, f);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillA(chunkIndex, cell.FeatureSW);
+            FillBCD(chunkIndex, cell.FeatureSW);
         }
 
+        [BurstCompile]
         private void Triangulate0011(int chunkIndex)
         {
-            FeaturePoint f = _cells[chunkIndex].FeatureEW;
-            FillAB(chunkIndex, f);
-            FillCD(chunkIndex, f);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillAB(chunkIndex, cell.FeatureEW);
+            FillCD(chunkIndex, cell.FeatureEW);
         }
 
+        [BurstCompile]
         private void Triangulate0101(int chunkIndex)
         {
-            FeaturePoint f = _cells[chunkIndex].FeatureNS;
-            FillAC(chunkIndex, f);
-            FillBD(chunkIndex, f);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillAC(chunkIndex, cell.FeatureNS);
+            FillBD(chunkIndex, cell.FeatureNS);
         }
 
+        [BurstCompile]
         private void Triangulate0012(int chunkIndex)
         {
-            FeaturePoint f = _cells[chunkIndex].FeatureNEW;
-            FillAB(chunkIndex, f);
-            FillC(chunkIndex, f);
-            FillD(chunkIndex, f);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillAB(chunkIndex, cell.FeatureNEW);
+            FillC(chunkIndex, cell.FeatureNEW);
+            FillD(chunkIndex, cell.FeatureNEW);
         }
 
+        [BurstCompile]
         private void Triangulate0102(int chunkIndex)
         {
-            FeaturePoint f = _cells[chunkIndex].FeatureNSE;
-            FillAC(chunkIndex, f);
-            FillB(chunkIndex, f);
-            FillD(chunkIndex, f);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillAC(chunkIndex, cell.FeatureNSE);
+            FillB(chunkIndex, cell.FeatureNSE);
+            FillD(chunkIndex, cell.FeatureNSE);
         }
 
+        [BurstCompile]
         private void Triangulate0121(int chunkIndex)
         {
-            FeaturePoint f = _cells[chunkIndex].FeatureNSW;
-            FillA(chunkIndex, f);
-            FillBD(chunkIndex, f);
-            FillC(chunkIndex, f);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillA(chunkIndex, cell.FeatureNSW);
+            FillBD(chunkIndex, cell.FeatureNSW);
+            FillC(chunkIndex, cell.FeatureNSW);
         }
 
+        [BurstCompile]
         private void Triangulate0122(int chunkIndex)
         {
-            FeaturePoint f = _cells[chunkIndex].FeatureSEW;
-            FillA(chunkIndex, f);
-            FillB(chunkIndex, f);
-            FillCD(chunkIndex, f);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillA(chunkIndex, cell.FeatureSEW);
+            FillB(chunkIndex, cell.FeatureSEW);
+            FillCD(chunkIndex, cell.FeatureSEW);
         }
 
+        [BurstCompile]
         private void Triangulate0110(int chunkIndex)
         {
+            ref VoxelCell cell = ref _cells[chunkIndex];
             FeaturePoint
-                fA = _cells[chunkIndex].FeatureSW, fB = _cells[chunkIndex].FeatureSE,
-                fC = _cells[chunkIndex].FeatureNW, fD = _cells[chunkIndex].FeatureNE;
+                fA = cell.FeatureSW, fB = cell.FeatureSE,
+                fC = cell.FeatureNW, fD = cell.FeatureNE;
 
-            if (_cells[chunkIndex].HasConnectionAD(in fA, in fD))
+            if (cell.HasConnectionAD(in fA, in fD))
             {
                 bool fBExists = fB.Exists;
                 bool fCExists = fC.Exists;
-                fBExists &= _cells[chunkIndex].IsInsideABD(fB.Position);
-                fCExists &= _cells[chunkIndex].IsInsideACD(fC.Position);
+                fBExists &= cell.IsInsideABD(fB.Position);
+                fCExists &= cell.IsInsideACD(fC.Position);
                 fB = new FeaturePoint(fB.Position, fBExists);
                 fC = new FeaturePoint(fC.Position, fCExists);
 
-                FillADToB(chunkIndex, fB);
-                FillADToC(chunkIndex, fC);
-                FillB(chunkIndex, fB);
-                FillC(chunkIndex, fC);
+                FillADToB(chunkIndex, in fB);
+                FillADToC(chunkIndex, in fC);
+                FillB(chunkIndex, in fB);
+                FillC(chunkIndex, in fC);
             }
-            else if (_cells[chunkIndex].HasConnectionBC(in fB, in fC))
+            else if (cell.HasConnectionBC(in fB, in fC))
             {
                 bool fAExists = fA.Exists;
                 bool fDExists = fD.Exists;
-                fAExists &= _cells[chunkIndex].IsInsideABC(fA.Position);
-                fDExists &= _cells[chunkIndex].IsInsideBCD(fD.Position);
+                fAExists &= cell.IsInsideABC(fA.Position);
+                fDExists &= cell.IsInsideBCD(fD.Position);
                 fA = new FeaturePoint(fA.Position, fAExists);
                 fD = new FeaturePoint(fD.Position, fDExists);
 
-                FillA(chunkIndex, fA);
-                FillD(chunkIndex, fD);
-                FillBCToA(chunkIndex, fA);
-                FillBCToD(chunkIndex, fD);
+                FillA(chunkIndex, in fA);
+                FillD(chunkIndex, in fD);
+                FillBCToA(chunkIndex, in fA);
+                FillBCToD(chunkIndex, in fD);
             }
-            else if (_cells[chunkIndex].A.Filled && _cells[chunkIndex].B.Filled)
+            else if (cell.A.Filled && cell.B.Filled)
             {
-                FillJoinedCorners(chunkIndex, fA, fB, fC, fD);
+                FillJoinedCorners(chunkIndex, in fA, in fB, in fC, in fD);
             }
             else
             {
-                FillA(chunkIndex, fA);
-                FillB(chunkIndex, fB);
-                FillC(chunkIndex, fC);
-                FillD(chunkIndex, fD);
+                FillA(chunkIndex, in fA);
+                FillB(chunkIndex, in fB);
+                FillC(chunkIndex, in fC);
+                FillD(chunkIndex, in fD);
             }
         }
 
+        [BurstCompile]
         private void Triangulate0112(int chunkIndex)
         {
+            ref VoxelCell cell = ref _cells[chunkIndex];
             FeaturePoint
-                fA = _cells[chunkIndex].FeatureSW, fB = _cells[chunkIndex].FeatureSE,
-                fC = _cells[chunkIndex].FeatureNW, fD = _cells[chunkIndex].FeatureNE;
+                fA = cell.FeatureSW, fB = cell.FeatureSE,
+                fC = cell.FeatureNW, fD = cell.FeatureNE;
 
-            if (_cells[chunkIndex].HasConnectionBC(in fB, in fC))
+            if (cell.HasConnectionBC(in fB, in fC))
             {
                 bool fAExists = fA.Exists;
                 bool fDExists = fD.Exists;
-                fAExists &= _cells[chunkIndex].IsInsideABC(fA.Position);
-                fDExists &= _cells[chunkIndex].IsInsideBCD(fD.Position);
+                fAExists &= cell.IsInsideABC(fA.Position);
+                fDExists &= cell.IsInsideBCD(fD.Position);
                 fA = new FeaturePoint(fA.Position, fAExists);
                 fD = new FeaturePoint(fD.Position, fDExists);
 
-                FillA(chunkIndex, fA);
-                FillD(chunkIndex, fD);
-                FillBCToA(chunkIndex, fA);
-                FillBCToD(chunkIndex, fD);
+                FillA(chunkIndex, in fA);
+                FillD(chunkIndex, in fD);
+                FillBCToA(chunkIndex, in fA);
+                FillBCToD(chunkIndex, in fD);
             }
-            else if (_cells[chunkIndex].B.Filled || _cells[chunkIndex].HasConnectionAD(in fA, in fD))
+            else if (cell.B.Filled || cell.HasConnectionAD(in fA, in fD))
             {
-                FillJoinedCorners(chunkIndex, fA, fB, fC, fD);
+                FillJoinedCorners(chunkIndex, in fA, in fB, in fC, in fD);
             }
             else
             {
-                FillA(chunkIndex, fA);
-                FillD(chunkIndex, fD);
+                FillA(chunkIndex, in fA);
+                FillD(chunkIndex, in fD);
             }
         }
 
+        [BurstCompile]
         private void Triangulate0120(int chunkIndex)
         {
+            ref VoxelCell cell = ref _cells[chunkIndex];
             FeaturePoint
-                fA = _cells[chunkIndex].FeatureSW, fB = _cells[chunkIndex].FeatureSE,
-                fC = _cells[chunkIndex].FeatureNW, fD = _cells[chunkIndex].FeatureNE;
+                fA = cell.FeatureSW, fB = cell.FeatureSE,
+                fC = cell.FeatureNW, fD = cell.FeatureNE;
 
-            if (_cells[chunkIndex].HasConnectionAD(in fA, in fD))
+            if (cell.HasConnectionAD(in fA, in fD))
             {
                 bool fBExists = fB.Exists;
                 bool fCExists = fC.Exists;
-                fBExists &= _cells[chunkIndex].IsInsideABD(fB.Position);
-                fCExists &= _cells[chunkIndex].IsInsideACD(fC.Position);
+                fBExists &= cell.IsInsideABD(fB.Position);
+                fCExists &= cell.IsInsideACD(fC.Position);
                 fB = new FeaturePoint(fB.Position, fBExists);
                 fC = new FeaturePoint(fC.Position, fCExists);
 
-                FillADToB(chunkIndex, fB);
-                FillADToC(chunkIndex, fC);
-                FillB(chunkIndex, fB);
-                FillC(chunkIndex, fC);
+                FillADToB(chunkIndex, in fB);
+                FillADToC(chunkIndex, in fC);
+                FillB(chunkIndex, in fB);
+                FillC(chunkIndex, in fC);
             }
-            else if (_cells[chunkIndex].A.Filled || _cells[chunkIndex].HasConnectionBC(in fB, in fC))
+            else if (cell.A.Filled || cell.HasConnectionBC(in fB, in fC))
             {
-                FillJoinedCorners(chunkIndex, fA, fB, fC, fD);
+                FillJoinedCorners(chunkIndex, in fA, in fB, in fC, in fD);
             }
             else
             {
-                FillB(chunkIndex, fB);
-                FillC(chunkIndex, fC);
+                FillB(chunkIndex, in fB);
+                FillC(chunkIndex, in fC);
             }
         }
 
+        [BurstCompile]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Triangulate0123(int chunkIndex)
         {
-            FillJoinedCorners(chunkIndex,
-                _cells[chunkIndex].FeatureSW, _cells[chunkIndex].FeatureSE,
-                _cells[chunkIndex].FeatureNW, _cells[chunkIndex].FeatureNE);
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            FillJoinedCorners(chunkIndex, cell.FeatureSW, cell.FeatureSE, cell.FeatureNW, cell.FeatureNE);
         }
 
-        private void FillA(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillA(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].A.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillA(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.A.State].FillA(in cell, in f);
             }
         }
 
-        private void FillB(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillB(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].B.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillB(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.B.State].FillB(in cell, in f);
             }
         }
 
-        private void FillC(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillC(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].C.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.C.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].C.State].FillC(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.C.State].FillC(in cell, in f);
             }
         }
 
-        private void FillD(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillD(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].D.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.D.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].D.State].FillD(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.D.State].FillD(in cell, in f);
             }
         }
 
-        private void FillABC(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillABC(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].A.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillABC(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.A.State].FillABC(in cell, in f);
             }
         }
 
-        private void FillABD(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillABD(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].A.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillABD(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.A.State].FillABD(in cell, in f);
             }
         }
 
-        private void FillACD(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillACD(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].A.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillACD(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.A.State].FillACD(in cell, in f);
             }
         }
 
-        private void FillBCD(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillBCD(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].B.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCD(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.B.State].FillBCD(in cell, in f);
             }
         }
 
-        private void FillAB(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillAB(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].A.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillAB(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.A.State].FillAB(in cell, in f);
             }
         }
 
-        private void FillAC(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillAC(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].A.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillAC(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.A.State].FillAC(in cell, in f);
             }
         }
 
-        private void FillBD(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillBD(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].B.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBD(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.B.State].FillBD(in cell, in f);
             }
         }
 
-        private void FillCD(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillCD(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].C.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.C.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].C.State].FillCD(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.C.State].FillCD(in cell, in f);
             }
         }
 
-        private void FillADToB(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillADToB(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].A.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillADToB(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.A.State].FillADToB(in cell, in f);
             }
         }
 
-        private void FillADToC(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillADToC(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].A.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillADToC(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.A.State].FillADToC(in cell, in f);
             }
         }
 
-        private void FillBCToA(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillBCToA(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].B.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCToA(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.B.State].FillBCToA(in cell, in f);
             }
         }
 
-        private void FillBCToD(int chunkIndex, FeaturePoint f)
+        [BurstCompile]
+        private void FillBCToD(int chunkIndex, in FeaturePoint f)
         {
-            if (_cells[chunkIndex].B.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.B.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].B.State].FillBCToD(in _cells[chunkIndex], f);
+                _renderers[chunkIndex][cell.B.State].FillBCToD(in cell, in f);
             }
         }
 
+        [BurstCompile]
         private void FillABCD(int chunkIndex)
         {
-            if (_cells[chunkIndex].A.Filled)
+            ref VoxelCell cell = ref _cells[chunkIndex];
+            if (cell.A.Filled)
             {
-                _renderers[chunkIndex][_cells[chunkIndex].A.State].FillABCD(_cells[chunkIndex]);
+                _renderers[chunkIndex][cell.A.State].FillABCD(cell.I);
             }
         }
 
-        //[BurstCompile]
-        private void FillJoinedCorners(int chunkIndex, FeaturePoint fA, FeaturePoint fB, FeaturePoint fC, FeaturePoint fD)
+        [BurstCompile]
+        private void FillJoinedCorners(int chunkIndex, in FeaturePoint fA, in FeaturePoint fB, in FeaturePoint fC, in FeaturePoint fD)
         {
             FeaturePoint.Average(in fA, in fB, in fC, in fD, out FeaturePoint point);
 
