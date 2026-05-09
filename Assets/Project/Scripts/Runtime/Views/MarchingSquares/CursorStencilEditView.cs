@@ -1,5 +1,7 @@
+using System.Collections.Generic;
+using Assets.Project.Scripts.Runtime.Models.MarchingSquares;
 using Assets.Project.Scripts.Runtime.Models.MarchingSquares.Stencils;
-using Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
@@ -28,7 +30,19 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// La forme de la brosse active
         /// </summary>
         [SerializeField, Tooltip("La forme de la brosse active")]
-        private int _stencilIndex = 1;
+        private int _stencilShapeIndex = 1;
+
+        /// <summary>
+        /// Délai avant de remplir les voxels effacés par la brosse
+        /// </summary>
+        [SerializeField, Tooltip("Délai avant de remplir les voxels effacés par la brosse")]
+        private float _delayBeforeRestore = 3f;
+
+        /// <summary>
+        /// true si l'on doit restaurer les voxels effacés après un certain temps
+        /// </summary>
+        [SerializeField, Tooltip("true si l'on doit restaurer les voxels effacés après un certain temps")]
+        private bool _restoreEmptiedVoxels = false;
 
         /// <summary>
         /// true si la visualisation des brosses doit s'aligner avec la grille
@@ -67,12 +81,12 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <summary>
         /// Grille des voxels
         /// </summary>
-        private VoxelGrid _grid;
+        private VoxelGridView _gridView;
 
         /// <summary>
-        /// Grille des voxels
+        /// Renderer
         /// </summary>
-        private VoxelGridView _gridView;
+        private VoxelGridMeshRendererView _renderer;
 
         /// <summary>
         /// Brosses
@@ -94,6 +108,36 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private float _halfSize;
 
+        /// <summary>
+        /// Délais pour chaque voxel
+        /// </summary>
+        private readonly List<float> _timersQueue = new();
+
+        /// <summary>
+        /// Queue utilisée lors de la restauration
+        /// </summary>
+        private readonly Queue<int2> _chunkVoxelIDsQueue = new();
+
+        /// <summary>
+        /// Queue utilisée lors de la restauration
+        /// </summary>
+        private readonly Queue<float2> _voxelPosQueue = new();
+
+        /// <summary>
+        /// Queue utilisée lors de la restauration
+        /// </summary>
+        private readonly Queue<Voxel> _voxelsQueue = new();
+
+        /// <summary>
+        /// Queue utilisée lors de la restauration
+        /// </summary>
+        private readonly Queue<int> _voxelStatesQueue = new();
+
+        /// <summary>
+        /// Brosses utilisées lors de la restauration
+        /// </summary>
+        private readonly VoxelStencil _restoreStencil = new VoxelStencilSquare();
+
         #endregion
 
         #region Méthodes Unity
@@ -104,6 +148,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         private void Awake()
         {
             _gridView = GetComponent<VoxelGridView>();
+            _renderer = GetComponent<VoxelGridMeshRendererView>();
         }
 
         /// <summary>
@@ -128,7 +173,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             GUILayout.Label("Radius");
             _radiusIndex = GUILayout.SelectionGrid(_radiusIndex, _radiusNames, 6);
             GUILayout.Label("Stencil");
-            _stencilIndex = GUILayout.SelectionGrid(_stencilIndex, _stencilNames, 3);
+            _stencilShapeIndex = GUILayout.SelectionGrid(_stencilShapeIndex, _stencilNames, 3);
 
             if (GUILayout.Button("Fill Grid with current Material"))
             {
@@ -145,10 +190,14 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             // Si l'index = 0, aucune brosse n'est active
 
-            if (_stencilIndex == 0)
+            if (_stencilShapeIndex == 0)
                 return;
 
-            Transform visualization = _stencilVisualizations[_stencilIndex - 1];
+            // On restaure les voxels effacés après un certain temps
+
+            RestoreVoxelsOverTime();
+
+            Transform visualization = _stencilVisualizations[_stencilShapeIndex - 1];
 
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo) &&
                 hitInfo.collider.gameObject == gameObject)
@@ -165,10 +214,21 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
 
                 if (Input.GetMouseButton(0))
                 {
-                    VoxelStencil stencil = _stencils[_stencilIndex - 1];
+                    VoxelStencil stencil = _stencils[_stencilShapeIndex - 1];
                     stencil.Initialize(_materialTypeIndex, (_radiusIndex + 0.5f) * _voxelSize);
                     stencil.SetCenter(center.x, center.y);
 
+                    // Avant d'appliquer la brosse, on enregistre les voxels
+                    // que l'on compte restaurer s'ils doivent être effacés
+
+                    if (_materialTypeIndex == 0)
+                    {
+                        RegisterVoxels(stencil, transform.InverseTransformPoint(center));
+                    }
+
+                    // On applique la brosse
+
+                    stencil.SetCenter(center.x, center.y);
                     _gridView.ApplyStencil(stencil, transform.InverseTransformPoint(center));
                 }
 
@@ -181,6 +241,99 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             else
             {
                 visualization.gameObject.SetActive(false);
+            }
+        }
+
+        #endregion
+
+        #region Méthodes privées
+
+        /// <summary>
+        /// Restaure les voxels au cours de temps
+        /// </summary>
+        private void RestoreVoxelsOverTime()
+        {
+            for (int i = 0; i < _timersQueue.Count; ++i)
+            {
+                _timersQueue[i] -= Time.deltaTime;
+            }
+
+            while (_timersQueue.Count > 0 && _timersQueue[0] <= 0f)
+            {
+                _timersQueue.RemoveAt(0);
+                int state = _voxelStatesQueue.Dequeue();
+                float2 voxelPos = _voxelPosQueue.Dequeue();
+                int2 ids = _chunkVoxelIDsQueue.Dequeue();
+                VoxelChunk chunk = _gridView.Grid.Chunks[ids.x];
+
+                _restoreStencil.Initialize(state, 0.5f * _voxelSize);
+                _restoreStencil.SetCenter(voxelPos.x, voxelPos.y);
+                _gridView.Grid.ApplyStencil(_restoreStencil, chunk, out int4 bounds);
+                _gridView.Grid.Chunks[ids.x].Voxels[ids.y] = _voxelsQueue.Dequeue();    // Offre un peu plus de précision
+                _renderer.SetCrossings(_restoreStencil, chunk, ids.x, bounds);
+                _renderer.Refresh(chunk, ids.x);
+            }
+        }
+
+        /// <summary>
+        /// Enregistre les voxels pour leur restauration
+        /// </summary>
+        /// <param name="stencil">La brosse active</param>
+        /// <param name="center">Position du curseur</param>
+        private void RegisterVoxels(VoxelStencil stencil, Vector3 center)
+        {
+            int xStart = math.max(0, (int)((stencil.XStart - _voxelSize) / _chunkSize));
+            int xEnd = math.min((int)((stencil.XEnd + _voxelSize) / _chunkSize), _gridView.ChunkResolution - 1);
+            int yStart = math.max(0, (int)((stencil.YStart - _voxelSize) / _chunkSize));
+            int yEnd = math.min((int)((stencil.YEnd + _voxelSize) / _chunkSize), _gridView.ChunkResolution - 1);
+
+            for (int y = yEnd; y >= yStart; --y)
+            {
+                int chunkIndex = y * _gridView.ChunkResolution + xEnd;
+
+                for (int x = xEnd; x >= xStart; --x, --chunkIndex)
+                {
+                    VoxelChunk chunk = _gridView.Grid.Chunks[chunkIndex];
+                    stencil.SetCenter(center.x - x * _chunkSize, center.y - y * _chunkSize);
+                    RegisterVoxels(stencil, chunk, chunkIndex);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Enregistre les voxels pour leur restauration
+        /// </summary>
+        /// <param name="stencil">La brosse active</param>
+        /// <param name="chunk">Chunk affecté</param>
+        /// <param name="chunkIndex">Index du chunk dans la grille</param>
+        private void RegisterVoxels(VoxelStencil stencil, VoxelChunk chunk, int chunkIndex)
+        {
+            int xStart = math.max(0, (int)(stencil.XStart / _voxelSize));
+            int xEnd = math.min((int)(stencil.XEnd / _voxelSize), _gridView.VoxelResolution - 1);
+            int yStart = math.max(0, (int)(stencil.YStart / _voxelSize));
+            int yEnd = math.min((int)(stencil.YEnd / _voxelSize), _gridView.VoxelResolution - 1);
+
+            // On traverse toute la zone rectangulaire englobant la brosse
+            // pour modifier les voxels concernés
+
+            for (int y = yStart; y <= yEnd; ++y)
+            {
+                int voxelIndex = y * _gridView.VoxelResolution + xStart;
+
+                for (int x = xStart; x <= xEnd; ++x, ++voxelIndex)
+                {
+                    Voxel v = chunk.Voxels[voxelIndex];
+                    int2 ids = new(chunkIndex, voxelIndex);
+
+                    if (v.State != 0 && !_chunkVoxelIDsQueue.Contains(ids))
+                    {
+                        _timersQueue.Add(_delayBeforeRestore);
+                        _voxelPosQueue.Enqueue(v.Position);
+                        _voxelStatesQueue.Enqueue(v.State);
+                        _chunkVoxelIDsQueue.Enqueue(ids);
+                        _voxelsQueue.Enqueue(v);
+                    }
+                }
             }
         }
 

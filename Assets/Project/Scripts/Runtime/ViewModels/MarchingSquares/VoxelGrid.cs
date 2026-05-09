@@ -128,10 +128,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
         /// <param name="bounds">Limite de la zone rectangulaire affectée par la brosse</param>
         public void ApplyStencil(VoxelStencil stencil, VoxelChunk chunk, out int4 bounds)
         {
-            int xStart = Mathf.Max(0, (int)(stencil.XStart / _voxelSize));
-            int xEnd = Mathf.Min((int)(stencil.XEnd / _voxelSize), VoxelResolution - 1);
-            int yStart = Mathf.Max(0, (int)(stencil.YStart / _voxelSize));
-            int yEnd = Mathf.Min((int)(stencil.YEnd / _voxelSize), VoxelResolution - 1);
+            int xStart = math.max(0, (int)(stencil.XStart / _voxelSize));
+            int xEnd = math.min((int)(stencil.XEnd / _voxelSize), VoxelResolution - 1);
+            int yStart = math.max(0, (int)(stencil.YStart / _voxelSize));
+            int yEnd = math.min((int)(stencil.YEnd / _voxelSize), VoxelResolution - 1);
             bounds = new int4(xStart, xEnd, yStart, yEnd);
 
             // On traverse toute la zone rectangulaire englobant la brosse
@@ -139,11 +139,11 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
             for (int y = yStart; y <= yEnd; ++y)
             {
-                int i = y * VoxelResolution + xStart;
+                int voxelIndex = y * VoxelResolution + xStart;
 
-                for (int x = xStart; x <= xEnd; ++x, ++i)
+                for (int x = xStart; x <= xEnd; ++x, ++voxelIndex)
                 {
-                    stencil.Apply(ref chunk.Voxels[i]);
+                    stencil.Apply(ref chunk.Voxels[voxelIndex]);
                 }
             }
         }

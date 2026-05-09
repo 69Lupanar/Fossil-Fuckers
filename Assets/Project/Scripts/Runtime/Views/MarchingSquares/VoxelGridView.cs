@@ -129,10 +129,10 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <param name="center">Position du curseur</param>
         public void ApplyStencil(VoxelStencil stencil, Vector3 center)
         {
-            int xStart = Mathf.Max(0, (int)((stencil.XStart - _voxelSize) / _chunkSize));
-            int xEnd = Mathf.Min((int)((stencil.XEnd + _voxelSize) / _chunkSize), _grid.ChunkResolution - 1);
-            int yStart = Mathf.Max(0, (int)((stencil.YStart - _voxelSize) / _chunkSize));
-            int yEnd = Mathf.Min((int)((stencil.YEnd + _voxelSize) / _chunkSize), _grid.ChunkResolution - 1);
+            int xStart = math.max(0, (int)((stencil.XStart - _voxelSize) / _chunkSize));
+            int xEnd = math.min((int)((stencil.XEnd + _voxelSize) / _chunkSize), _grid.ChunkResolution - 1);
+            int yStart = math.max(0, (int)((stencil.YStart - _voxelSize) / _chunkSize));
+            int yEnd = math.min((int)((stencil.YEnd + _voxelSize) / _chunkSize), _grid.ChunkResolution - 1);
             _chunksToRefresh.Clear();
             _chunksIDsToRefresh.Clear();
 
@@ -194,8 +194,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         {
             foreach (float2 pos in chunk.DeadPositions)
             {
-                Vector3 center = new(pos.x, pos.y);
-                deadStencil.SetCenter(center.x, center.y);
+                deadStencil.SetCenter(pos.x, pos.y);
                 _grid.ApplyStencil(deadStencil, chunk, out int4 bounds);
                 _renderer.SetCrossings(deadStencil, chunk, chunkIndex, bounds);
             }
