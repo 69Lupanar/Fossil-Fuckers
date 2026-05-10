@@ -1,0 +1,1 @@
+Note : La restauration des voxels effacés cause une erreur lors de la retriangulation du mesh. Je ne sais pas comment le résoudre, mais pour l'instant ça a pas l'air de causer de problèmes, donc on le laisse pour l'instant. Si on trouve pas comment le résoudre, on abandonne l'idée

@@ -190,7 +190,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <summary>
         /// Vide les voxels morts
         /// </summary>
-        private void EmptyDeadCellsInChunk(VoxelStencil deadStencil, VoxelChunk chunk, int chunkIndex)
+        public void EmptyDeadCellsInChunk(VoxelStencil deadStencil, VoxelChunk chunk, int chunkIndex)
         {
             foreach (float2 pos in chunk.DeadPositions)
             {
