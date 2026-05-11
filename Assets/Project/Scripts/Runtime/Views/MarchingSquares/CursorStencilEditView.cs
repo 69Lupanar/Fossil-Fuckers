@@ -15,6 +15,12 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         #region Variables Unity
 
         /// <summary>
+        /// GameObject de la grille de voxels
+        /// </summary>
+        [SerializeField, Tooltip("GameObject de la grille de voxels")]
+        private GameObject _voxelGridGO;
+
+        /// <summary>
         /// La couleur/material de remplissage de la brosse active
         /// </summary>
         [SerializeField, Tooltip("La couleur/material de remplissage de la brosse active")]
@@ -147,8 +153,8 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// </summary>
         private void Awake()
         {
-            _gridView = GetComponent<VoxelGridView>();
-            _renderer = GetComponent<VoxelGridMeshRendererView>();
+            _gridView = _voxelGridGO.GetComponent<VoxelGridView>();
+            _renderer = _voxelGridGO.GetComponent<VoxelGridMeshRendererView>();
         }
 
         /// <summary>
@@ -200,7 +206,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
             Transform visualization = _stencilVisualizations[_stencilShapeIndex - 1];
 
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo) &&
-                hitInfo.collider.gameObject == gameObject)
+                hitInfo.collider.gameObject == _voxelGridGO)
             {
                 Vector2 center = transform.InverseTransformPoint(hitInfo.point);
                 //center.x += _halfSize;
@@ -221,14 +227,14 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
                     // Avant d'appliquer la brosse, on enregistre les voxels
                     // que l'on compte restaurer s'ils doivent être effacés
 
-                    if (_materialTypeIndex == 0)
+                    if (_restoreEmptiedVoxels && _materialTypeIndex == 0)
                     {
                         RegisterVoxels(stencil, transform.InverseTransformPoint(center));
+                        stencil.SetCenter(center.x, center.y);
                     }
 
                     // On applique la brosse
 
-                    stencil.SetCenter(center.x, center.y);
                     _gridView.ApplyStencil(stencil, transform.InverseTransformPoint(center));
                 }
 

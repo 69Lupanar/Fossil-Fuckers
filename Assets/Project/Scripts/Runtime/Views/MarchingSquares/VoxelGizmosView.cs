@@ -70,7 +70,7 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <summary>
         /// Affiche les gizmos dans l'éditeur
         /// </summary>
-        private void OnDrawGizmos()
+        private void OnDrawGizmosSelected()
         {
             if (!_showGizmos || _gridView == null)
                 return;

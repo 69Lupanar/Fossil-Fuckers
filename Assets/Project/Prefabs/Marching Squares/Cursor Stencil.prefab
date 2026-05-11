@@ -1,0 +1,199 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7121137644305873070
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1996187589080234822}
+  - component: {fileID: 4676843363624758008}
+  m_Layer: 0
+  m_Name: Cursor Stencil
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1996187589080234822
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7121137644305873070}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3991034776587263381}
+  - {fileID: 4757972395735385647}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4676843363624758008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7121137644305873070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c54ab3a038db6394584d973986080a45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assets.Project.Scripts.Runtime.Views::DigWithCursorView
+  _voxelGridGO: {fileID: 0}
+  _materialTypeIndex: 1
+  _radiusIndex: 0
+  _stencilShapeIndex: 1
+  _delayBeforeRestore: 3
+  _restoreEmptiedVoxels: 0
+  _snapToGrid: 0
+  _materialTypeNames:
+  - X
+  - A
+  - B
+  - C
+  - D
+  _radiusNames:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  _stencilNames:
+  - None
+  - Square
+  - Circle
+  _stencilVisualizations:
+  - {fileID: 3991034776587263381}
+  - {fileID: 4757972395735385647}
+--- !u!1001 &4959529202519963106
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1996187589080234822}
+    m_Modifications:
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.3930898
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -11.96995
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8878935600651321910, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+      propertyPath: m_Name
+      value: Stencil Square
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+--- !u!4 &3991034776587263381 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8336384408467941495, guid: 9bb531f7e4eaff849a0ef1a739e26bb6, type: 3}
+  m_PrefabInstance: {fileID: 4959529202519963106}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5755319253449809858
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1996187589080234822}
+    m_Modifications:
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.3930898
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -11.96995
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3294458408155929931, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+      propertyPath: m_Name
+      value: Stencil Circle
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+--- !u!4 &4757972395735385647 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 997748465079130605, guid: 48fb5fc038acda64ba31cc289516b876, type: 3}
+  m_PrefabInstance: {fileID: 5755319253449809858}
+  m_PrefabAsset: {fileID: 0}

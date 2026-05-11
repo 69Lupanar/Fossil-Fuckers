@@ -28,19 +28,19 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         /// <summary>
         /// Nombre de chunks par dimension de la carte
         /// </summary>
-        [field: SerializeField, Tooltip("Nombres de chunks par dimensions de la carte")]
+        [field: SerializeField, Tooltip("Nombres de chunks par dimensions de la carte"), Min(1)]
         public int GridSize { get; private set; } = 2;
 
         /// <summary>
         /// Taille d'un chunk
         /// </summary>
-        [field: SerializeField, Tooltip("Taille d'un chunk")]
+        [field: SerializeField, Tooltip("Taille d'un chunk"), Min(1)]
         public int ChunkResolution { get; private set; } = 2;
 
         /// <summary>
         /// Nombre de voxels par dimension de la carte
         /// </summary>
-        [field: SerializeField, Tooltip("Nombre de voxels par dimension de la carte")]
+        [field: SerializeField, Tooltip("Nombre de voxels par dimension de la carte"), Min(1)]
         public int VoxelResolution { get; private set; } = 8;
 
         #endregion
@@ -80,6 +80,18 @@ namespace Assets.Project.Scripts.Runtime.Views.MarchingSquares
         #endregion
 
         #region Méthodes Unity
+
+#if UNITY_EDITOR
+
+        /// <summary>
+        /// Appelée quand une variable de l'inspecteur change
+        /// </summary>
+        private void OnValidate()
+        {
+            ChunkResolution = math.min(ChunkResolution, GridSize);
+        }
+
+#endif
 
         /// <summary>
         /// init
