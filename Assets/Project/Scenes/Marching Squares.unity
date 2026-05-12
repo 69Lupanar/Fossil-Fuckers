@@ -507,18 +507,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Voxel Grid
       objectReference: {fileID: 0}
-    - target: {fileID: 1662046016798231970, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: <GridSize>k__BackingField
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 1662046016798231970, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: <ChunkResolution>k__BackingField
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 1662046016798231970, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
-      propertyPath: <VoxelResolution>k__BackingField
-      value: 8
-      objectReference: {fileID: 0}
     - target: {fileID: 3913852497459597252, guid: bb3c89ef455fb0145b2fbdbef62ee1e9, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

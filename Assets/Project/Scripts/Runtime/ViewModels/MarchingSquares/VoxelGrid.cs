@@ -50,10 +50,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
 
         #endregion
 
-        #region Méthodes publiques
+        #region Constructeur
 
         /// <summary>
-        /// Assigne de nouvelles dimensions à la grille
+        /// Constructeur
         /// </summary>
         /// <param name="gridSize">Taille de la grille</param>
         /// <param name="chunkResolution"> Nombre de voxels par dimension de la carte</param>
@@ -66,6 +66,10 @@ namespace Assets.Project.Scripts.Runtime.ViewModels.MarchingSquares
             _chunkSize = GridSize / ChunkResolution;
             _voxelSize = _chunkSize / VoxelResolution;
         }
+
+        #endregion
+
+        #region Méthodes publiques
 
         /// <summary>
         /// Crée les chunks de la grille
